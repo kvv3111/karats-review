@@ -1,0 +1,135 @@
+{
+  "updated": "2026-10-16T19:20:13.881444+00:00",
+  "reference": "versions/reference/visual-reference.png",
+  "items": [
+    {
+      "id": "R17",
+      "title": "Свет и материалы: новый проход",
+      "status": "На просмотр",
+      "note": "Короткий физически рассчитанный переход. 7 секунд, 24 кадра/с. Это видео, не интерактивный сайт.",
+      "video": "versions/R17/Karats-realism-transition.mp4",
+      "image": "versions/R17/Karats-new-render.png"
+    },
+    {
+      "id": "R16",
+      "title": "Gallery Five: интерактивный зал",
+      "status": "Рабочий 3D-макет",
+      "note": "Пять позиций в одном зале. Одна демонстрационная модель Ferrari. Фотореалистичные материалы из R17 сюда ещё не перенесены.",
+      "html": "versions/R16/Karats-Gallery-Five.html",
+      "video": "versions/R16/Karats-Gallery-Five-preview.mp4",
+      "image": "versions/R16/room-car-0.webp"
+    },
+    {
+      "id": "R15",
+      "title": "Полный павильон",
+      "status": "Отклонённая схема",
+      "note": "Исторический эксперимент с отдельными зонами. Сохранён для сравнения, разработка этого направления остановлена.",
+      "html": "versions/R15/Karats-Full-Pavilion.html"
+    },
+    {
+      "id": "R14",
+      "title": "Pavilion V2",
+      "status": "Предыдущая версия",
+      "note": "Три выставочные позиции и детальная модель автомобиля. Не реальное наличие.",
+      "html": "versions/R14/Karats-Pavilion-V2.html",
+      "video": "versions/R14/Karats-Pavilion-V2-preview.mp4"
+    },
+    {
+      "id": "R13",
+      "title": "Первый интерактивный павильон",
+      "status": "Архив",
+      "note": "Ранняя пространственная версия.",
+      "html": "versions/R13/Karats-Pavilion.html"
+    },
+    {
+      "id": "R12",
+      "title": "Киножурнал A",
+      "status": "Архив",
+      "note": "Каталог и журнальная композиция. Прежняя концепция, не текущее направление.",
+      "html": "versions/R12/Karats-Cinema-A.html",
+      "video": "versions/R12/Karats-Cinema-A.mp4"
+    },
+    {
+      "id": "R11",
+      "title": "Концепция Collection",
+      "status": "Архив",
+      "note": "Один из трёх ранних вариантов перехода.",
+      "html": "versions/R11/Karats-collection.html",
+      "video": "versions/R11/03-Karats-Collection.mp4"
+    },
+    {
+      "id": "R10",
+      "title": "Концепция Journey",
+      "status": "Архив",
+      "note": "Один из трёх ранних вариантов перехода.",
+      "html": "versions/R10/Karats-journey.html",
+      "video": "versions/R10/02-Karats-Journey.mp4"
+    },
+    {
+      "id": "R09",
+      "title": "Концепция World",
+      "status": "Архив",
+      "note": "Один из трёх ранних вариантов перехода.",
+      "html": "versions/R09/Karats-world.html",
+      "video": "versions/R09/01-Karats-World.mp4"
+    },
+    {
+      "id": "R08",
+      "title": "Направление B",
+      "status": "Архив",
+      "note": "Ранний визуальный тест.",
+      "html": "versions/R08/Karats-B.html",
+      "video": "versions/R08/Karats-B-Motion.mp4"
+    },
+    {
+      "id": "R07",
+      "title": "Направление A",
+      "status": "Архив",
+      "note": "Ранний визуальный тест.",
+      "html": "versions/R07/Karats-A.html",
+      "video": "versions/R07/Karats-A-Motion.mp4"
+    },
+    {
+      "id": "R06",
+      "title": "Каталог V5",
+      "status": "Отклонённый вариант",
+      "note": "Сохранён только для истории сравнения.",
+      "html": "versions/R06/Karats-Auto-v5.html",
+      "video": "versions/R06/Karats-Auto-v5-Mobile.mp4"
+    },
+    {
+      "id": "R05",
+      "title": "Atelier V4",
+      "status": "Архив",
+      "note": "Ранняя визуальная проба, не текущая архитектура.",
+      "html": "versions/R05/Karats-Atelier-v4.html",
+      "video": "versions/R05/Karats-Atelier-Mobile-v4.mp4"
+    },
+    {
+      "id": "R04",
+      "title": "Прототип V3",
+      "status": "Архив",
+      "note": "Прежний мобильный сценарий и временная айдентика.",
+      "html": "versions/R04/Karats-Auto-v3.html",
+      "video": "versions/R04/Karats-Auto-Mobile-v3.mp4",
+      "image": "versions/R04/Karats-Auto-Emblems-A-E.jpg"
+    },
+    {
+      "id": "R03",
+      "title": "Прототип V2",
+      "status": "Архив",
+      "note": "Ранний каталог.",
+      "html": "versions/R03/Karats-Auto-v2.html",
+      "video": "versions/R03/motion-preview.mp4",
+      "image": "versions/R03/home-desktop.png"
+    },
+    {
+      "id": "R02",
+      "title": "Прототип V1",
+      "status": "Архив",
+      "note": "Самая ранняя версия каталога.",
+      "html": "versions/R02/Karats-Auto-Prototype.html",
+      "image": "versions/R02/home-desktop.png"
+    }
+  ]
+}
