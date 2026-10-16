@@ -1,0 +1,50 @@
+[
+  {
+    "file": "01-master.png",
+    "title": "01 · Главный кадр",
+    "note": "Эталон без автомобиля. Основной вход для первого теста Marble.",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2480154,
+    "sha256": "f5dc4757267e57a2991d7a014f5d46d1c34c865128874a0afb5e9a6f16a7f687",
+    "requested_quality": "high",
+    "reported_quality": "low",
+    "prompt": "Photorealistic architectural photograph of the same empty KARATS AUTO pavilion as the supplied reference. Preserve warm pale limestone tiles with natural pores and satin reflections, cream mineral plaster, warm vertical oak slats, thin dark window frames, olive courtyard and soft sun with leaf shadows. Same time of day, exposure and material colors. No cars, people, furniture or podiums. No redesign, collage, fisheye or CGI plastic look. Request highest native quality; preserve reference aspect ratio. Keep original camera and architecture unchanged. Remove only the Ferrari, its contact shadow and reflection; restore continuous limestone floor and the lower oak slats. Preserve KARATS AUTO lettering and the narrow opening on the right of the feature wall."
+  },
+  {
+    "file": "02-left-oblique.png",
+    "title": "02 · Поворот к остеклению",
+    "note": "Дополнительный косой ракурс, не направление Left на 90 градусов. Генератор добавил угловой участок стекла и изменил вид клумбы: не считать точной реконструкцией.",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2708046,
+    "sha256": "1d9e71f7f5a59e0aafce0b23c5210854c97c39faab122f1763c0493f43874315",
+    "requested_quality": "high",
+    "reported_quality": "medium",
+    "prompt": "Photorealistic architectural photograph of the same empty KARATS AUTO pavilion as the supplied reference. Preserve warm pale limestone tiles with natural pores and satin reflections, cream mineral plaster, warm vertical oak slats, thin dark window frames, olive courtyard and soft sun with leaf shadows. Same time of day, exposure and material colors. No cars, people, furniture or podiums. No redesign, collage, fisheye or CGI plastic look. Request highest native quality; preserve reference aspect ratio. Use the empty master as reference. From approximately the same camera position turn about 25 degrees left toward the garden glazing. Keep the oak feature wall on the right with overlap. Preserve window geometry, planter and floor grid; do not introduce a glass corner or duplicate walls."
+  },
+  {
+    "file": "03-right-oblique.png",
+    "title": "03 · Поворот к штукатурной стене",
+    "note": "Перекрывается с главным кадром. Фактура пола и пропорции могут отличаться; требует проверки стыковки в Marble.",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2301361,
+    "sha256": "0a783e1442e63a3ccb1ac8664819fb17e6dacb4eef5ad4117511c257edb1ec73",
+    "requested_quality": "high",
+    "reported_quality": "low",
+    "prompt": "Photorealistic architectural photograph of the same empty KARATS AUTO pavilion as the supplied reference. Preserve warm pale limestone tiles with natural pores and satin reflections, cream mineral plaster, warm vertical oak slats, thin dark window frames, olive courtyard and soft sun with leaf shadows. Same time of day, exposure and material colors. No cars, people, furniture or podiums. No redesign, collage, fisheye or CGI plastic look. Request highest native quality; preserve reference aspect ratio. Use the empty master as reference. From approximately the same camera position turn about 25 degrees right. Keep the oak feature wall left, the same narrow opening beside it, broad uninterrupted cream plaster on the right. Daylight enters from off-frame left. Preserve tile size and grain."
+  },
+  {
+    "file": "04-reverse-proposal.png",
+    "title": "04 · Обратная сторона, предложение",
+    "note": "Новая невидимая в эталоне архитектура, ещё не согласована. Стекло справа, штукатурка слева, вход впереди. Не загружать в первый тест.",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2525959,
+    "sha256": "c652ce00068239e1d6fb718f56a56c3f8732574b7f893db14bd94ec5f584a614",
+    "requested_quality": "high",
+    "reported_quality": "medium",
+    "prompt": "Photorealistic architectural photograph of the same empty KARATS AUTO pavilion as the supplied reference. Preserve warm pale limestone tiles with natural pores and satin reflections, cream mineral plaster, warm vertical oak slats, thin dark window frames, olive courtyard and soft sun with leaf shadows. Same time of day, exposure and material colors. No cars, people, furniture or podiums. No redesign, collage, fisheye or CGI plastic look. Request highest native quality; preserve reference aspect ratio. Propose the unseen reverse side of this single room. Rotate camera 180 degrees: original oak feature wall behind camera, garden glazing on right, cream plaster on left. Opposite end has one tall dark-framed glazed double entrance door. Simple flat plaster ceiling. No second KARATS sign. Same floor and daylight, now entering from right."
+  }
+]
