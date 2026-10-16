@@ -1,0 +1,66 @@
+[
+  {
+    "file": "05-hall-study.png",
+    "sha256": "9ef0bc954b218d6beff3dfb2db29cad3d79e37e970e328b491577ac47caf7db6"
+  },
+  {
+    "file": "06-arrival-study.png",
+    "sha256": "79ff733fcee1beaf880bc5545c094e4854139cbd2858ee652618e7f35db72dea"
+  },
+  {
+    "file": "07-office-study.png",
+    "sha256": "05769edbf85b68f205285db83f924df732f854207815767e4cd6952b14578c4d"
+  },
+  {
+    "file": "plan.png",
+    "sha256": "9bb319045d6b98f63369e339ec9e7d9d5ad406a937659be321c4333e04e89a66"
+  },
+  {
+    "file": "01-arrival-axis.png",
+    "sha256": "dd62243b5df027b64fd064b0d7254ad6f691b72b1cfe9ed6a426a686ec5a8cf9"
+  },
+  {
+    "file": "02-furnished-hall.png",
+    "sha256": "3f1837c4744b73fa8e68aaa9ea83b2edd7eca287e3cff307ada19da357f65272"
+  },
+  {
+    "file": "03-office-brand.png",
+    "sha256": "fcbeb1104b901d4e1fcfead4338b1a6489a1f22c42c911b84d4816ac9af14131"
+  },
+  {
+    "file": "04-reverse-lounge.png",
+    "sha256": "8a01cc0106892c0dfdcf93063b6b526ae7fefd9c7d8ee856b6c7667115e0b4d1"
+  },
+  {
+    "file": "Karats-R22-Chisel.glb",
+    "sha256": "e0c691997c697550f162b4eb3111299546e555cb119da184532fd76b08d17ea6"
+  },
+  {
+    "file": "layout.json",
+    "sha256": "fffa62e2c32e4c4d3fdb79d287b1a024e88b93a93b87c5bf7a8c32bde47f6ed3"
+  },
+  {
+    "file": "checks.json",
+    "sha256": "4989350104f8b9ad21e53d2a44a3d760ebf26b67a5b00282072b85ef14f072e4"
+  },
+  {
+    "file": "export-checks.json",
+    "sha256": "61260b637f75ed412e7aae83596a393e8d3c1f62caf1643cc8e0c9fa51729e22"
+  },
+  {
+    "file": "image-provenance.json",
+    "sha256": "dbe65c173ed0b2d5f258c0232f77d1265bc1bb7ad3e3ed3131b08e6c524126f8"
+  },
+  {
+    "file": "Marble-prompt.txt",
+    "sha256": "be6b46cfe9389567d8c56cf6b72862bc91fb3aa01556351b7134bb3b38d62864"
+  },
+  {
+    "file": "README.md",
+    "sha256": "035557e84109f447b0bd85241d648a8bbb69d5cb8ae75106f4f81a87a4e2c3be"
+  },
+  {
+    "file": "index.html",
+    "sha256": "57b819fddf9388ed6142fab0ddeb36c0d4f019841856171a99e4fc6ab4888094"
+  }
+]

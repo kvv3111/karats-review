@@ -1,0 +1,26 @@
+{
+  "entry_brand_sightlines": [
+    {
+      "target": [
+        29.79,
+        9,
+        3.95
+      ],
+      "first_hit": "EAST_SOLID_WALL",
+      "x": 29.999998092651367
+    },
+    {
+      "target": [
+        29.79,
+        9,
+        1.5
+      ],
+      "first_hit": "BRAND_OAK_BACKING",
+      "x": 29.90000343322754
+    }
+  ],
+  "furniture_outside_display_zones": true,
+  "aisle_clear": true,
+  "cameras_same_scene": 4,
+  "turning_movements": "not certified"
+}

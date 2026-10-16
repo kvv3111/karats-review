@@ -1,0 +1,16 @@
+{
+  "status": "pass",
+  "actual_glb_roundtrip": true,
+  "cameras": 4,
+  "brand_center_y": 9,
+  "entry_sightlines": [
+    "BRAND_OAK_BACKING",
+    "EAST_SOLID_WALL"
+  ],
+  "required_furniture_present": true,
+  "dimensions_m": [
+    30,
+    18,
+    5.5
+  ]
+}

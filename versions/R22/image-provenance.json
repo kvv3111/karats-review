@@ -1,0 +1,35 @@
+[
+  {
+    "file": "05-hall-study.png",
+    "role": "AI appearance refinement of fixed geometry, not calibrated camera capture",
+    "requested_quality": "high",
+    "reported_quality": "low",
+    "model": "gpt-image-2-high",
+    "native_size": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "file": "06-arrival-study.png",
+    "role": "AI appearance refinement of fixed geometry, not calibrated camera capture",
+    "requested_quality": "high",
+    "reported_quality": "low",
+    "model": "gpt-image-2-high",
+    "native_size": [
+      1536,
+      1024
+    ]
+  },
+  {
+    "file": "07-office-study.png",
+    "role": "AI appearance refinement of fixed geometry, not calibrated camera capture",
+    "requested_quality": "high",
+    "reported_quality": "medium",
+    "model": "gpt-image-2-high",
+    "native_size": [
+      1536,
+      1024
+    ]
+  }
+]

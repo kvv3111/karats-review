@@ -1,0 +1,264 @@
+{
+  "version": "R22",
+  "units": "metres",
+  "blender_axes": "X length, Y width, Z up",
+  "glTF_axes": "X length, Y up, Z negative width",
+  "interior": [
+    30,
+    18,
+    5.5
+  ],
+  "area_m2": 540,
+  "zones": [
+    {
+      "id": 1,
+      "center": [
+        6,
+        14
+      ],
+      "size": [
+        8,
+        6
+      ],
+      "vehicle_envelope": [
+        5.2,
+        2.2
+      ]
+    },
+    {
+      "id": 2,
+      "center": [
+        15,
+        14
+      ],
+      "size": [
+        8,
+        6
+      ],
+      "vehicle_envelope": [
+        5.2,
+        2.2
+      ]
+    },
+    {
+      "id": 3,
+      "center": [
+        24,
+        14
+      ],
+      "size": [
+        8,
+        6
+      ],
+      "vehicle_envelope": [
+        5.2,
+        2.2
+      ]
+    },
+    {
+      "id": 4,
+      "center": [
+        10.5,
+        4
+      ],
+      "size": [
+        8,
+        6
+      ],
+      "vehicle_envelope": [
+        5.2,
+        2.2
+      ]
+    },
+    {
+      "id": 5,
+      "center": [
+        19.5,
+        4
+      ],
+      "size": [
+        8,
+        6
+      ],
+      "vehicle_envelope": [
+        5.2,
+        2.2
+      ]
+    }
+  ],
+  "aisle": {
+    "y": [
+      7,
+      11
+    ],
+    "width": 4
+  },
+  "garden": {
+    "olive_positions": [
+      [
+        2.5,
+        24
+      ],
+      [
+        9,
+        23
+      ],
+      [
+        16,
+        24.7
+      ],
+      [
+        23,
+        23.2
+      ],
+      [
+        29.5,
+        25
+      ]
+    ],
+    "facade": "north y=18;10 bays of3m;left when facing brand wall",
+    "boundary_y": 31
+  },
+  "cameras": [
+    {
+      "id": "01-arrival-axis",
+      "pos": [
+        -6,
+        9,
+        1.75
+      ],
+      "target": [
+        29.8,
+        9,
+        2.2
+      ],
+      "lens": 24
+    },
+    {
+      "id": "02-furnished-hall",
+      "pos": [
+        1.1,
+        1.1,
+        1.8
+      ],
+      "target": [
+        23,
+        9,
+        2.0
+      ],
+      "lens": 22
+    },
+    {
+      "id": "03-office-brand",
+      "pos": [
+        20.5,
+        10.5,
+        1.65
+      ],
+      "target": [
+        28,
+        5.7,
+        1.7
+      ],
+      "lens": 26
+    },
+    {
+      "id": "04-reverse-lounge",
+      "pos": [
+        18,
+        12,
+        1.9
+      ],
+      "target": [
+        1,
+        5.8,
+        1.5
+      ],
+      "lens": 24
+    }
+  ],
+  "status": "Furnished shared geometry; artistic photographic quality must be inspected independently.",
+  "doors": {
+    "main": {
+      "wall": "west",
+      "span_y": [
+        6,
+        12
+      ],
+      "height": 3.6,
+      "type": "side-folding glazed gate; shown fully open; no central post"
+    },
+    "pedestrian": {
+      "wall": "west",
+      "span_y": [
+        2,
+        3.6
+      ],
+      "height": 2.7
+    }
+  },
+  "node_names": "Historic SOUTH_/NORTH_ node names predate global handedness correction; actual transforms are authoritative.",
+  "forecourt": {
+    "bounds_x": [
+      -14,
+      0
+    ],
+    "bounds_y": [
+      0,
+      18
+    ],
+    "surface_z": 0
+  },
+  "brand": {
+    "wall": "east x30",
+    "slats_span_y": [
+      3.1,
+      14.9
+    ],
+    "lettering_center": [
+      29.79,
+      9,
+      3.75
+    ]
+  },
+  "furniture": {
+    "lounge_bounds": [
+      1.3,
+      3.5,
+      5.7,
+      6.3
+    ],
+    "office_bounds": [
+      24.55,
+      0.2,
+      29.05,
+      5.6
+    ],
+    "sofa": [
+      3.4,
+      5.65
+    ],
+    "coffee_table": [
+      3.4,
+      4.22
+    ],
+    "desk": [
+      27,
+      3.5
+    ],
+    "chairs": [
+      [
+        27,
+        2.25
+      ],
+      [
+        26.3,
+        4.7
+      ],
+      [
+        27.7,
+        4.7
+      ]
+    ]
+  }
+}
