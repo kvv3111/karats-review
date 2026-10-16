@@ -1,0 +1,35 @@
+[
+  {
+    "file": "01-by-windows.png",
+    "title": "01 · Со стороны окон",
+    "size": [
+      1536,
+      1024
+    ],
+    "sha256": "d6c745d1142c810083072b6a7bd72f2a307b19bd73412a5da084d1252afcf4e2",
+    "requested_quality": "high",
+    "reported_quality": "low"
+  },
+  {
+    "file": "02-toward-garden.png",
+    "title": "02 · От штукатурной стены к саду",
+    "size": [
+      1536,
+      1024
+    ],
+    "sha256": "e72e921a27faeb1d14223bc317eb23b85237596420cf42b3d68d4e6b063b23d0",
+    "requested_quality": "high",
+    "reported_quality": "low"
+  },
+  {
+    "file": "03-reverse-oblique.png",
+    "title": "03 · Обратный косой ракурс",
+    "size": [
+      1536,
+      1024
+    ],
+    "sha256": "aa81feb5cee2071962d3d4d8f4c8c274ab83981c70a92c4bfe3648f1d94b8a61",
+    "requested_quality": "high",
+    "reported_quality": "low"
+  }
+]
