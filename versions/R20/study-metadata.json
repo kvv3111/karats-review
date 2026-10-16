@@ -1,0 +1,14 @@
+{
+  "role": "single AI material and landscape study, NOT a Marble output, NOT calibrated multiview",
+  "geometry_reference": "01-entry-to-brand.png",
+  "additional_reference": "approved original Karats appearance",
+  "model": "gpt-image-2-high",
+  "provider": "openai-codex",
+  "requested_quality": "high",
+  "reported_quality": "low",
+  "native_pixels": [
+    1536,
+    1024
+  ],
+  "input_image_count": 2
+}

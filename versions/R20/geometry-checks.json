@@ -1,0 +1,18 @@
+{
+  "status": "pass",
+  "roundtrip": "GLB imported in fresh scene",
+  "floor_dimensions_m": [
+    30.0,
+    18.0,
+    0.30000001192092896
+  ],
+  "ceiling_clearance_m": 5.5,
+  "window_bays": 10,
+  "glazing_panels": 20,
+  "olive_trees": 5,
+  "cypresses": 6,
+  "cameras": 3,
+  "objects": 302,
+  "glb_bytes": 6996576,
+  "glb_sha256": "2b1fabc3a80adf610978ef4acce8bf82a92f41bfa250d6a23c1b3d8cde7eaa17"
+}

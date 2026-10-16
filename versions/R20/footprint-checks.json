@@ -1,0 +1,10 @@
+{
+  "zones": 5,
+  "inside_room": true,
+  "overlaps": 0,
+  "central_aisle_clear_m": 4,
+  "vehicle_envelope_m": [
+    5.2,
+    2.2
+  ]
+}

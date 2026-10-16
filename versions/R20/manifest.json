@@ -1,0 +1,62 @@
+[
+  {
+    "file": "04-material-study.png",
+    "bytes": 2431239,
+    "sha256": "51f6099d9dc7cc6c993e5c21fe16a25dabe7caf9f54468776a9aad69c224b64c"
+  },
+  {
+    "file": "plan.png",
+    "bytes": 75558,
+    "sha256": "02490a046fb4456e6b3a44ad538747349a53c17d35fcf74a95c00e3bfb56647c"
+  },
+  {
+    "file": "01-entry-to-brand.png",
+    "bytes": 1299764,
+    "sha256": "edc28519470763bd96deea34250fa4764081f1e9e281ba93764f04e955755e25"
+  },
+  {
+    "file": "02-garden-and-brand.png",
+    "bytes": 1381100,
+    "sha256": "55379a0d47cdb31652afeb8c4d434b61679cd634dcdccba30b5b3522c9f06274"
+  },
+  {
+    "file": "03-brand-to-entry.png",
+    "bytes": 1306603,
+    "sha256": "05b93b7af727c0725c30d8a66b58113eb04d8b8949c424d1788f72be852d7f33"
+  },
+  {
+    "file": "Karats-R20-Chisel.glb",
+    "bytes": 6996576,
+    "sha256": "2b1fabc3a80adf610978ef4acce8bf82a92f41bfa250d6a23c1b3d8cde7eaa17"
+  },
+  {
+    "file": "layout.json",
+    "bytes": 2636,
+    "sha256": "dd336bdf3e4eb641418cf0faa81c02a117b609c3b5213d23e25e865697d2411e"
+  },
+  {
+    "file": "geometry-checks.json",
+    "bytes": 398,
+    "sha256": "9c99b60da9db2ee8bb557168106b325e146485bc713474fd9f7ddb15536ac83f"
+  },
+  {
+    "file": "footprint-checks.json",
+    "bytes": 134,
+    "sha256": "8e33fe2780ef6530783e5caee9b7cec5c39017b8eeda6ad58fa50c250fbbf677"
+  },
+  {
+    "file": "Marble-prompt.txt",
+    "bytes": 1531,
+    "sha256": "1c9b7caada0a51ff426ad9fcd432734437356d271199c884f3579b9aca9076ee"
+  },
+  {
+    "file": "README.md",
+    "bytes": 3046,
+    "sha256": "588abdfc8abe1b737d640967e8359ce58e503ae9127b763bf3ee5af788244627"
+  },
+  {
+    "file": "study-metadata.json",
+    "bytes": 407,
+    "sha256": "42ec3ee1615c2bf97754a0ba163608817781d1c9970087c08f211874963b4058"
+  }
+]
