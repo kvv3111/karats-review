@@ -1,0 +1,38 @@
+[
+  {
+    "file": "04-entry-study.png",
+    "sha256": "a45eca62166154a62e1ab06bf86f6129adb349ace7c0f2e152606e3fbf95da40"
+  },
+  {
+    "file": "plan.png",
+    "sha256": "28fe158574b512d92fc8b840d96a3b6176436901427d19b3f747002164577a92"
+  },
+  {
+    "file": "01-exterior-entry.png",
+    "sha256": "5c97549889ad8dc79c624e0a553dc0bac95bf7c7728626b90c05e58adb139235"
+  },
+  {
+    "file": "02-inside-to-entry.png",
+    "sha256": "ea0f7fe9e8373e08e932d0db54aac2a10825a1c8a6f0c00d37c9874771d927ba"
+  },
+  {
+    "file": "03-entry-to-gallery.png",
+    "sha256": "e82787ebeba0c0d578ca5c3763886dc01264c68ccd1206bc832c80f1dc60e12e"
+  },
+  {
+    "file": "Karats-R21-Chisel.glb",
+    "sha256": "1688c9f2d37f2c205003ad1f8d346506987014726cefa0e569526578ae9bdbf1"
+  },
+  {
+    "file": "layout.json",
+    "sha256": "266253581bdaa6e99770b97a1c499503845b224cd8d60c483b5db057984d6f3a"
+  },
+  {
+    "file": "checks.json",
+    "sha256": "c12cbb6a518ceef7760c000681f8bf2f8cce88eea4f7b201f4b8a4a046935450"
+  },
+  {
+    "file": "index.html",
+    "sha256": "0d89a410ff8f8ef50584d3b0a0fef0fe2e557be0ead1b88a71673384b2fa7fa4"
+  }
+]

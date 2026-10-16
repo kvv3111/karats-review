@@ -1,0 +1,206 @@
+{
+  "version": "R21",
+  "units": "metres",
+  "blender_axes": "X length, Y width, Z up",
+  "glTF_axes": "X length, Y up, Z negative width",
+  "interior": [
+    30,
+    18,
+    5.5
+  ],
+  "area_m2": 540,
+  "zones": [
+    {
+      "id": 1,
+      "center": [
+        6,
+        14
+      ],
+      "size": [
+        8,
+        6
+      ],
+      "vehicle_envelope": [
+        5.2,
+        2.2
+      ]
+    },
+    {
+      "id": 2,
+      "center": [
+        15,
+        14
+      ],
+      "size": [
+        8,
+        6
+      ],
+      "vehicle_envelope": [
+        5.2,
+        2.2
+      ]
+    },
+    {
+      "id": 3,
+      "center": [
+        24,
+        14
+      ],
+      "size": [
+        8,
+        6
+      ],
+      "vehicle_envelope": [
+        5.2,
+        2.2
+      ]
+    },
+    {
+      "id": 4,
+      "center": [
+        10.5,
+        4
+      ],
+      "size": [
+        8,
+        6
+      ],
+      "vehicle_envelope": [
+        5.2,
+        2.2
+      ]
+    },
+    {
+      "id": 5,
+      "center": [
+        19.5,
+        4
+      ],
+      "size": [
+        8,
+        6
+      ],
+      "vehicle_envelope": [
+        5.2,
+        2.2
+      ]
+    }
+  ],
+  "aisle": {
+    "y": [
+      7,
+      11
+    ],
+    "width": 4
+  },
+  "garden": {
+    "olive_positions": [
+      [
+        2.5,
+        24
+      ],
+      [
+        9,
+        23
+      ],
+      [
+        16,
+        24.7
+      ],
+      [
+        23,
+        23.2
+      ],
+      [
+        29.5,
+        25
+      ]
+    ],
+    "facade": "north y=18;10 bays of3m;left when facing brand wall",
+    "boundary_y": 31
+  },
+  "cameras": [
+    {
+      "id": "01-exterior-entry",
+      "pos": [
+        -17,
+        -3,
+        5
+      ],
+      "target": [
+        0,
+        8,
+        2
+      ],
+      "lens": 30
+    },
+    {
+      "id": "02-inside-to-entry",
+      "pos": [
+        16,
+        13,
+        2.1
+      ],
+      "target": [
+        -1,
+        7,
+        1.9
+      ],
+      "lens": 25
+    },
+    {
+      "id": "03-entry-to-gallery",
+      "pos": [
+        -4,
+        9,
+        1.7
+      ],
+      "target": [
+        24,
+        10,
+        2
+      ],
+      "lens": 24
+    }
+  ],
+  "status": "Architectural concept with separate pedestrian access and vehicle entry. Straight ingress checked; full turning movements to all display bays NOT certified.",
+  "doors": {
+    "main": {
+      "wall": "west",
+      "span_y": [
+        6,
+        12
+      ],
+      "height": 3.6,
+      "type": "side-folding glazed gate; shown fully open; no central post"
+    },
+    "brand_portal": {
+      "wall": "east",
+      "span_y": [
+        4.6,
+        6
+      ],
+      "height": 3.2
+    },
+    "pedestrian": {
+      "wall": "west",
+      "span_y": [
+        2,
+        3.6
+      ],
+      "height": 2.7
+    }
+  },
+  "node_names": "Historic SOUTH_/NORTH_ node names predate global handedness correction; actual transforms are authoritative.",
+  "forecourt": {
+    "bounds_x": [
+      -14,
+      0
+    ],
+    "bounds_y": [
+      0,
+      18
+    ],
+    "surface_z": 0
+  }
+}

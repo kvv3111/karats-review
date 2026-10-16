@@ -1,0 +1,24 @@
+{
+  "straight_ingress_samples": 361,
+  "vehicle_envelope_m": [
+    5.2,
+    2.2,
+    2
+  ],
+  "collisions": [],
+  "gate_clear_m": [
+    6,
+    3.6
+  ],
+  "pedestrian_clear_m": [
+    1.6,
+    2.7
+  ],
+  "forecourt_m": [
+    14,
+    18
+  ],
+  "central_aisle_m": 4,
+  "threshold_step_m": 0,
+  "scope": "straight entry only; no turning-radius or code-compliance certification"
+}
