@@ -1,0 +1,16 @@
+import * as T from 'three';
+// Local trusted exported GLB only: preserve metre coordinates and material alpha.
+export async function loadRoom(url){
+ const response=await fetch(url);if(!response.ok)throw Error('Модель помещения недоступна');const buffer=await response.arrayBuffer(),v=new DataView(buffer),size=v.getUint32(12,true),j=JSON.parse(new TextDecoder().decode(new Uint8Array(buffer,20,size))),off=28+size;
+ if(v.getUint32(0,true)!==0x46546c67)throw Error('Неверный GLB');
+ const types={5121:Uint8Array,5123:Uint16Array,5125:Uint32Array,5126:Float32Array},counts={SCALAR:1,VEC2:2,VEC3:3,VEC4:4};
+ const attr=id=>{const a=j.accessors[id],b=j.bufferViews[a.bufferView],C=types[a.componentType];if(b.byteStride||a.sparse||!C)throw Error('Unsupported room accessor');return new T.BufferAttribute(new C(buffer,off+(b.byteOffset||0)+(a.byteOffset||0),a.count*counts[a.type]),counts[a.type]);};
+ const mats=j.materials.map(m=>{const p=m.pbrMetallicRoughness||{},a=p.baseColorFactor||[.7,.7,.7,1];return new T.MeshStandardMaterial({name:m.name,color:new T.Color(...a.slice(0,3)),roughness:p.roughnessFactor??.6,metalness:p.metallicFactor??0,transparent:m.alphaMode==='BLEND'||m.name?.includes('glazing'),opacity:m.name?.includes('glazing')?.12:a[3],depthWrite:!m.name?.includes('glazing'),side:T.DoubleSide,emissive:new T.Color(...(m.emissiveFactor||[0,0,0]))});});
+ const meshes=j.meshes.map(m=>m.primitives.map(p=>{const g=new T.BufferGeometry();for(const [name,key]of [['position','POSITION'],['normal','NORMAL'],['uv','TEXCOORD_0']])if(p.attributes[key]!==undefined)g.setAttribute(name,attr(p.attributes[key]));if(p.indices!==undefined)g.setIndex(attr(p.indices));if(!g.attributes.normal)g.computeVertexNormals();const o=new T.Mesh(g,mats[p.material]);o.castShadow=!o.material.transparent;o.receiveShadow=true;return o;}));
+ const nodes=j.nodes.map(n=>{const o=new T.Group();o.name=n.name||'';if(n.matrix)o.applyMatrix4(new T.Matrix4().fromArray(n.matrix));else{if(n.translation)o.position.fromArray(n.translation);if(n.rotation)o.quaternion.fromArray(n.rotation);if(n.scale)o.scale.fromArray(n.scale);}if(n.mesh!==undefined)for(const m of meshes[n.mesh])o.add(m.clone());return o;});
+ j.nodes.forEach((n,i)=>(n.children||[]).forEach(k=>nodes[i].add(nodes[k])));const out=new T.Group();for(const i of j.scenes[j.scene||0].nodes)out.add(nodes[i]);out.updateMatrixWorld(true);return out;
+}
+export function batch(root){
+ root.updateMatrixWorld(true);const buckets=new Map();root.traverse(o=>{if(!o.isMesh)return;const m=o.material;if(Array.isArray(m))throw Error('material arrays unsupported');if(!buckets.has(m.uuid))buckets.set(m.uuid,{m,g:[]});let g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrixWorld);buckets.get(m.uuid).g.push(g);});
+ const out=new T.Group();for(const {m,g}of buckets.values()){const merged=new T.BufferGeometry();for(const [key,n]of [['position',3],['normal',3],['uv',2]]){const len=g.reduce((s,a)=>s+a.attributes.position.count*n,0),data=new Float32Array(len);let off=0;for(const a of g){if(a.attributes[key])data.set(a.attributes[key].array,off);off+=a.attributes.position.count*n;}merged.setAttribute(key,new T.BufferAttribute(data,n));}const mesh=new T.Mesh(merged,m);mesh.castShadow=!m.transparent;mesh.receiveShadow=true;out.add(mesh);for(const a of g)a.dispose();}return out;
+}
