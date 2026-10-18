@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>KARATS AUTO · Showroom (test R27)</title>
+<style>
+  :root { --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; background:var(--bg); color:var(--ink); font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; overflow:hidden; overscroll-behavior:none; }
+  #stage { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; touch-action:none; user-select:none; }
+  canvas { width:100%; height:100%; object-fit:cover; display:block; cursor:pointer; }
+  .top { position:fixed; top:0; left:0; right:0; padding:calc(14px + env(safe-area-inset-top)) 22px 14px; display:flex; justify-content:space-between; align-items:center; pointer-events:none;
+         background:linear-gradient(rgba(239,236,230,.85),rgba(239,236,230,0)); }
+  .brand { font-weight:700; letter-spacing:.18em; font-size:14px; }
+  .count { font-variant-numeric:tabular-nums; letter-spacing:.08em; color:var(--soft); }
+  .bar { position:fixed; left:0; right:0; bottom:0; padding:18px 22px calc(18px + env(safe-area-inset-bottom)); display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+         background:linear-gradient(rgba(239,236,230,0),rgba(239,236,230,.92) 45%); }
+  .info { min-width:0; transition:opacity .25s; }
+  .info h2 { font-size:22px; font-weight:650; letter-spacing:-.01em; }
+  .info p { color:var(--soft); margin-top:2px; }
+  .info .price { color:var(--ink); font-weight:600; }
+  .nav { display:flex; gap:10px; flex:none; }
+  .nav button { width:52px; height:52px; border-radius:50%; border:1px solid rgba(29,33,30,.18); background:rgba(255,255,255,.75); backdrop-filter:blur(8px); font-size:22px; color:var(--ink); cursor:pointer; }
+  .nav button:disabled { opacity:.3; cursor:default; }
+  .hint { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); background:rgba(29,33,30,.72); color:#fff; padding:10px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; }
+  #load { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:var(--bg); z-index:5; letter-spacing:.1em; color:var(--soft); }
+  #card { position:fixed; inset:0; background:rgba(20,22,20,.45); display:none; align-items:flex-end; justify-content:center; z-index:6; }
+  #card.on { display:flex; }
+  #card .sheet { background:#fbfbf8; width:min(560px,100%); border-radius:18px 18px 0 0; padding:24px 22px calc(26px + env(safe-area-inset-bottom)); }
+  #card h3 { font-size:22px; } #card ul { list-style:none; margin:14px 0 18px; color:var(--soft); } #card li { padding:6px 0; border-bottom:1px solid #e6e5e0; display:flex; justify-content:space-between; }
+  #card li b { color:var(--ink); font-weight:600; }
+  #card .row { display:flex; gap:10px; } #card a, #card button { flex:1; text-align:center; padding:14px; border-radius:12px; border:0; font:inherit; font-weight:600; cursor:pointer; text-decoration:none; }
+  #card a { background:var(--acc); color:#fff; } #card button { background:#e9e8e4; color:var(--ink); }
+  @media (orientation:portrait) {
+    #stage { overflow:hidden; }
+    /* show ~820 of 1248 px around the parked car: the whole car fits the phone width */
+    canvas { width:152vw; height:101.5vw; flex:none; object-fit:fill; transform:translateY(-4vh); }
+  }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="c" width="1248" height="832" aria-label="Showroom"></canvas></div>
+<div class="top"><div class="brand">KARATS AUTO</div><div class="count" id="count">01 / 02</div></div>
+<div class="bar">
+  <div class="info" id="info"><h2 id="name"></h2><p id="meta"></p></div>
+  <div class="nav"><button id="prev" aria-label="Anterior">&#8592;</button><button id="next" aria-label="Siguiente">&#8594;</button></div>
+</div>
+<div class="hint" id="hint">desliza · scroll · flechas</div>
+<div id="load">0%</div>
+<div id="card"><div class="sheet"><h3 id="cName"></h3><ul id="cList"></ul><div class="row"><a href="#" onclick="return false">Contactar</a><button id="close">Cerrar</button></div></div></div>
+<script>
+(() => {
+  // Test data (placeholder specs). Stops = frame index where the camera is parked in front of each car.
+  const CARS = [
+    { name: "Hyundai Ioniq Hybrid", year: 2019, km: "68 000 km", fuel: "Híbrido", price: "15 900 €", stop: 0 },
+    { name: "Toyota Corolla Sedan", year: 2021, km: "45 000 km", fuel: "Híbrido", price: "18 900 €", stop: 89 },
+  ];
+  const N = 90, FPS = 30, src = i => `f/${String(i).padStart(3, "0")}.webp`;
+  const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+  const frames = new Array(N); let loaded = 0;
+  let pos = 0;            // current (fractional) frame
+  let target = 0;         // frame we are travelling to
+  let idx = 0;            // current car index
+  let last = 0;
+
+  function draw(i) { const f = frames[Math.round(i)]; if (f && f.complete) ctx.drawImage(f, 0, 0, cv.width, cv.height); }
+  function fitCanvas() {
+    // portrait phones: keep the car in the middle of the frame (cover crop is centred, stops are car-centred)
+    cv.style.objectFit = "cover";
+  }
+  function ui() {
+    const c = CARS[idx];
+    document.getElementById("count").textContent = `${String(idx + 1).padStart(2, "0")} / ${String(CARS.length).padStart(2, "0")}`;
+    document.getElementById("name").textContent = c.name;
+    document.getElementById("meta").innerHTML = `${c.year} · ${c.km} · <span class="price">${c.price}</span>`;
+    document.getElementById("prev").disabled = idx === 0;
+    document.getElementById("next").disabled = idx === CARS.length - 1;
+  }
+  function go(i) { idx = Math.max(0, Math.min(CARS.length - 1, i)); target = CARS[idx].stop; ui(); hideHint(); }
+  function tick(t) {
+    const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
+    if (pos !== target) {
+      const step = FPS * dt * Math.sign(target - pos);
+      pos = Math.abs(target - pos) <= Math.abs(step) ? target : pos + step;
+      draw(pos);
+      document.getElementById("info").style.opacity = pos === target ? 1 : 0.25;
+    }
+    requestAnimationFrame(tick);
+  }
+  // scroll / wheel: scrub, then settle on the nearest car
+  let settleT = null;
+  function scrub(deltaFrames) {
+    pos = Math.max(0, Math.min(N - 1, pos + deltaFrames)); target = pos; draw(pos);
+    document.getElementById("info").style.opacity = 0.25;
+    clearTimeout(settleT);
+    settleT = setTimeout(() => {
+      let best = 0; CARS.forEach((c, i) => { if (Math.abs(c.stop - pos) < Math.abs(CARS[best].stop - pos)) best = i; });
+      go(best);
+    }, 180);
+    hideHint();
+  }
+  addEventListener("wheel", e => { e.preventDefault(); scrub((e.deltaY + e.deltaX) * 0.06); }, { passive: false });
+  addEventListener("keydown", e => { if (e.key === "ArrowRight") go(idx + 1); if (e.key === "ArrowLeft") go(idx - 1); });
+  document.getElementById("next").onclick = () => go(idx + 1);
+  document.getElementById("prev").onclick = () => go(idx - 1);
+  // touch: horizontal swipe = next/prev car, vertical drag = scrub like scrolling
+  let tx = 0, ty = 0, ly = 0, mode = null, moved = false;
+  const stage = document.getElementById("stage");
+  stage.addEventListener("touchstart", e => { const t = e.touches[0]; tx = t.clientX; ty = ly = t.clientY; mode = null; moved = false; }, { passive: true });
+  stage.addEventListener("touchmove", e => {
+    const t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty;
+    if (!mode && Math.hypot(dx, dy) > 12) mode = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
+    if (mode === "v") { scrub((ly - t.clientY) * 0.18); ly = t.clientY; }
+    moved = true;
+  }, { passive: true });
+  stage.addEventListener("touchend", e => {
+    const t = e.changedTouches[0], dx = t.clientX - tx;
+    if (mode === "h" && Math.abs(dx) > 40) go(idx + (dx < 0 ? 1 : -1));
+  });
+  // click on the car (only when parked) opens its card
+  cv.addEventListener("click", () => { if (pos === target && !moved) openCard(); moved = false; });
+  function openCard() {
+    const c = CARS[idx];
+    document.getElementById("cName").textContent = c.name;
+    const ul = document.getElementById("cList"); ul.innerHTML = "";
+    [["Año", c.year], ["Kilómetros", c.km], ["Combustible", c.fuel], ["Precio", c.price]].forEach(([k, v]) => {
+      const li = document.createElement("li"); li.innerHTML = `<span>${k}</span><b></b>`; li.querySelector("b").textContent = v; ul.appendChild(li);
+    });
+    document.getElementById("card").classList.add("on");
+  }
+  document.getElementById("close").onclick = () => document.getElementById("card").classList.remove("on");
+  document.getElementById("card").addEventListener("click", e => { if (e.target.id === "card") e.currentTarget.classList.remove("on"); });
+  let hinted = false; function hideHint() { if (!hinted) { hinted = true; document.getElementById("hint").style.opacity = 0; } }
+  // preload all frames, first frame first
+  for (let i = 0; i < N; i++) {
+    const im = new Image(); im.decoding = "async"; im.src = src(i); frames[i] = im;
+    im.onload = () => { loaded++; document.getElementById("load").textContent = Math.round(loaded / N * 100) + "%";
+      if (i === 0) draw(0);
+      if (loaded === N) { document.getElementById("load").style.display = "none"; draw(pos); } };
+  }
+  fitCanvas(); ui(); requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
