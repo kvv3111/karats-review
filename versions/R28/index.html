@@ -10,6 +10,7 @@
 <style>
   :root { --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html, body, button, a, .side, .more, #card { touch-action:manipulation; }
   html,body { width:100%; max-width:100%; height:100%; background:#efece6; color:var(--ink); font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; overflow:hidden; overscroll-behavior:none; }
   #stage { position:fixed; inset:0; overflow:hidden; background:#efece6; touch-action:none; }
   #stage.hot { cursor:pointer; }
@@ -129,9 +130,11 @@
   const pre = small ? "m" : "d";
   const $ = id => document.getElementById(id);
   const cv = $("c"), ctx = cv.getContext("2d", { alpha: false });
-  const vf = $("vf"), vr = $("vr");                                  // vf: frame n at (n+.5)/FPS ; vr: frame n at (N-1-n+.5)/FPS
+  let vf = $("vf"), vr = $("vr");                                  // vf: frame n at (n+.5)/FPS ; vr: frame n at (N-1-n+.5)/FPS
   const stills = {}; let view = { s: 1, ox: 0, oy: 0, dpr: 1, portrait: false };
-  let pos = CARS[0].stop, idx = 0, mode = "idle", hopTarget = null, shown = "still", follow = pos, lastT = 0, seq = 0;
+  const hashIdx = (() => { const m = /^#(\d)$/.exec(location.hash); return m ? Math.max(0, Math.min(CARS.length - 1, +m[1] - 1)) : 0; })();
+  let pos = CARS[hashIdx].stop, idx = hashIdx, mode = "idle", hopTarget = null, shown = "still", follow = pos, lastT = 0, seq = 0;
+  let noPlay = false;
   let ready = false, readyP;
 
   // ---------- layout ----------
@@ -218,7 +221,10 @@
     await seekTo(v, from); if (my !== seq) return;
     show(v === vf ? "vf" : "vr");
     v.playbackRate = Math.min(3, Math.max(1, Math.abs(to - from) / (CARS[0].stop / (CARS.length - 1)) * 0.85));
-    try { await v.play(); } catch (e) {}
+    let playing = !noPlay;
+    if (playing) { try { await v.play(); } catch (e) { playing = false; noPlay = true; } }
+    if (my !== seq) return;
+    if (!playing) { seekHop(v, from, to, my); return; }
     // stop exactly on the car: per presented video frame (rVFC) AND per screen frame (rAF) as a safety net,
     // so a missed callback can never let the video run past the car
     let fin = false;
@@ -234,8 +240,22 @@
     const poll = () => { if (!check(v.currentTime)) requestAnimationFrame(poll); };
     onFrame(v, step); requestAnimationFrame(poll);
   }
+  // fallback when the phone refuses to play video (iOS Low Power Mode): step the frames by seeking, eased, ~same duration
+  function seekHop(v, from, to, my) {
+    const dur = Math.abs(to - from) / FPS / Math.max(1, v.playbackRate) * 1000, t0 = performance.now();
+    const step = () => {
+      if (my !== seq) return;
+      const u = Math.min(1, (performance.now() - t0) / dur), e = u * u * (3 - 2 * u), n = Math.round(from + (to - from) * e);
+      if (!v.seeking && nOf(v, v.currentTime) !== n) v.currentTime = tOf(v, n);
+      pos = n;
+      if (u >= 1) { pos = to; mode = "idle"; arrive(my); return; }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
   function arrive(my) {
     drawStill(); show("still"); setAway(false);
+    try { history.replaceState(null, "", "#" + (idx + 1)); } catch (e) {}
     parkVideos(pos).then(() => {});
   }
 
@@ -267,7 +287,12 @@
     }
     const rate = Math.max(0.35, Math.min(3, Math.abs(diff) / (FPS * 0.28)));
     if (Math.abs(want.playbackRate - rate) > 0.15) want.playbackRate = Math.round(rate * 8) / 8;
-    if (want.paused && want.currentTime < want.duration - 1 / FPS) want.play().catch(() => {});
+    if (noPlay) {                                          // no playback allowed: walk the frames by seeking
+      const n = Math.round(pos + Math.sign(diff) * Math.min(Math.abs(diff), 4));
+      if (!want.seeking) want.currentTime = tOf(want, n);
+      return;
+    }
+    if (want.paused && want.currentTime < want.duration - 1 / FPS) want.play().catch(() => { noPlay = true; });
   }
   // ---------- dots track: thumb shows where the camera is; press + slide drives the camera ----------
   const LAST = CARS[0].stop, PER_CAR_PX = 64;                 // finger travel for one car
@@ -373,6 +398,31 @@
     lctx.putImageData(out, 0, 0);
   }
   window.__lensBench = renderLens;
+  // first touch anywhere: start+stop both videos inside the gesture, so iOS lets us play them later from code
+  const unlockedEls = new WeakSet();
+  function unlock() {
+    if (!ready) return;
+    for (const v of [vf, vr]) {
+      if (unlockedEls.has(v)) continue; unlockedEls.add(v);
+      if (!v.paused) continue;
+      // a video parked on its last frame would restart from 0 on play(): step it back a little first (it is hidden)
+      if (v.duration && v.currentTime > v.duration - 2 / FPS) v.currentTime = Math.max(0, v.duration - 4 / FPS);
+      const p = v.play();
+      if (p && p.then) p.then(() => { if (shown !== (v === vf ? "vf" : "vr")) { v.pause(); if (mode === "idle") seekTo(v, Math.round(pos)); } }).catch(() => { noPlay = true; });
+    }
+  }
+  addEventListener("pointerdown", unlock, true); addEventListener("touchstart", unlock, { capture: true, passive: true }); addEventListener("keydown", unlock, true);
+
+  // ---------- back from another app / locked phone mid-move: finish the move instead of freezing between cars ----------
+  function recover() {
+    if (mode === "idle") { drawStill(); return; }
+    const cur = active(); if (cur) pos = posOf(cur);
+    trackDrag = null; $("track").classList.remove("drag"); lensShow(false); clearTimeout(settleT); switching = false;
+    vf.pause(); vr.pause();
+    go(mode === "hop" ? idx : nearestCar(pos));
+  }
+  document.addEventListener("visibilitychange", () => { if (document.hidden) { vf.pause(); vr.pause(); } else recover(); });
+  addEventListener("pageshow", e => { if (e.persisted) recover(); });
   function lensShow(on) { lensOn = on; $("track").classList.toggle("lens", on); }
 
   function tick(t) {
@@ -431,6 +481,22 @@
   // ---------- loading: 5 sharp stills first, then both videos fully into memory (no network during a move) ----------
   CARS.forEach((c, k) => { const d = document.createElement("i"); d.style.left = (k / (CARS.length - 1) * 100) + "%"; $("rail").insertBefore(d, $("thumb")); });
   CARS.forEach(c => { const im = new Image(); im.onload = () => { if (c.stop === CARS[idx].stop) drawStill(); }; im.src = `${small ? "m" : "f"}/${String(c.still).padStart(3, "0")}.webp`; stills[c.stop] = im; });
+  const URLS = [`v/${pre}_fwd.mp4`, `v/${pre}_rev.mp4`];
+  // 1) streaming: the browser fetches only the part it needs -> the first move is possible almost at once
+  function streamVideo(v, url) {
+    return new Promise(res => { v.preload = "metadata"; v.src = url; v.addEventListener("loadedmetadata", res, { once: true }); v.load(); });
+  }
+  readyP = Promise.all([streamVideo(vf, URLS[0]), streamVideo(vr, URLS[1])])
+    .then(() => parkVideos(pos)).then(() => { ready = true; });
+  // 2) the browser keeps buffering ahead on its own (preload=auto); the thin bar on top shows how much is in
+  const bufTick = () => {
+    const f = [vf, vr].map(v => { try { let m = 0; for (let k = 0; k < v.buffered.length; k++) m += v.buffered.end(k) - v.buffered.start(k); return v.duration ? m / v.duration : 0; } catch (e) { return 0; } });
+    const done = (f[0] + f[1]) / 2; $("load").style.width = (done * 100) + "%";
+    if (done > 0.995 || prog[0] + prog[1] > 0) return;
+    setTimeout(bufTick, 500);
+  };
+  // 3) meanwhile the whole files are downloaded into memory and loaded into two NEW video elements;
+  //    while parked (the still covers everything) they replace the streaming ones -> no network during moves
   async function fetchBlob(url, onp) {
     const r = await fetch(url); const total = +r.headers.get("content-length") || 0;
     if (!r.body || !total) return URL.createObjectURL(await r.blob());
@@ -438,14 +504,31 @@
     for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; onp(got / total); }
     return URL.createObjectURL(new Blob(parts, { type: "video/mp4" }));
   }
-  const prog = [0, 0], bar = () => $("load").style.width = ((prog[0] + prog[1]) / 2 * 100) + "%";
-  function loadVideo(v, url, k) {
-    return fetchBlob(url, p => { prog[k] = p; bar(); }).then(b => new Promise(res => {
-      v.src = b; v.addEventListener("loadeddata", res, { once: true }); v.load();
-    }));
+  const prog = [0, 0];
+  function makeVideo(src, id) {
+    const v = document.createElement("video");
+    v.muted = true; v.playsInline = true; v.setAttribute("playsinline", ""); v.setAttribute("muted", ""); v.disablePictureInPicture = true;
+    v.preload = "auto"; v.id = id; v.style.opacity = 0;
+    $("stage").insertBefore(v, cv);
+    return new Promise(res => { v.addEventListener("loadeddata", () => res(v), { once: true }); v.src = src; v.load(); });
   }
-  readyP = Promise.all([loadVideo(vf, `v/${pre}_fwd.mp4`, 0), loadVideo(vr, `v/${pre}_rev.mp4`, 1)])
-    .then(() => parkVideos(pos)).then(() => { ready = true; $("load").style.opacity = 0; });
+  readyP.then(() => {
+    bufTick();
+    Promise.all(URLS.map((u, k) => fetchBlob(u, p => { prog[k] = p; $("load").style.width = ((prog[0] + prog[1]) / 2 * 100) + "%"; })))
+      .then(blobs => Promise.all([makeVideo(blobs[0], "vf2"), makeVideo(blobs[1], "vr2")]))
+      .then(([nf, nr]) => {
+        const trySwap = async () => {
+          if (mode !== "idle" || trackDrag) return setTimeout(trySwap, 250);
+          const n = Math.round(pos);
+          await Promise.all([seekTo(nf, n), seekTo(nr, n)]);
+          if (mode !== "idle" || trackDrag || Math.round(pos) !== n) return setTimeout(trySwap, 250);
+          const of = vf, orr = vr; vf = nf; vr = nr; resize(); show("still");
+          of.pause(); orr.pause(); of.remove(); orr.remove(); nf.id = "vf"; nr.id = "vr";
+          $("load").style.opacity = 0;
+        };
+        trySwap();
+      }).catch(() => {});
+  });
   addEventListener("resize", () => { if (isPortrait() !== small) location.reload(); else resize(); });
   resize(); ui(); requestAnimationFrame(tick);
   window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown, vf: vf.currentTime, vr: vr.currentTime });
