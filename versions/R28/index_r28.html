@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="only light">
+<meta name="robots" content="noindex">
+<title>KARATS AUTO · Showroom (R28)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { color-scheme:only light; --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html, body, button, a, .side, .more, #card { touch-action:manipulation; }
+  html,body { width:100%; max-width:100%; height:100%; background:#efece6; color:var(--ink); font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; overflow:hidden; overscroll-behavior:none; }
+  #stage { position:fixed; inset:0; overflow:hidden; background:#efece6; touch-action:none; }
+  #stage.hot { cursor:pointer; }
+  #stage video { position:absolute; opacity:0; pointer-events:none; object-fit:fill; background:#efece6; }
+  #c { position:absolute; left:0; top:0; width:100%; height:100%; display:block; pointer-events:none; }
+  .fade { position:absolute; left:0; right:0; display:none; pointer-events:none; }
+  .top { position:fixed; top:0; left:0; right:0; padding:calc(16px + env(safe-area-inset-top)) 26px 26px; display:flex; justify-content:space-between; align-items:center; pointer-events:none;
+         background:linear-gradient(rgba(239,236,230,.82),rgba(239,236,230,0)); }
+  .brand { font-family:Jost,sans-serif; font-weight:400; letter-spacing:.34em; font-size:clamp(17px, 1.55vw, 30px); line-height:1.1; }
+  .brand { display:inline-block; text-align:center; }
+  .brand span { margin-right:-.34em; }                         /* letter-spacing adds space after the last letter: cancel it so both lines centre */
+  .brand small { display:block; font-size:.38em; letter-spacing:.9em; margin-right:-.9em; color:var(--soft); margin-top:.5em; }
+  .count { font-family:Jost,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:.12em; color:var(--ink); font-size:14px; }
+  .count span { color:var(--soft); }
+  .side { position:fixed; top:50%; transform:translateY(-50%); width:56px; height:56px; border-radius:50%; border:1px solid rgba(29,33,30,.14);
+          background:rgba(251,250,247,.86); color:var(--ink); cursor:pointer; z-index:3;
+          display:flex; align-items:center; justify-content:center; transition:opacity .3s, background .2s; box-shadow:0 6px 20px rgba(0,0,0,.08); }
+  button:focus-visible, a:focus-visible { outline:2px solid var(--acc); outline-offset:3px; }
+  .side:hover { background:rgba(255,255,255,.92); }
+  .side svg { width:22px; height:22px; }
+  .side:disabled { opacity:0; pointer-events:none; }
+  .side.tight { display:none; }
+  #prev { left:max(18px, env(safe-area-inset-left)); } #next { right:max(18px, env(safe-area-inset-right)); }
+  .bar { position:fixed; left:0; right:0; bottom:0; padding:40px 26px calc(22px + env(safe-area-inset-bottom)); display:flex; align-items:flex-end; justify-content:space-between; gap:16px; pointer-events:none;
+         background:linear-gradient(rgba(239,236,230,0),rgba(239,236,230,.9) 55%); }
+  .info { min-width:0; transition:opacity .35s, transform .35s; }
+  .info.away { opacity:0; transform:translateY(8px); }
+  .info h2 { font-family:Jost,sans-serif; font-size:26px; font-weight:500; letter-spacing:.01em; }
+  .info p { color:var(--soft); margin-top:3px; }
+  .info .price { color:var(--ink); font-weight:600; }
+  .more { pointer-events:auto; flex:none; padding:13px 20px; border-radius:26px; border:0; background:var(--acc); color:#fff; font:inherit; font-weight:600; cursor:pointer; transition:opacity .35s; }
+  .more.away { opacity:0; pointer-events:none; }
+  /* dots track = Liquid Glass capsule (iOS 26 style): frosted blur + saturation, specular rim, refraction on Chromium */
+  .track { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom) + 14px); width:176px; height:56px; z-index:3; touch-action:none; cursor:grab; -webkit-user-select:none; user-select:none; }
+  .track.drag { cursor:grabbing; }
+  .glass { position:absolute; left:50%; top:50%; width:132px; height:34px; margin:-17px 0 0 -66px; border-radius:17px; overflow:hidden; isolation:isolate;
+           box-shadow:0 8px 22px rgba(20,22,20,.16), 0 1px 3px rgba(20,22,20,.10);
+           transition:transform .45s cubic-bezier(.3,1.6,.45,1), box-shadow .3s; will-change:transform; }
+  #lensWrap { position:fixed; left:0; top:0; width:62px; height:46px; z-index:4; pointer-events:none; border-radius:23px;
+              opacity:0; transform:scale(.45, .5); transition:transform .42s cubic-bezier(.25,1.55,.4,1), opacity .18s ease; will-change:transform,left; }
+  #lensWrap canvas { width:100%; height:100%; display:block; border-radius:23px; }
+  .lens__rim { position:absolute; inset:0; border-radius:23px;
+               box-shadow: inset 0 0 0 .7px rgba(20,22,20,.45), inset 0 1.2px .5px rgba(255,255,255,.85), inset 0 -1px .5px rgba(255,255,255,.45),
+                           0 6px 16px rgba(20,22,20,.20), 0 1px 3px rgba(20,22,20,.12); }
+  .track.lens ~ #lensWrap { opacity:1; transform:none; }
+  .track.lens .rail .thumb { opacity:0; }
+  .rail .thumb { transition:opacity .15s; }
+  .track.drag .glass { transform:scale(1.06, 1.04); box-shadow:0 12px 30px rgba(20,22,20,.20), 0 2px 6px rgba(20,22,20,.10); }
+  .glass > span { position:absolute; inset:0; border-radius:inherit; pointer-events:none; }
+  .glass__refract { -webkit-backdrop-filter:blur(10px) saturate(185%) brightness(1.06); backdrop-filter:blur(10px) url(#lg-refract) saturate(185%) brightness(1.06); }
+  .glass__tint { background:linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.06) 55%, rgba(255,255,255,.14)); }
+  .glass__specular { box-shadow: inset 0 1px 0 rgba(255,255,255,.85), inset 0 -1px 0 rgba(255,255,255,.30), inset 0 0 0 .5px rgba(255,255,255,.45), inset 0 -6px 10px rgba(255,255,255,.10), inset 0 -1.5px 3px rgba(40,36,30,.10); }
+  .glass__shine { background:radial-gradient(120% 90% at 30% -20%, rgba(255,255,255,.45), rgba(255,255,255,0) 55%); mix-blend-mode:screen; opacity:.8; }
+  .rail { position:absolute; left:50%; width:84px; margin-left:-42px; top:50%; height:0; z-index:2; }
+  .rail i { position:absolute; top:-2.5px; width:5px; height:5px; margin-left:-2.5px; border-radius:3px; background:rgba(29,33,30,.30); }
+  .rail .thumb { position:absolute; top:-3px; width:16px; height:6px; margin-left:-8px; border-radius:3px; background:rgba(29,33,30,.88); box-shadow:0 1px 2px rgba(0,0,0,.18); will-change:left; }
+  .hint { position:fixed; left:50%; top:22%; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:nowrap; max-width:90%; }
+  #load { position:fixed; left:0; top:0; height:2px; background:var(--acc); width:0; z-index:4; transition:width .2s, opacity .6s; }
+  #card { position:fixed; inset:0; background:rgba(20,22,20,.45); display:none; align-items:flex-end; justify-content:center; z-index:6; }
+  #card.on { display:flex; }
+  #card .sheet { background:#fbfbf8; width:min(560px,100%); border-radius:18px 18px 0 0; padding:24px 22px calc(26px + env(safe-area-inset-bottom)); }
+  #card h3 { font-family:Jost,sans-serif; font-weight:500; font-size:24px; }
+  #card .demo { color:var(--soft); font-size:12px; margin-top:2px; }
+  #card ul { list-style:none; margin:14px 0 18px; color:var(--soft); } #card li { padding:7px 0; border-bottom:1px solid #e6e5e0; display:flex; justify-content:space-between; }
+  #card li b { color:var(--ink); font-weight:600; }
+  #card .row { display:flex; gap:10px; } #card a, #card button { flex:1; text-align:center; padding:14px; border-radius:12px; border:0; font:inherit; font-weight:600; cursor:pointer; text-decoration:none; }
+  #card a { background:var(--acc); color:#fff; } #card button { background:#e9e8e4; color:var(--ink); }
+  .credits { position:fixed; right:26px; bottom:calc(6px + env(safe-area-inset-bottom)); font-size:10px; color:var(--soft); }
+  .credits a { color:inherit; }
+  @media (orientation:portrait) { .top { background:none; } .hint { top:auto; bottom:auto; } }
+  /* big system text (Android/iOS text size = narrower page): stack the bar, no hint over the arrows */
+  @media (max-width:340px) {
+    .hint { display:none; }
+    .bar { flex-wrap:wrap; padding-left:18px; padding-right:18px; } .info { flex:1 1 100%; } .more { margin-left:auto; }
+    .info h2 { font-size:19px; }
+  }
+  @media (max-width:640px) {
+    .side { width:46px; height:46px; } .info h2 { font-size:21px; } .more { padding:11px 16px; }
+    .credits { display:none; }
+  }
+</style>
+</head>
+<body>
+<div id="stage" aria-label="Showroom KARATS AUTO">
+  <video id="vf" data-dir="f" muted playsinline preload="auto" disablepictureinpicture></video>
+  <video id="vr" data-dir="r" muted playsinline preload="auto" disablepictureinpicture></video>
+  <canvas id="c"></canvas>
+  <div class="fade" id="fadeA"></div><div class="fade" id="fadeB"></div>
+</div>
+<div id="load"></div>
+<div class="top"><div class="brand"><span>KARATS</span><small>AUTO</small></div><div class="count" id="count">01 <span>/ 05</span></div></div>
+<button class="side" id="prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+<button class="side" id="next" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+<div class="bar" id="bar">
+  <div class="info" id="info"><h2 id="name"></h2><p id="meta"></p></div>
+  <button class="more" id="more">Ver coche</button>
+</div>
+<div class="track" id="track" aria-label="Recorrer coches"><div class="glass" id="glassEl"><span class="glass__refract"></span><span class="glass__tint"></span><span class="glass__shine"></span><span class="glass__specular"></span><div class="rail" id="rail"><b class="thumb" id="thumb"></b></div></div></div>
+<div id="lensWrap" aria-hidden="true"><canvas id="lens"></canvas><span class="lens__rim"></span></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="lg-refract" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+    <feImage result="map" x="0" y="0" width="132" height="34" preserveAspectRatio="none" href="data:image/png;base64,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"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="-28" xChannelSelector="R" yChannelSelector="G"/>
+  </filter></defs></svg>
+<div class="hint" id="hint">desliza · scroll · flechas</div>
+<div class="credits">Modelos 3D: <a href="credits.html">créditos (CC BY)</a></div>
+<div id="card"><div class="sheet"><h3 id="cName"></h3><div class="demo">Datos de ejemplo</div><ul id="cList"></ul><div class="row"><a href="#" onclick="return false">Contactar</a><button id="close">Cerrar</button></div></div></div>
+<script>
+(() => {
+  // The camera move is played as a hardware-decoded VIDEO (forward + reversed copy), not as hundreds of images:
+  // iPhone cannot keep ~285 big decoded images in memory, so it re-decoded them on the fly -> stutter and blank flashes.
+  // At every stop a full-quality still sits on top of the video, so a parked car is pixel-sharp.
+  const CARS = [
+    { name: "Kia Sportage",       year: 2022, km: "38 000 km", fuel: "Gasolina MHEV", gear: "Automático", price: "27 900 €", stop: 716, still: 284 },
+    { name: "BMW Serie 3",        year: 2023, km: "24 000 km", fuel: "Diésel",        gear: "Automático", price: "36 500 €", stop: 537, still: 213 },
+    { name: "Toyota Corolla",     year: 2021, km: "45 000 km", fuel: "Híbrido",       gear: "Automático", price: "18 900 €", stop: 358, still: 142 },
+    { name: "Hyundai Ioniq 6",    year: 2023, km: "19 000 km", fuel: "Eléctrico",     gear: "Automático", price: "34 900 €", stop: 179, still: 71  },
+    { name: "Volkswagen Golf 8",  year: 2021, km: "52 000 km", fuel: "Gasolina",      gear: "Manual",     price: "21 400 €", stop: 0,   still: 0   },
+  ];
+  const N = 717, FPS = 60, IW = 1920, IH = 1280, BG = "#efece6";
+  const HIT = { x1: 440, y1: 427, x2: 1400, y2: 973 }, FOCUS_X = (HIT.x1 + HIT.x2) / 2 / IW;
+  const isPortrait = () => document.documentElement.clientHeight > document.documentElement.clientWidth * 1.05;
+  const small = isPortrait();
+  const CROPX = small ? 360 : 0, CW = small ? 1120 : 1920;          // phone = full-res crop around the car
+  const pre = small ? "m" : "d";
+  const $ = id => document.getElementById(id);
+  const cv = $("c"), ctx = cv.getContext("2d", { alpha: false });
+  let vf = $("vf"), vr = $("vr");                                  // vf: frame n at (n+.5)/FPS ; vr: frame n at (N-1-n+.5)/FPS
+  const stills = {}; let view = { s: 1, ox: 0, oy: 0, dpr: 1, portrait: false };
+  const hashIdx = (() => { const m = /^#(\d)$/.exec(location.hash); return m ? Math.max(0, Math.min(CARS.length - 1, +m[1] - 1)) : 0; })();
+  let pos = CARS[hashIdx].stop, idx = hashIdx, mode = "idle", hopTarget = null, shown = "still", follow = pos, lastT = 0, seq = 0;
+  let noPlay = false;
+  let ready = false, readyP;
+
+  // ---------- layout ----------
+  function resize() {
+    const r = document.documentElement, W0 = r.clientWidth, H0 = r.clientHeight, dpr = Math.min(3, devicePixelRatio || 1);
+    cv.width = Math.round(W0 * dpr); cv.height = Math.round(H0 * dpr);
+    const portrait = H0 > W0 * 1.05; let s, ox, oy;                  // s in CSS px per frame px
+    if (portrait) { s = W0 / 1093; ox = W0 / 2 - FOCUS_X * IW * s; oy = H0 * 0.44 - IH * s * 0.55; }
+    else {
+      s = Math.max(W0 / IW, H0 / IH); ox = (W0 - IW * s) / 2;
+      if (IW * s > W0) { ox = W0 / 2 - FOCUS_X * IW * s; ox = Math.min(0, Math.max(W0 - IW * s, ox)); }
+      oy = (H0 - IH * s) / 2;
+    }
+    view = { s, ox, oy, dpr, portrait };
+    for (const v of [vf, vr]) Object.assign(v.style, { left: (ox + CROPX * s) + "px", top: oy + "px", width: (CW * s) + "px", height: (IH * s) + "px" });
+    const fa = $("fadeA"), fb = $("fadeB"), h = IH * s, f = Math.min(90, h * 0.16);
+    if (portrait) {
+      Object.assign(fa.style, { display: "block", top: "0px", height: (oy + f) + "px" });
+      Object.assign(fb.style, { display: "block", top: (oy + h - f) + "px", height: (H0 - (oy + h - f)) + "px" });
+      fa.style.background = `linear-gradient(${BG} ${oy / (oy + f) * 100}%, rgba(239,236,230,0))`;
+      fb.style.background = `linear-gradient(rgba(239,236,230,0), ${BG} ${f / (H0 - (oy + h - f)) * 100}%)`;
+      const below = oy + h;
+      $("prev").style.top = $("next").style.top = (below + 34) + "px";
+      $("hint").style.top = (below + 18) + "px";
+      $("track").style.top = (below - 88) + "px"; $("track").style.bottom = "auto";   // glass capsule over the floor: it has something to refract
+      // very big system text: no room for the side arrows between the picture and the car name -> swipe / dots only
+      const barTop = $("info").getBoundingClientRect().top || innerHeight;
+      const tight = below + 34 + $("next").offsetHeight + 6 > barTop;
+      $("prev").classList.toggle("tight", tight); $("next").classList.toggle("tight", tight);
+    } else { fa.style.display = fb.style.display = "none"; }
+    drawStill();
+  }
+  function drawStill() {
+    const im = stills[nearestStopFrame()]; if (!im || !im.complete) return;
+    const W = cv.width, H = cv.height, d = view.dpr;
+    ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(im, (view.ox + CROPX * view.s) * d, view.oy * d, im.naturalWidth * view.s * d, IH * view.s * d);
+  }
+  const nearestStopFrame = () => CARS[idx].stop;
+  function show(which) {                         // which layer is visible: "still" | "vf" | "vr"
+    if (shown === which) return; shown = which;
+    cv.style.opacity = which === "still" ? 1 : 0;
+    vf.style.opacity = which === "vf" ? 1 : 0;
+    vr.style.opacity = which === "vr" ? 1 : 0;
+  }
+
+  // ---------- video helpers ----------
+  const isF = v => v.dataset.dir === "f";
+  const tOf = (v, n) => ((isF(v) ? n : N - 1 - n) + 0.5) / FPS;
+  const nOf = (v, t) => { const k = Math.min(N - 1, Math.max(0, Math.floor(t * FPS + 1e-3))); return isF(v) ? k : N - 1 - k; };
+  const onFrame = (v, cb) => v.requestVideoFrameCallback ? v.requestVideoFrameCallback((now, m) => cb(m.mediaTime)) : requestAnimationFrame(() => cb(v.currentTime));
+  function seekTo(v, n) {                        // resolves when frame n is decoded and on screen in v
+    return new Promise(res => {
+      if (Math.abs(nOf(v, v.currentTime) - n) < 0.5 && !v.seeking && v.readyState >= 2) return res();
+      const done = () => { v.removeEventListener("seeked", done); let fin = false; const f = () => { if (!fin) { fin = true; res(); } }; onFrame(v, f); setTimeout(f, 60); };
+      v.addEventListener("seeked", done); v.currentTime = tOf(v, n);
+    });
+  }
+  async function parkVideos(n) { try { await Promise.all([seekTo(vf, n), seekTo(vr, n)]); } catch (e) {} }
+
+  // ---------- UI ----------
+  const atStop = () => mode === "idle" && pos === CARS[idx].stop;
+  function ui() {
+    const c = CARS[idx];
+    $("count").innerHTML = `${String(idx + 1).padStart(2, "0")} <span>/ ${String(CARS.length).padStart(2, "0")}</span>`;
+    $("name").textContent = c.name;
+    const nb = t => String(t).replace(/ /g, "\u00a0");
+    $("meta").innerHTML = `${c.year} · ${nb(c.km)} · <span class="price">${nb(c.price)}</span>`;
+    $("prev").disabled = idx === 0; $("next").disabled = idx === CARS.length - 1;
+  }
+  function setAway(a) { $("info").classList.toggle("away", a); $("more").classList.toggle("away", a); }
+  const nearestCar = p => { let b = 0; CARS.forEach((c, k) => { if (Math.abs(c.stop - p) < Math.abs(CARS[b].stop - p)) b = k; }); return b; };
+
+  // ---------- hop: play the rendered move at its own 24 fps, stop exactly on the car ----------
+  async function go(i) {
+    i = Math.max(0, Math.min(CARS.length - 1, i));
+    const to = CARS[i].stop, my = ++seq;
+    idx = i; ui(); hideHint(); setAway(true);
+    if (to === pos && mode !== "follow") { mode = "idle"; arrive(my); return; }
+    if (!ready) { await readyP; if (my !== seq) return; }
+    { const cur = active(); if (cur) pos = posOf(cur); }
+    const from = Math.round(pos), v = to > from ? vf : vr, other = v === vf ? vr : vf;
+    if (to === from) { vf.pause(); vr.pause(); switching = false; pos = to; mode = "idle"; arrive(my); return; }
+    mode = "hop"; hopTarget = to;
+    if (shown !== "still" && shown !== (v === vf ? "vf" : "vr")) {   // scrubbing showed the other video: hold it, line this one up
+      other.pause();
+    }
+    other.pause(); switching = false;
+    await seekTo(v, from); if (my !== seq) return;
+    show(v === vf ? "vf" : "vr");
+    v.playbackRate = Math.min(3, Math.max(1, Math.abs(to - from) / (CARS[0].stop / (CARS.length - 1)) * 0.85));
+    let playing = !noPlay;
+    if (playing) { try { await v.play(); } catch (e) { playing = false; noPlay = true; } }
+    if (my !== seq) return;
+    if (!playing) { seekHop(v, from, to, my); return; }
+    // stop exactly on the car: per presented video frame (rVFC) AND per screen frame (rAF) as a safety net,
+    // so a missed callback can never let the video run past the car
+    let fin = false;
+    const check = (mt) => {
+      if (fin) return true;
+      if (my !== seq) { fin = true; return true; }
+      const n = nOf(v, mt); pos = to > from ? Math.max(pos, n) : Math.min(pos, n);   // two clocks (rVFC, rAF) may differ by a frame
+      if (v.ended) { fin = true; v.pause(); mode = "idle"; idx = nearestCar(pos); ui(); go(idx); return true; }
+      if ((to > from && n >= to) || (to < from && n <= to)) { fin = true; v.pause(); pos = to; mode = "idle"; arrive(my); return true; }
+      return false;
+    };
+    const step = mt => { if (!check(mt)) onFrame(v, step); };
+    const poll = () => { if (!check(v.currentTime)) requestAnimationFrame(poll); };
+    onFrame(v, step); requestAnimationFrame(poll);
+  }
+  // fallback when the phone refuses to play video (iOS Low Power Mode): step the frames by seeking, eased, ~same duration
+  function seekHop(v, from, to, my) {
+    const dur = Math.abs(to - from) / FPS / Math.max(1, v.playbackRate) * 1000, t0 = performance.now();
+    const step = () => {
+      if (my !== seq) return;
+      const u = Math.min(1, (performance.now() - t0) / dur), e = u * u * (3 - 2 * u), n = Math.round(from + (to - from) * e);
+      if (!v.seeking && nOf(v, v.currentTime) !== n) v.currentTime = tOf(v, n);
+      pos = n;
+      if (u >= 1) { pos = to; mode = "idle"; arrive(my); return; }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  // at rest the picture IS the parked video frame (the still image is only used before the video is ready):
+  // the same pixels at rest and in motion -> exactly the same brightness, and no big image decode at arrival
+  const restLayer = () => pos > N / 2 ? "vr" : "vf";          // the copy that is not sitting on its last frame
+  function showRest() { if (ready) { shown = ""; show(restLayer()); } else { drawStill(); show("still"); } }
+  function arrive(my) {
+    setAway(false);
+    try { history.replaceState(history.state, "", "#" + (idx + 1)); } catch (e) {}
+    parkVideos(pos).then(() => { if (my === seq && mode === "idle") showRest(); });
+  }
+
+  // ---------- scrub (wheel / finger): DRIVE the playing video instead of seeking it ----------
+  // Seeking a video frame by frame is slow on phones (each seek decodes from a keyframe) -> jerky.
+  // Instead the finger sets a target and the video PLAYS toward it (forward copy or reversed copy),
+  // with a speed proportional to the distance: hardware playback = smooth at any speed.
+  let settleT = null, switching = false;
+  function scrub(df) {
+    if (!ready) return;
+    if (mode !== "follow") { seq++; follow = pos; mode = "follow"; }
+    follow = Math.max(0, Math.min(N - 1, follow + df));
+    setAway(true); hideHint();
+    clearTimeout(settleT); settleT = setTimeout(() => { if (!trackDrag) go(nearestCar(follow)); }, 220);
+  }
+  const active = () => shown === "vf" ? vf : shown === "vr" ? vr : null;
+  const posOf = v => { const k = v.currentTime * FPS - 0.5; return Math.max(0, Math.min(N - 1, isF(v) ? k : N - 1 - k)); };
+  function drive() {
+    if (switching) return;
+    const cur = active();
+    if (cur) pos = posOf(cur);
+    const diff = follow - pos;
+    if (Math.abs(diff) < 1.2) { if (cur && !cur.paused) cur.pause(); return; }
+    const want = diff > 0 ? vf : vr;
+    if (cur !== want) {                                   // direction change: line the other copy up on this frame, then swap
+      switching = true; if (cur) cur.pause(); const tok = seq;
+      seekTo(want, Math.round(pos)).then(() => { switching = false; if (tok === seq && mode === "follow") show(want === vf ? "vf" : "vr"); });
+      return;
+    }
+    const rate = Math.max(0.35, Math.min(3, Math.abs(diff) / (FPS * 0.28)));
+    if (Math.abs(want.playbackRate - rate) > 0.15) want.playbackRate = Math.round(rate * 8) / 8;
+    if (noPlay) {                                          // no playback allowed: walk the frames by seeking
+      const n = Math.round(pos + Math.sign(diff) * Math.min(Math.abs(diff), 4));
+      if (!want.seeking) want.currentTime = tOf(want, n);
+      return;
+    }
+    if (want.paused && want.currentTime < want.duration - 1 / FPS) want.play().catch(() => { noPlay = true; });
+  }
+  // ---------- dots track: thumb shows where the camera is; press + slide drives the camera ----------
+  const LAST = CARS[0].stop, PER_CAR_PX = 64;                 // finger travel for one car
+  const fracOf = p => 1 - p / LAST;
+  let trackDrag = null, liveIdx = -1;
+  function railIdx(x) { const r = $("rail").getBoundingClientRect(); return Math.max(0, Math.min(CARS.length - 1, Math.round((x - r.left) / r.width * (CARS.length - 1)))); }
+  $("track").addEventListener("pointerdown", e => {
+    if (!ready) return;
+    e.preventDefault(); $("track").setPointerCapture(e.pointerId); $("track").classList.add("drag");
+    trackDrag = { id: e.pointerId, x0: e.clientX, moved: false, p0: pos };
+    lensShow(true); lensVis = 1;
+    hideHint(); clearTimeout(settleT); liveIdx = idx;
+  });
+  $("track").addEventListener("pointermove", e => {
+    if (!trackDrag || e.pointerId !== trackDrag.id) return;
+    const dx = e.clientX - trackDrag.x0;
+    if (!trackDrag.moved && Math.abs(dx) > 6) { trackDrag.moved = true; seq++; follow = pos; trackDrag.p0 = pos; trackDrag.x0 = e.clientX; mode = "follow"; setAway(false); return; }
+    if (!trackDrag.moved) return;
+    // finger to the right = camera to the right (= towards lower frame numbers)
+    follow = Math.max(0, Math.min(N - 1, trackDrag.p0 - (e.clientX - trackDrag.x0) / PER_CAR_PX * (LAST / (CARS.length - 1))));
+    const k = nearestCar(follow); if (k !== liveIdx) { liveIdx = k; idx = k; ui(); }
+  });
+  function trackUp(e) {
+    if (!trackDrag || e.pointerId !== trackDrag.id) return;
+    const d = trackDrag; trackDrag = null; $("track").classList.remove("drag"); lensShow(false);
+    if (!d.moved) { go(railIdx(e.clientX)); return; }         // tap on a dot = go to that car
+    go(nearestCar(follow));
+  }
+  $("track").addEventListener("pointerup", trackUp); $("track").addEventListener("pointercancel", trackUp);
+
+  // ---------- Liquid Glass lens over the dots (iOS 26 tab-bar "bubble") ----------
+  // Safari cannot refract with CSS, so the lens is drawn by hand: we know exactly what is under it
+  // (the current video frame or still, the floor fade, the glass capsule and its dots), copy that strip,
+  // and re-sample it through a curved-glass map: clear centre with slight magnification, content bent and
+  // squeezed toward the rim, separate R/G/B bending = the rainbow fringe on the edge.
+  const LW = 62, LH = 46, LM = 18;                          // lens css size, sampling margin around it
+  const ld = Math.min(2, devicePixelRatio || 1);
+  const lensWrap = $("lensWrap"), lens = $("lens"), lctx = lens.getContext("2d");
+  lens.width = Math.round(LW * ld); lens.height = Math.round(LH * ld);
+  const src = document.createElement("canvas"), sctx = src.getContext("2d", { willReadFrequently: true });
+  src.width = Math.round((LW + 2 * LM) * ld); src.height = Math.round((LH + 2 * LM) * ld);
+  const out = lctx.createImageData(lens.width, lens.height);
+  // per output pixel: source index for R, G, B + alpha (pill mask, antialiased) + edge shade
+  const NP = lens.width * lens.height, mapR = new Int32Array(NP), mapG = new Int32Array(NP), mapB = new Int32Array(NP), mA = new Float32Array(NP), mS = new Float32Array(NP);
+  (function buildMap() {
+    const W = lens.width, H = lens.height, SW = src.width, SH = src.height, r = H / 2, cx = W / 2, cy = H / 2;
+    const mag = 1.32, bez = H * 0.40, K = H * 0.62, CA = 0.22;    // centre magnification, rim width, rim bend, colour split
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = y * W + x, px = x + 0.5 - cx, py = y + 0.5 - cy;
+      // signed distance to a horizontal pill (capsule) + its outward normal
+      const ax = Math.max(Math.abs(px) - (W / 2 - r), 0), dist = Math.hypot(ax, py) - r;
+      let nx = 0, ny = 0; const nl = Math.hypot(ax, py) || 1; nx = Math.sign(px) * ax / nl; ny = py / nl;
+      mA[i] = Math.max(0, Math.min(1, 0.5 - dist));             // 1px antialias
+      const t = Math.max(0, Math.min(1, -dist / bez)), e = Math.pow(1 - t, 2.2);   // e: 0 inside .. 1 at the rim
+      mS[i] = 1 - 0.16 * Math.pow(1 - t, 7) + 0.10 * Math.max(0, -ny) * Math.pow(1 - t, 3);   // dark rim line, light top lip
+      const bx = px / mag + nx * e * K, by = py / mag + ny * e * K;
+      const put = (arr, k) => {
+        let sx = Math.round(SW / 2 + bx * k), sy = Math.round(SH / 2 + by * k);
+        sx = Math.max(0, Math.min(SW - 1, sx)); sy = Math.max(0, Math.min(SH - 1, sy)); arr[i] = (sy * SW + sx) * 4;
+      };
+      put(mapR, 1 + CA * e); put(mapG, 1); put(mapB, 1 - CA * e);
+    }
+  })();
+  const fadeAlpha = y => {                                    // what the page paints over the hall at screen y
+    let a = 0;
+    if (view.portrait) { const h = IH * view.s, f = Math.min(90, h * 0.16), y0 = view.oy + h - f; a = Math.max(0, Math.min(1, (y - y0) / f)); if (y < view.oy) a = 1; }
+    const br = $("bar").getBoundingClientRect(); if (y > br.top) a = Math.max(a, 0.9 * Math.min(1, (y - br.top) / (br.height * 0.55)));
+    return a;
+  };
+  let lensOn = false, lensVis = 0;
+  function renderLens() {
+    const rr = $("rail").getBoundingClientRect(), gr = $("glassEl").getBoundingClientRect();
+    const cxs = rr.left + fracOf(pos) * rr.width, cys = gr.top + gr.height / 2;
+    lensWrap.style.left = (cxs - LW / 2) + "px"; lensWrap.style.top = (cys - LH / 2) + "px";
+    // 1) the scene strip under the lens (+margin), in screen space
+    const x0 = cxs - LW / 2 - LM, y0 = cys - LH / 2 - LM, w = LW + 2 * LM, h = LH + 2 * LM;
+    sctx.setTransform(ld, 0, 0, ld, -x0 * ld, -y0 * ld);
+    sctx.fillStyle = BG; sctx.fillRect(x0, y0, w, h);
+    const v = active();
+    if (v) {                                                    // only the needed piece of the frame (cheap on phones)
+      const L = view.ox + CROPX * view.s, T = view.oy, sc = view.s;
+      let sx = (x0 - L) / sc, sy = (y0 - T) / sc, sw = w / sc, sh = h / sc;
+      const cx0 = Math.max(0, sx), cy0 = Math.max(0, sy), cx1 = Math.min(CW, sx + sw), cy1 = Math.min(IH, sy + sh);
+      if (cx1 > cx0 && cy1 > cy0) sctx.drawImage(v, cx0, cy0, cx1 - cx0, cy1 - cy0, L + cx0 * sc, T + cy0 * sc, (cx1 - cx0) * sc, (cy1 - cy0) * sc);
+    } else {
+      const d = view.dpr, cx0 = Math.max(0, x0 * d), cy0 = Math.max(0, y0 * d), cx1 = Math.min(cv.width, (x0 + w) * d), cy1 = Math.min(cv.height, (y0 + h) * d);
+      if (cx1 > cx0 && cy1 > cy0) sctx.drawImage(cv, cx0, cy0, cx1 - cx0, cy1 - cy0, cx0 / d, cy0 / d, (cx1 - cx0) / d, (cy1 - cy0) / d);
+    }
+    for (let yy = Math.floor(y0); yy < y0 + h; yy += 2) { const a = fadeAlpha(yy); if (a > 0) { sctx.fillStyle = `rgba(239,236,230,${a})`; sctx.fillRect(x0, yy, w, 2); } }
+    // 2) the capsule's own tint and dots (seen sharp and magnified through the clear lens)
+    sctx.fillStyle = "rgba(255,255,255,0.07)";
+    const R = gr.height / 2; sctx.beginPath(); sctx.moveTo(gr.left + R, gr.top); sctx.arcTo(gr.right, gr.top, gr.right, gr.bottom, R); sctx.arcTo(gr.right, gr.bottom, gr.left, gr.bottom, R);
+    sctx.arcTo(gr.left, gr.bottom, gr.left, gr.top, R); sctx.arcTo(gr.left, gr.top, gr.right, gr.top, R); sctx.fill();
+    sctx.fillStyle = "rgba(29,33,30,0.42)";
+    for (let k = 0; k < CARS.length; k++) { sctx.beginPath(); sctx.arc(rr.left + k / (CARS.length - 1) * rr.width, cys, 2.6, 0, 6.283); sctx.fill(); }
+    sctx.fillStyle = "rgba(29,33,30,0.9)"; sctx.beginPath(); sctx.arc(cxs - 4, cys, 3, 1.571, 4.712); sctx.arc(cxs + 4, cys, 3, -1.571, 1.571); sctx.fill();
+    // 3) re-sample through the glass map
+    const s = sctx.getImageData(0, 0, src.width, src.height).data, o = out.data;
+    for (let i = 0, j = 0; i < NP; i++, j += 4) {
+      const sh = mS[i];
+      o[j] = s[mapR[i]] * sh; o[j + 1] = s[mapG[i] + 1] * sh; o[j + 2] = s[mapB[i] + 2] * sh; o[j + 3] = 255 * mA[i];
+    }
+    lctx.putImageData(out, 0, 0);
+  }
+  window.__lensBench = renderLens;
+  // first touch anywhere: start+stop both videos inside the gesture, so iOS lets us play them later from code
+  const unlockedEls = new WeakSet();
+  function unlock() {
+    if (!ready) return;
+    for (const v of [vf, vr]) {
+      if (unlockedEls.has(v)) continue; unlockedEls.add(v);
+      if (!v.paused) continue;
+      const visible = shown === (v === vf ? "vf" : "vr");
+      // a video parked on its last frame would restart from 0 on play(): step it back first (only ever the hidden copy)
+      if (!visible && v.duration && v.currentTime > v.duration - 2 / FPS) v.currentTime = Math.max(0, v.duration - 4 / FPS);
+      if (visible && v.duration && v.currentTime > v.duration - 2 / FPS) continue;
+      const p = v.play(); v.pause();
+      if (p && p.catch) p.catch(e => { if (e && e.name === "NotAllowedError") noPlay = true; });
+      if (mode === "idle") seekTo(v, Math.round(pos));
+    }
+  }
+  addEventListener("pointerdown", unlock, true); addEventListener("touchstart", unlock, { capture: true, passive: true }); addEventListener("keydown", unlock, true);
+
+  // ---------- back from another app / locked phone mid-move: finish the move instead of freezing between cars ----------
+  function recover() {
+    if (mode === "idle") { showRest(); return; }
+    const cur = active(); if (cur) pos = posOf(cur);
+    trackDrag = null; $("track").classList.remove("drag"); lensShow(false); clearTimeout(settleT); switching = false;
+    vf.pause(); vr.pause();
+    go(mode === "hop" ? idx : nearestCar(pos));
+  }
+  document.addEventListener("visibilitychange", () => { if (document.hidden) { vf.pause(); vr.pause(); } else recover(); });
+  addEventListener("pageshow", e => { if (e.persisted) recover(); });
+  function lensShow(on) { lensOn = on; $("track").classList.toggle("lens", on); }
+
+  function tick(t) {
+    lastT = t;
+    if (lensOn || $("track").classList.contains("lens")) renderLens();
+    if (mode === "follow") drive();
+    $("thumb").style.left = (fracOf(pos) * 100) + "%";
+    if (lensVis > 0 && !lensOn) { lensVis = Math.max(0, lensVis - 0.04); if (lensVis > 0) renderLens(); }
+    requestAnimationFrame(tick);
+  }
+  // wheel / trackpad: ONE gesture = exactly ONE car, however hard the scroll. A gesture ends after 240 ms without
+  // wheel events, so the long inertia tail of a strong trackpad flick is swallowed instead of pushing on to a second car.
+  let wAcc = 0, wDone = false, wQuietT = null;
+  addEventListener("wheel", e => {
+    e.preventDefault(); if ($("card").classList.contains("on")) return;
+    clearTimeout(wQuietT); wQuietT = setTimeout(() => { wAcc = 0; wDone = false; }, 240);
+    if (wDone) return;
+    const d = (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? 800 : 1) * (Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX);
+    wAcc += d;
+    if (Math.abs(wAcc) < 24) return;                       // a few px of trackpad jitter is not a gesture
+    wDone = true; go(idx + (wAcc > 0 ? 1 : -1));
+  }, { passive: false });
+  addEventListener("keydown", e => {
+    if (e.key === "Escape" && $("card").classList.contains("on")) closeCard();
+    if ($("card").classList.contains("on")) return;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") go(idx + 1);
+    if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(idx - 1);
+    if (e.key === "Enter" && atStop()) openCard();
+  });
+  $("next").onclick = () => go(idx + 1); $("prev").onclick = () => go(idx - 1);
+  $("more").onclick = () => openCard();
+
+  // touch: swipe = next/prev car (plays the move); slow vertical drag scrubs
+  let tx = 0, ty = 0, ly = 0, tmode = null, moved = false;
+  const stage = $("stage");
+  stage.addEventListener("touchstart", e => { const t = e.touches[0]; tx = t.clientX; ty = ly = t.clientY; tmode = null; moved = false; }, { passive: true });
+  stage.addEventListener("touchmove", e => {
+    const t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty;
+    if (!tmode && Math.hypot(dx, dy) > 10) tmode = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
+    if (tmode === "v") ly = t.clientY;
+    moved = moved || !!tmode;
+  }, { passive: true });
+  stage.addEventListener("touchend", e => {
+    // swipe left/right or up/down = exactly one car
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (tmode === "h" && Math.abs(dx) > 30) go(idx + (dx < 0 ? 1 : -1));
+    if (tmode === "v" && Math.abs(dy) > 30) go(idx + (dy < 0 ? 1 : -1));
+  });
+
+  // tap on the parked car opens its card
+  function inCar(cx, cy) { const x = (cx - view.ox) / view.s, y = (cy - view.oy) / view.s; return x > HIT.x1 && x < HIT.x2 && y > HIT.y1 && y < HIT.y2; }
+  stage.addEventListener("mousemove", e => stage.classList.toggle("hot", atStop() && inCar(e.clientX, e.clientY)));
+  stage.addEventListener("click", e => { if (!moved && atStop() && inCar(e.clientX, e.clientY)) openCard(); moved = false; });
+  function openCard() {
+    const c = CARS[idx];
+    $("cName").textContent = c.name;
+    const ul = $("cList"); ul.innerHTML = "";
+    [["Año", c.year], ["Kilómetros", c.km], ["Combustible", c.fuel], ["Cambio", c.gear], ["Precio", c.price]].forEach(([k, v]) => {
+      const li = document.createElement("li"); li.innerHTML = `<span>${k}</span><b></b>`; li.querySelector("b").textContent = v; ul.appendChild(li);
+    });
+    $("card").classList.add("on");
+    if (!(history.state && history.state.card)) history.pushState({ card: 1 }, "");
+  }
+  // Back (Android button / iOS edge swipe) closes the card instead of leaving the site
+  let cardClosing = false;
+  const closeCard = () => {
+    if (cardClosing || !$("card").classList.contains("on")) return;
+    if (history.state && history.state.card) { cardClosing = true; history.back(); } else $("card").classList.remove("on");
+  };
+  addEventListener("popstate", () => { cardClosing = false; if (!(history.state && history.state.card)) $("card").classList.remove("on"); });
+  $("close").onclick = closeCard;
+  $("card").addEventListener("click", e => { if (e.target.id === "card") closeCard(); });
+  let hinted = false; function hideHint() { if (!hinted) { hinted = true; $("hint").style.opacity = 0; } }
+  setTimeout(hideHint, 4000);
+
+  // ---------- loading: 5 sharp stills first, then both videos fully into memory (no network during a move) ----------
+  CARS.forEach((c, k) => { const d = document.createElement("i"); d.style.left = (k / (CARS.length - 1) * 100) + "%"; $("rail").insertBefore(d, $("thumb")); });
+  CARS.forEach(c => { const im = new Image(); im.onload = () => { if (c.stop === CARS[idx].stop) drawStill(); }; im.src = `${small ? "m" : "f"}/${String(c.still).padStart(3, "0")}.webp`; stills[c.stop] = im; });
+  const URLS = [`v/${pre}_fwd.mp4`, `v/${pre}_rev.mp4`];
+  // 1) streaming: the browser fetches only the part it needs -> the first move is possible almost at once
+  function streamVideo(v, url) {
+    return new Promise(res => { v.preload = "metadata"; v.src = url; v.addEventListener("loadedmetadata", res, { once: true }); v.load(); });
+  }
+  readyP = Promise.all([streamVideo(vf, URLS[0]), streamVideo(vr, URLS[1])])
+    .then(() => parkVideos(pos)).then(() => { ready = true; if (mode === "idle") showRest(); });
+  // 2) the browser keeps buffering ahead on its own (preload=auto); the thin bar on top shows how much is in
+  const bufTick = () => {
+    const f = [vf, vr].map(v => { try { let m = 0; for (let k = 0; k < v.buffered.length; k++) m += v.buffered.end(k) - v.buffered.start(k); return v.duration ? m / v.duration : 0; } catch (e) { return 0; } });
+    const done = (f[0] + f[1]) / 2; $("load").style.width = (done * 100) + "%";
+    if (done > 0.995 || prog[0] + prog[1] > 0) return;
+    setTimeout(bufTick, 500);
+  };
+  // 3) meanwhile the whole files are downloaded into memory and loaded into two NEW video elements;
+  //    while parked (the still covers everything) they replace the streaming ones -> no network during moves
+  async function fetchBlob(url, onp) {
+    const r = await fetch(url); const total = +r.headers.get("content-length") || 0;
+    if (!r.body || !total) return URL.createObjectURL(await r.blob());
+    const rd = r.body.getReader(), parts = []; let got = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; onp(got / total); }
+    return URL.createObjectURL(new Blob(parts, { type: "video/mp4" }));
+  }
+  const prog = [0, 0];
+  function makeVideo(src, id) {
+    const v = document.createElement("video");
+    v.muted = true; v.playsInline = true; v.setAttribute("playsinline", ""); v.setAttribute("muted", ""); v.disablePictureInPicture = true;
+    v.preload = "auto"; v.id = id; v.dataset.dir = id[1]; v.style.opacity = 0;
+    $("stage").insertBefore(v, cv);
+    return new Promise(res => { v.addEventListener("loadeddata", () => res(v), { once: true }); v.src = src; v.load(); });
+  }
+  readyP.then(() => {
+    bufTick();
+    Promise.all(URLS.map((u, k) => fetchBlob(u, p => { prog[k] = p; $("load").style.width = ((prog[0] + prog[1]) / 2 * 100) + "%"; })))
+      .then(blobs => Promise.all([makeVideo(blobs[0], "vf2"), makeVideo(blobs[1], "vr2")]))
+      .then(([nf, nr]) => {
+        const trySwap = async () => {
+          if (mode !== "idle" || trackDrag) return setTimeout(trySwap, 250);
+          const n = Math.round(pos);
+          await Promise.all([seekTo(nf, n), seekTo(nr, n)]);
+          if (mode !== "idle" || trackDrag || Math.round(pos) !== n) return setTimeout(trySwap, 250);
+          const of = vf, orr = vr; vf = nf; vr = nr; resize(); showRest();
+          of.pause(); orr.pause(); of.remove(); orr.remove(); nf.id = "vf"; nr.id = "vr";
+          $("load").style.opacity = 0;
+        };
+        trySwap();
+      }).catch(() => {});
+  });
+  addEventListener("resize", () => { if (isPortrait() !== small) location.reload(); else resize(); });
+  resize(); ui(); requestAnimationFrame(tick);
+  window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown, vf: vf.currentTime, vr: vr.currentTime });
+})();
+</script>
+</body>
+</html>
