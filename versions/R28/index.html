@@ -84,11 +84,12 @@
     { name: "Hyundai Ioniq 6",    year: 2023, km: "19 000 km", fuel: "Eléctrico",     gear: "Automático", price: "34 900 €", stop: 71  },
     { name: "Volkswagen Golf 8",  year: 2021, km: "52 000 km", fuel: "Gasolina",      gear: "Manual",     price: "21 400 €", stop: 0   },
   ];
-  const N = 285, IW = 1440, IH = 960, BG = "rgb(239,236,230)", BG0 = "rgba(239,236,230,0)";
+  const N = 285, IW = 1920, IH = 1280, BG = "rgb(239,236,230)", BG0 = "rgba(239,236,230,0)";
   // car on screen at a stop, in image px (1440x960): used for the tap target and for the portrait crop
-  const HIT = { x1: 330, y1: 320, x2: 1050, y2: 730 }, FOCUS_X = (HIT.x1 + HIT.x2) / 2 / IW;
-  const small = Math.min(innerWidth, innerHeight) < 700 || innerWidth * devicePixelRatio < 1300;
-  const dir = small ? "m" : "f", SW = small ? 960 : 1440, SH = small ? 640 : 960;
+  const HIT = { x1: 440, y1: 427, x2: 1400, y2: 973 }, FOCUS_X = (HIT.x1 + HIT.x2) / 2 / IW;
+  const small = innerHeight > innerWidth * 1.05;      // portrait phone/tablet: only the car band is shown
+  addEventListener("resize", () => { if ((innerHeight > innerWidth * 1.05) !== small) location.reload(); });
+  const dir = small ? "m" : "f", CROPX = small ? 360 : 0;   // phone frames = full-res crop x 360..1480 around the car
   const src = i => `${dir}/${String(i).padStart(3, "0")}.webp`;
   const cv = document.getElementById("c"), ctx = cv.getContext("2d");
   const $ = id => document.getElementById(id);
@@ -96,12 +97,12 @@
   let pos = CARS[0].stop, target = pos, idx = 0, last = 0, view = { s: 1, ox: 0, oy: 0 }, drawn = -1;
 
   function resize() {
-    const dpr = Math.min(2, devicePixelRatio || 1);
+    const dpr = Math.min(3, devicePixelRatio || 1);
     cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
     const portrait = cv.height > cv.width * 1.05;
     let s, ox, oy;
     if (portrait) {                                   // phone: car fills the width, hall band in the middle, feathered edges
-      s = cv.width / 820; ox = cv.width / 2 - FOCUS_X * IW * s;
+      s = cv.width / 1093; ox = cv.width / 2 - FOCUS_X * IW * s;
       oy = cv.height * 0.45 - IH * s * 0.55;
     } else {                                          // cover, keep the car on screen
       s = Math.max(cv.width / IW, cv.height / IH); ox = (cv.width - IW * s) / 2;
@@ -115,7 +116,7 @@
   function draw(p) {
     const i = nearestLoaded(Math.round(p)); if (i < 0 || i === drawn) return;
     ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(frames[i], view.ox, view.oy, IW * view.s, IH * view.s); drawn = i;
+    ctx.drawImage(frames[i], view.ox + CROPX * view.s, view.oy, frames[i].naturalWidth * view.s, IH * view.s); drawn = i;
     if (view.portrait) {
       const h = IH * view.s, f = Math.min(90 * view.dpr, h * 0.16), W = cv.width;
       ctx.fillStyle = BG; ctx.fillRect(0, 0, W, view.oy + 1); ctx.fillRect(0, view.oy + h - 1, W, cv.height);
