@@ -26,7 +26,7 @@
   .count { font-family:Jost,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:.12em; color:var(--ink); font-size:14px; }
   .count span { color:var(--soft); }
   .side { position:fixed; top:50%; transform:translateY(-50%); width:56px; height:56px; border-radius:50%; border:1px solid rgba(29,33,30,.14);
-          background:rgba(251,250,247,.72); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:var(--ink); cursor:pointer; z-index:3;
+          background:rgba(251,250,247,.86); color:var(--ink); cursor:pointer; z-index:3;
           display:flex; align-items:center; justify-content:center; transition:opacity .3s, background .2s; box-shadow:0 6px 20px rgba(0,0,0,.08); }
   .side:hover { background:rgba(255,255,255,.92); }
   .side svg { width:22px; height:22px; }
@@ -253,10 +253,14 @@
     };
     requestAnimationFrame(step);
   }
+  // at rest the picture IS the parked video frame (the still image is only used before the video is ready):
+  // the same pixels at rest and in motion -> exactly the same brightness, and no big image decode at arrival
+  const restLayer = () => pos > N / 2 ? "vr" : "vf";          // the copy that is not sitting on its last frame
+  function showRest() { if (ready) { shown = ""; show(restLayer()); } else { drawStill(); show("still"); } }
   function arrive(my) {
-    drawStill(); show("still"); setAway(false);
+    setAway(false);
     try { history.replaceState(null, "", "#" + (idx + 1)); } catch (e) {}
-    parkVideos(pos).then(() => {});
+    parkVideos(pos).then(() => { if (my === seq && mode === "idle") showRest(); });
   }
 
   // ---------- scrub (wheel / finger): DRIVE the playing video instead of seeking it ----------
@@ -405,17 +409,20 @@
     for (const v of [vf, vr]) {
       if (unlockedEls.has(v)) continue; unlockedEls.add(v);
       if (!v.paused) continue;
-      // a video parked on its last frame would restart from 0 on play(): step it back a little first (it is hidden)
-      if (v.duration && v.currentTime > v.duration - 2 / FPS) v.currentTime = Math.max(0, v.duration - 4 / FPS);
-      const p = v.play();
-      if (p && p.then) p.then(() => { if (shown !== (v === vf ? "vf" : "vr")) { v.pause(); if (mode === "idle") seekTo(v, Math.round(pos)); } }).catch(() => { noPlay = true; });
+      const visible = shown === (v === vf ? "vf" : "vr");
+      // a video parked on its last frame would restart from 0 on play(): step it back first (only ever the hidden copy)
+      if (!visible && v.duration && v.currentTime > v.duration - 2 / FPS) v.currentTime = Math.max(0, v.duration - 4 / FPS);
+      if (visible && v.duration && v.currentTime > v.duration - 2 / FPS) continue;
+      const p = v.play(); v.pause();
+      if (p && p.catch) p.catch(e => { if (e && e.name === "NotAllowedError") noPlay = true; });
+      if (mode === "idle") seekTo(v, Math.round(pos));
     }
   }
   addEventListener("pointerdown", unlock, true); addEventListener("touchstart", unlock, { capture: true, passive: true }); addEventListener("keydown", unlock, true);
 
   // ---------- back from another app / locked phone mid-move: finish the move instead of freezing between cars ----------
   function recover() {
-    if (mode === "idle") { drawStill(); return; }
+    if (mode === "idle") { showRest(); return; }
     const cur = active(); if (cur) pos = posOf(cur);
     trackDrag = null; $("track").classList.remove("drag"); lensShow(false); clearTimeout(settleT); switching = false;
     vf.pause(); vr.pause();
@@ -487,7 +494,7 @@
     return new Promise(res => { v.preload = "metadata"; v.src = url; v.addEventListener("loadedmetadata", res, { once: true }); v.load(); });
   }
   readyP = Promise.all([streamVideo(vf, URLS[0]), streamVideo(vr, URLS[1])])
-    .then(() => parkVideos(pos)).then(() => { ready = true; });
+    .then(() => parkVideos(pos)).then(() => { ready = true; if (mode === "idle") showRest(); });
   // 2) the browser keeps buffering ahead on its own (preload=auto); the thin bar on top shows how much is in
   const bufTick = () => {
     const f = [vf, vr].map(v => { try { let m = 0; for (let k = 0; k < v.buffered.length; k++) m += v.buffered.end(k) - v.buffered.start(k); return v.duration ? m / v.duration : 0; } catch (e) { return 0; } });
@@ -522,7 +529,7 @@
           const n = Math.round(pos);
           await Promise.all([seekTo(nf, n), seekTo(nr, n)]);
           if (mode !== "idle" || trackDrag || Math.round(pos) !== n) return setTimeout(trySwap, 250);
-          const of = vf, orr = vr; vf = nf; vr = nr; resize(); show("still");
+          const of = vf, orr = vr; vf = nf; vr = nr; resize(); showRest();
           of.pause(); orr.pause(); of.remove(); orr.remove(); nf.id = "vf"; nr.id = "vr";
           $("load").style.opacity = 0;
         };
