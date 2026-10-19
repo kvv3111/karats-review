@@ -38,9 +38,13 @@
   .info .price { color:var(--ink); font-weight:600; }
   .more { pointer-events:auto; flex:none; padding:13px 20px; border-radius:26px; border:0; background:var(--acc); color:#fff; font:inherit; font-weight:600; cursor:pointer; transition:opacity .35s; }
   .more.away { opacity:0; pointer-events:none; }
-  .dots { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(10px + env(safe-area-inset-bottom)); display:flex; gap:7px; pointer-events:none; }
-  .dots i { width:6px; height:6px; border-radius:3px; background:rgba(29,33,30,.25); transition:width .3s, background .3s; }
-  .dots i.on { width:18px; background:var(--ink); }
+  .track { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom) - 6px); width:150px; height:40px; z-index:3; touch-action:none; cursor:grab; -webkit-user-select:none; user-select:none; }
+  .track.drag { cursor:grabbing; }
+  .rail { position:absolute; left:12px; right:12px; top:50%; height:0; }
+  .rail i { position:absolute; top:-3px; width:6px; height:6px; margin-left:-3px; border-radius:3px; background:rgba(29,33,30,.25); transition:transform .25s; }
+  .rail .thumb { position:absolute; top:-3px; width:22px; height:6px; margin-left:-11px; border-radius:3px; background:var(--ink); transition:height .2s, top .2s, width .2s, margin-left .2s; }
+  .track.drag .rail .thumb { top:-5px; height:10px; width:30px; margin-left:-15px; border-radius:5px; }
+  .track.drag .rail i { transform:scale(1.35); }
   .hint { position:fixed; left:50%; top:22%; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:nowrap; max-width:90%; }
   #load { position:fixed; left:0; top:0; height:2px; background:var(--acc); width:0; z-index:4; transition:width .2s, opacity .6s; }
   #card { position:fixed; inset:0; background:rgba(20,22,20,.45); display:none; align-items:flex-end; justify-content:center; z-index:6; }
@@ -56,6 +60,8 @@
   .credits a { color:inherit; }
   @media (orientation:portrait) { .top { background:none; } .hint { top:auto; bottom:auto; } }
   @media (max-width:640px) {
+    .track { width:min(70vw, 280px); height:48px; bottom:calc(env(safe-area-inset-bottom) + 4px); }
+    .bar { padding-bottom:calc(56px + env(safe-area-inset-bottom)); }
     .side { width:46px; height:46px; } .info h2 { font-size:21px; } .more { padding:11px 16px; }
     .credits { display:none; }
   }
@@ -76,7 +82,7 @@
   <div class="info" id="info"><h2 id="name"></h2><p id="meta"></p></div>
   <button class="more" id="more">Ver coche</button>
 </div>
-<div class="dots" id="dots"></div>
+<div class="track" id="track" aria-label="Recorrer coches"><div class="rail" id="rail"><b class="thumb" id="thumb"></b></div></div>
 <div class="hint" id="hint">desliza · scroll · flechas</div>
 <div class="credits">Modelos 3D: <a href="credits.html">créditos (CC BY)</a></div>
 <div id="card"><div class="sheet"><h3 id="cName"></h3><div class="demo">Datos de ejemplo</div><ul id="cList"></ul><div class="row"><a href="#" onclick="return false">Contactar</a><button id="close">Cerrar</button></div></div></div>
@@ -166,7 +172,6 @@
     $("name").textContent = c.name;
     $("meta").innerHTML = `${c.year} · ${c.km} · <span class="price">${c.price}</span>`;
     $("prev").disabled = idx === 0; $("next").disabled = idx === CARS.length - 1;
-    [...$("dots").children].forEach((d, k) => d.classList.toggle("on", k === idx));
   }
   function setAway(a) { $("info").classList.toggle("away", a); $("more").classList.toggle("away", a); }
   const nearestCar = p => { let b = 0; CARS.forEach((c, k) => { if (Math.abs(c.stop - p) < Math.abs(CARS[b].stop - p)) b = k; }); return b; };
@@ -185,7 +190,7 @@
     }
     await seekTo(v, from); if (my !== seq) return;
     show(v === vf ? "vf" : "vr");
-    v.playbackRate = 1;
+    v.playbackRate = Math.min(3, Math.max(1, Math.abs(to - from) / (CARS[0].stop / (CARS.length - 1)) * 0.85));
     try { await v.play(); } catch (e) {}
     const step = (mt) => {
       if (my !== seq) return;
@@ -207,10 +212,38 @@
     if (mode !== "follow") { seq++; vf.pause(); vr.pause(); follow = pos; mode = "follow"; }
     follow = Math.max(0, Math.min(N - 1, follow + df));
     setAway(true); hideHint();
-    clearTimeout(settleT); settleT = setTimeout(() => go(nearestCar(follow)), 180);
+    clearTimeout(settleT); settleT = setTimeout(() => { if (!trackDrag) go(nearestCar(follow)); }, 180);
   }
+  // ---------- dots track: thumb shows where the camera is; press + slide = drive the camera along the row ----------
+  const LAST = CARS[0].stop;                                   // frame of the left-most car (frames run right -> left)
+  const fracOf = p => 1 - p / LAST, frameOf = f => (1 - f) * LAST;
+  let trackDrag = null, liveIdx = -1;
+  function trackFrac(x) { const r = $("rail").getBoundingClientRect(); return Math.max(0, Math.min(1, (x - r.left) / r.width)); }
+  $("track").addEventListener("pointerdown", e => {
+    if (!ready) return;
+    e.preventDefault(); $("track").setPointerCapture(e.pointerId); $("track").classList.add("drag");
+    trackDrag = { id: e.pointerId, x0: e.clientX, moved: false, f0: fracOf(pos) };
+    hideHint(); clearTimeout(settleT); liveIdx = idx; setAway(false);
+    if (mode !== "follow") { seq++; vf.pause(); vr.pause(); follow = pos; mode = "follow"; }
+  });
+  $("track").addEventListener("pointermove", e => {
+    if (!trackDrag || e.pointerId !== trackDrag.id) return;
+    if (Math.abs(e.clientX - trackDrag.x0) > 4) trackDrag.moved = true;
+    if (!trackDrag.moved) return;
+    follow = frameOf(trackFrac(e.clientX));                     // finger position on the track = camera position in the row
+    const k = nearestCar(follow); if (k !== liveIdx) { liveIdx = k; idx = k; ui(); }
+  });
+  function trackUp(e) {
+    if (!trackDrag || e.pointerId !== trackDrag.id) return;
+    const d = trackDrag; trackDrag = null; $("track").classList.remove("drag");
+    if (!d.moved) { go(Math.round(trackFrac(e.clientX) * (CARS.length - 1))); return; }   // tap on a dot = go to that car
+    go(nearestCar(follow));
+  }
+  $("track").addEventListener("pointerup", trackUp); $("track").addEventListener("pointercancel", trackUp);
+
   function tick(t) {
     const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0; lastT = t;
+    $("thumb").style.left = (fracOf(pos) * 100) + "%";
     if (mode === "follow") {
       pos += (follow - pos) * (1 - Math.exp(-dt / 0.1));
       const n = Math.round(pos);
@@ -266,7 +299,7 @@
   setTimeout(hideHint, 4000);
 
   // ---------- loading: 5 sharp stills first, then both videos fully into memory (no network during a move) ----------
-  CARS.forEach(() => $("dots").appendChild(document.createElement("i")));
+  CARS.forEach((c, k) => { const d = document.createElement("i"); d.style.left = (k / (CARS.length - 1) * 100) + "%"; $("rail").insertBefore(d, $("thumb")); });
   CARS.forEach(c => { const im = new Image(); im.onload = () => { if (c.stop === CARS[idx].stop) drawStill(); }; im.src = `${small ? "m" : "f"}/${String(c.still).padStart(3, "0")}.webp`; stills[c.stop] = im; });
   async function fetchBlob(url, onp) {
     const r = await fetch(url); const total = +r.headers.get("content-length") || 0;
