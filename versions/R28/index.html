@@ -11,8 +11,11 @@
   :root { --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html,body { width:100%; max-width:100%; height:100%; background:#efece6; color:var(--ink); font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; overflow:hidden; overscroll-behavior:none; }
-  #c { position:fixed; left:0; top:0; width:100%; height:100%; display:block; touch-action:none; }
-  #c.hot { cursor:pointer; }
+  #stage { position:fixed; inset:0; overflow:hidden; background:#efece6; touch-action:none; }
+  #stage.hot { cursor:pointer; }
+  #stage video { position:absolute; opacity:0; pointer-events:none; object-fit:fill; background:#efece6; }
+  #c { position:absolute; left:0; top:0; width:100%; height:100%; display:block; pointer-events:none; }
+  .fade { position:absolute; left:0; right:0; display:none; pointer-events:none; }
   .top { position:fixed; top:0; left:0; right:0; padding:calc(16px + env(safe-area-inset-top)) 26px 26px; display:flex; justify-content:space-between; align-items:center; pointer-events:none;
          background:linear-gradient(rgba(239,236,230,.82),rgba(239,236,230,0)); }
   .brand { font-family:Jost,sans-serif; font-weight:400; letter-spacing:.32em; font-size:15px; }
@@ -59,7 +62,12 @@
 </style>
 </head>
 <body>
-<canvas id="c" aria-label="Showroom KARATS AUTO"></canvas>
+<div id="stage" aria-label="Showroom KARATS AUTO">
+  <video id="vf" muted playsinline preload="auto" disablepictureinpicture></video>
+  <video id="vr" muted playsinline preload="auto" disablepictureinpicture></video>
+  <canvas id="c"></canvas>
+  <div class="fade" id="fadeA"></div><div class="fade" id="fadeB"></div>
+</div>
 <div id="load"></div>
 <div class="top"><div class="brand">KARATS<small>AUTO</small></div><div class="count" id="count">01 <span>/ 05</span></div></div>
 <button class="side" id="prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
@@ -74,8 +82,9 @@
 <div id="card"><div class="sheet"><h3 id="cName"></h3><div class="demo">Datos de ejemplo</div><ul id="cList"></ul><div class="row"><a href="#" onclick="return false">Contactar</a><button id="close">Cerrar</button></div></div></div>
 <script>
 (() => {
-  // Frames = one continuous camera move along the row (rendered Golf -> Kia, 24 fps, each hop already eased in/out).
-  // Cars are listed left -> right as they stand in the hall; "next" moves the camera to the right.
+  // The camera move is played as a hardware-decoded VIDEO (forward + reversed copy), not as hundreds of images:
+  // iPhone cannot keep ~285 big decoded images in memory, so it re-decoded them on the fly -> stutter and blank flashes.
+  // At every stop a full-quality still sits on top of the video, so a parked car is pixel-sharp.
   const CARS = [
     { name: "Kia Sportage",       year: 2022, km: "38 000 km", fuel: "Gasolina MHEV", gear: "Automático", price: "27 900 €", stop: 284 },
     { name: "BMW Serie 3",        year: 2023, km: "24 000 km", fuel: "Diésel",        gear: "Automático", price: "36 500 €", stop: 213 },
@@ -83,69 +92,74 @@
     { name: "Hyundai Ioniq 6",    year: 2023, km: "19 000 km", fuel: "Eléctrico",     gear: "Automático", price: "34 900 €", stop: 71  },
     { name: "Volkswagen Golf 8",  year: 2021, km: "52 000 km", fuel: "Gasolina",      gear: "Manual",     price: "21 400 €", stop: 0   },
   ];
-  const N = 285, IW = 1920, IH = 1280, BG = "rgb(239,236,230)", BG0 = "rgba(239,236,230,0)";
-  const HOP_FPS = 24;                      // frames were rendered for 24 fps: playing them 1:1 in time gives the camera's own ease
-  // car on screen at a stop, in frame px: tap target and portrait focus
+  const N = 285, FPS = 24, IW = 1920, IH = 1280, BG = "#efece6";
   const HIT = { x1: 440, y1: 427, x2: 1400, y2: 973 }, FOCUS_X = (HIT.x1 + HIT.x2) / 2 / IW;
   const isPortrait = () => document.documentElement.clientHeight > document.documentElement.clientWidth * 1.05;
   const small = isPortrait();
-  const dir = small ? "m" : "f", CROPX = small ? 360 : 0;   // phone frames = full-res crop x 360..1480 around the car
-  const src = i => `${dir}/${String(i).padStart(3, "0")}.webp`;
-  const cv = document.getElementById("c"), ctx = cv.getContext("2d", { alpha: false });
+  const CROPX = small ? 360 : 0, CW = small ? 1120 : 1920;          // phone = full-res crop around the car
+  const pre = small ? "m" : "d";
   const $ = id => document.getElementById(id);
-  const frames = new Array(N), ok = new Uint8Array(N); let nLoaded = 0;
-  let pos = CARS[0].stop, idx = 0, view = { s: 1, ox: 0, oy: 0, dpr: 1 };
-  // motion state: "hop" = timed playback to a stop, "follow" = smooth follow of a scrub target, "idle"
-  let mode = "idle", hop = null, follow = CARS[0].stop, lastT = 0, lastDrawn = "";
+  const cv = $("c"), ctx = cv.getContext("2d", { alpha: false });
+  const vf = $("vf"), vr = $("vr");                                  // vf: frame n at (n+.5)/FPS ; vr: frame n at (N-1-n+.5)/FPS
+  const stills = {}; let view = { s: 1, ox: 0, oy: 0, dpr: 1, portrait: false };
+  let pos = CARS[0].stop, idx = 0, mode = "idle", hopTarget = null, shown = "still", follow = pos, lastT = 0, seq = 0;
+  let ready = false, readyP;
 
+  // ---------- layout ----------
   function resize() {
-    // size from the canvas' real CSS box (innerWidth on iOS can be the wider layout viewport -> squashed, stale strip)
-    const r = cv.getBoundingClientRect(), dpr = Math.min(3, devicePixelRatio || 1);
-    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
-    const W = cv.width, H = cv.height, portrait = H > W * 1.05;
-    let s, ox, oy;
-    if (portrait) {                    // phone: the car fills the width, hall band, feathered top/bottom
-      s = W / 1093; ox = W / 2 - FOCUS_X * IW * s; oy = H * 0.44 - IH * s * 0.55;
-    } else {                           // cover, keep the car on screen
-      s = Math.max(W / IW, H / IH); ox = (W - IW * s) / 2;
-      if (IW * s > W) { ox = W / 2 - FOCUS_X * IW * s; ox = Math.min(0, Math.max(W - IW * s, ox)); }
-      oy = (H - IH * s) / 2;
+    const r = document.documentElement, W0 = r.clientWidth, H0 = r.clientHeight, dpr = Math.min(3, devicePixelRatio || 1);
+    cv.width = Math.round(W0 * dpr); cv.height = Math.round(H0 * dpr);
+    const portrait = H0 > W0 * 1.05; let s, ox, oy;                  // s in CSS px per frame px
+    if (portrait) { s = W0 / 1093; ox = W0 / 2 - FOCUS_X * IW * s; oy = H0 * 0.44 - IH * s * 0.55; }
+    else {
+      s = Math.max(W0 / IW, H0 / IH); ox = (W0 - IW * s) / 2;
+      if (IW * s > W0) { ox = W0 / 2 - FOCUS_X * IW * s; ox = Math.min(0, Math.max(W0 - IW * s, ox)); }
+      oy = (H0 - IH * s) / 2;
     }
     view = { s, ox, oy, dpr, portrait };
-    if (portrait) {                    // arrows centred on the hall band at the screen edges, hint under the band
-      const below = (oy + IH * s) / dpr;          // under the hall band, at the screen sides: never over a car
+    for (const v of [vf, vr]) Object.assign(v.style, { left: (ox + CROPX * s) + "px", top: oy + "px", width: (CW * s) + "px", height: (IH * s) + "px" });
+    const fa = $("fadeA"), fb = $("fadeB"), h = IH * s, f = Math.min(90, h * 0.16);
+    if (portrait) {
+      Object.assign(fa.style, { display: "block", top: "0px", height: (oy + f) + "px" });
+      Object.assign(fb.style, { display: "block", top: (oy + h - f) + "px", height: (H0 - (oy + h - f)) + "px" });
+      fa.style.background = `linear-gradient(${BG} ${oy / (oy + f) * 100}%, rgba(239,236,230,0))`;
+      fb.style.background = `linear-gradient(rgba(239,236,230,0), ${BG} ${f / (H0 - (oy + h - f)) * 100}%)`;
+      const below = oy + h;
       $("prev").style.top = $("next").style.top = (below + 34) + "px";
-      $("hint").style.top = (below + 18) + "px"; $("hint").style.bottom = "auto";
-    }
-    lastDrawn = ""; paint();
+      $("hint").style.top = (below + 18) + "px";
+    } else { fa.style.display = fb.style.display = "none"; }
+    drawStill();
   }
-  function nearestLoaded(i) { for (let d = 0; d < N; d++) { if (i - d >= 0 && ok[i - d]) return i - d; if (i + d < N && ok[i + d]) return i + d; } return -1; }
-  function blit(i, a) {
-    const im = frames[i]; ctx.globalAlpha = a;
-    ctx.drawImage(im, view.ox + CROPX * view.s, view.oy, im.naturalWidth * view.s, IH * view.s);
+  function drawStill() {
+    const im = stills[nearestStopFrame()]; if (!im || !im.complete) return;
+    const W = cv.width, H = cv.height, d = view.dpr;
+    ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(im, (view.ox + CROPX * view.s) * d, view.oy * d, im.naturalWidth * view.s * d, IH * view.s * d);
   }
-  function paint() {
-    // between two rendered frames: cross-fade them, so 24 rendered frames/s display as smooth 60 fps motion
-    const f0 = Math.floor(pos), fr = pos - f0;
-    let a = nearestLoaded(f0), b = fr > 0.02 && f0 + 1 < N && ok[f0 + 1] && a === f0 ? f0 + 1 : -1;
-    if (a < 0) return;
-    const key = a + ":" + (b < 0 ? 0 : Math.round(fr * 32));
-    if (key === lastDrawn) return; lastDrawn = key;
-    const W = cv.width, H = cv.height;
-    ctx.globalAlpha = 1; ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);          // clear everything: no stale strips
-    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-    blit(a, 1); if (b >= 0) blit(b, fr);
-    ctx.globalAlpha = 1;
-    if (view.portrait) {
-      const h = IH * view.s, f = Math.min(90 * view.dpr, h * 0.16);
-      let g = ctx.createLinearGradient(0, view.oy, 0, view.oy + f); g.addColorStop(0, BG); g.addColorStop(1, BG0);
-      ctx.fillStyle = g; ctx.fillRect(0, view.oy - 1, W, f + 1);
-      g = ctx.createLinearGradient(0, view.oy + h - f, 0, view.oy + h); g.addColorStop(0, BG0); g.addColorStop(1, BG);
-      ctx.fillStyle = g; ctx.fillRect(0, view.oy + h - f, W, f + 1);
-      ctx.fillStyle = BG; ctx.fillRect(0, 0, W, Math.max(0, view.oy)); ctx.fillRect(0, view.oy + h, W, H);
-    }
+  const nearestStopFrame = () => CARS[idx].stop;
+  function show(which) {                         // which layer is visible: "still" | "vf" | "vr"
+    if (shown === which) return; shown = which;
+    cv.style.opacity = which === "still" ? 1 : 0;
+    vf.style.opacity = which === "vf" ? 1 : 0;
+    vr.style.opacity = which === "vr" ? 1 : 0;
   }
-  const atStop = () => mode === "idle" && Math.abs(pos - CARS[idx].stop) < 0.01;
+
+  // ---------- video helpers ----------
+  const tOf = (v, n) => ((v === vf ? n : N - 1 - n) + 0.5) / FPS;
+  const nOf = (v, t) => { const k = Math.min(N - 1, Math.max(0, Math.floor(t * FPS + 1e-3))); return v === vf ? k : N - 1 - k; };
+  const onFrame = (v, cb) => v.requestVideoFrameCallback ? v.requestVideoFrameCallback((now, m) => cb(m.mediaTime)) : requestAnimationFrame(() => cb(v.currentTime));
+  function seekTo(v, n) {                        // resolves when frame n is decoded and on screen in v
+    return new Promise(res => {
+      if (Math.abs(nOf(v, v.currentTime) - n) < 0.5 && !v.seeking && v.readyState >= 2) return res();
+      const done = () => { v.removeEventListener("seeked", done); let fin = false; const f = () => { if (!fin) { fin = true; res(); } }; onFrame(v, f); setTimeout(f, 60); };
+      v.addEventListener("seeked", done); v.currentTime = tOf(v, n);
+    });
+  }
+  async function parkVideos(n) { try { await Promise.all([seekTo(vf, n), seekTo(vr, n)]); } catch (e) {} }
+
+  // ---------- UI ----------
+  const atStop = () => mode === "idle" && pos === CARS[idx].stop;
   function ui() {
     const c = CARS[idx];
     $("count").innerHTML = `${String(idx + 1).padStart(2, "0")} <span>/ ${String(CARS.length).padStart(2, "0")}</span>`;
@@ -157,45 +171,54 @@
   function setAway(a) { $("info").classList.toggle("away", a); $("more").classList.toggle("away", a); }
   const nearestCar = p => { let b = 0; CARS.forEach((c, k) => { if (Math.abs(c.stop - p) < Math.abs(CARS[b].stop - p)) b = k; }); return b; };
 
-  function go(i) {
-    idx = Math.max(0, Math.min(CARS.length - 1, i)); ui(); hideHint();
-    const to = CARS[idx].stop;
-    if (Math.abs(to - pos) < 0.01) { pos = to; mode = "idle"; return; }
-    // play the rendered frames 1:1 in time (24 fps): the camera eases out of one stop and into the next exactly as rendered.
-    // A partial hop (after a scrub) keeps the same speed; very long jumps are capped so they never drag.
-    const dist = Math.abs(to - pos), dur = dist <= 75 ? dist / HOP_FPS : Math.min(dist / HOP_FPS, 1.6 + dist / 60);
-    hop = { from: pos, to, t0: performance.now(), dur: dur * 1000 }; mode = "hop"; prefetch(to);
+  // ---------- hop: play the rendered move at its own 24 fps, stop exactly on the car ----------
+  async function go(i) {
+    i = Math.max(0, Math.min(CARS.length - 1, i));
+    const to = CARS[i].stop, my = ++seq;
+    idx = i; ui(); hideHint(); setAway(true);
+    if (to === pos && mode !== "follow") { mode = "idle"; arrive(my); return; }
+    if (!ready) { await readyP; if (my !== seq) return; }
+    const from = Math.round(pos), v = to > from ? vf : vr, other = v === vf ? vr : vf;
+    mode = "hop"; hopTarget = to;
+    if (shown !== "still" && shown !== (v === vf ? "vf" : "vr")) {   // scrubbing showed the other video: hold it, line this one up
+      other.pause();
+    }
+    await seekTo(v, from); if (my !== seq) return;
+    show(v === vf ? "vf" : "vr");
+    v.playbackRate = 1;
+    try { await v.play(); } catch (e) {}
+    const step = (mt) => {
+      if (my !== seq) return;
+      const n = nOf(v, mt); pos = n;
+      if ((to > from && n >= to) || (to < from && n <= to) || v.ended) { v.pause(); pos = to; mode = "idle"; arrive(my); return; }
+      onFrame(v, step);
+    };
+    onFrame(v, step);
   }
-  // when a hop starts from rest, frames near its ends are dense (the render eased there); a hop that starts mid-way
-  // (after a scrub) gets a gentle ease-out so it does not jerk.
-  function hopAt(now) {
-    const u = Math.min(1, (now - hop.t0) / hop.dur);
-    const fromStop = CARS.some(c => Math.abs(c.stop - hop.from) < 0.5);
-    const e = fromStop ? u : 1 - Math.pow(1 - u, 3);
-    return { p: hop.from + (hop.to - hop.from) * e, done: u >= 1 };
+  function arrive(my) {
+    drawStill(); show("still"); setAway(false);
+    parkVideos(pos).then(() => {});
+  }
+
+  // ---------- scrub (wheel / drag): seek the forward video, smooth follow ----------
+  let settleT = null, seekBusy = false;
+  function scrub(df) {
+    if (!ready) return;
+    if (mode !== "follow") { seq++; vf.pause(); vr.pause(); follow = pos; mode = "follow"; }
+    follow = Math.max(0, Math.min(N - 1, follow + df));
+    setAway(true); hideHint();
+    clearTimeout(settleT); settleT = setTimeout(() => go(nearestCar(follow)), 180);
   }
   function tick(t) {
     const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0; lastT = t;
-    if (mode === "hop") {
-      const h = hopAt(t); pos = h.p;
-      if (h.done) { pos = hop.to; mode = "idle"; }
-    } else if (mode === "follow") {
-      const k = 1 - Math.exp(-dt / 0.11);                  // critically damped follow of the finger / wheel
-      pos += (follow - pos) * k;
-      if (Math.abs(follow - pos) < 0.02) pos = follow;
+    if (mode === "follow") {
+      pos += (follow - pos) * (1 - Math.exp(-dt / 0.1));
+      const n = Math.round(pos);
+      if (!seekBusy && nOf(vf, vf.currentTime) !== n) {
+        seekBusy = true; seekTo(vf, n).then(() => { seekBusy = false; show("vf"); });
+      }
     }
-    setAway(!atStop());
-    paint(); warm();
     requestAnimationFrame(tick);
-  }
-
-  // wheel / trackpad / vertical drag: scrub along the row with inertia, then glide to the nearest car
-  let settleT = null;
-  function scrub(df) {
-    if (mode !== "follow") follow = pos;
-    follow = Math.max(0, Math.min(N - 1, follow + df)); mode = "follow";
-    clearTimeout(settleT); settleT = setTimeout(() => go(nearestCar(follow)), 170);
-    hideHint();
   }
   addEventListener("wheel", e => { e.preventDefault(); if ($("card").classList.contains("on")) return; scrub(-(e.deltaY + e.deltaX) * 0.05); }, { passive: false });
   addEventListener("keydown", e => {
@@ -208,35 +231,26 @@
   $("next").onclick = () => go(idx + 1); $("prev").onclick = () => go(idx - 1);
   $("more").onclick = () => openCard();
 
-  // touch: the hall follows the finger; release = glide to the next car in the swipe direction (or back if barely moved)
-  let tx = 0, ty = 0, lx = 0, ly = 0, tmode = null, moved = false, vx = 0, lt = 0;
-  cv.addEventListener("touchstart", e => { const t = e.touches[0]; tx = lx = t.clientX; ty = ly = t.clientY; tmode = null; moved = false; vx = 0; lt = performance.now(); }, { passive: true });
-  cv.addEventListener("touchmove", e => {
-    const t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty, now = performance.now();
+  // touch: swipe = next/prev car (plays the move); slow vertical drag scrubs
+  let tx = 0, ty = 0, ly = 0, tmode = null, moved = false;
+  const stage = $("stage");
+  stage.addEventListener("touchstart", e => { const t = e.touches[0]; tx = t.clientX; ty = ly = t.clientY; tmode = null; moved = false; }, { passive: true });
+  stage.addEventListener("touchmove", e => {
+    const t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty;
     if (!tmode && Math.hypot(dx, dy) > 10) tmode = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
-    const per = 70 / Math.max(320, cv.clientWidth);        // one screen width of drag ~ 70 frames ~ one car
-    if (tmode === "h") { const d = t.clientX - lx; vx = 0.7 * vx + 0.3 * d / Math.max(1, now - lt); scrub(d * per * 1.0); lx = t.clientX; }
-    if (tmode === "v") { scrub((t.clientY - ly) * per); ly = t.clientY; }
-    lt = now; moved = moved || !!tmode;
+    if (tmode === "v") { scrub((t.clientY - ly) * 70 / Math.max(320, innerWidth)); ly = t.clientY; }
+    moved = moved || !!tmode;
   }, { passive: true });
-  cv.addEventListener("touchend", e => {
+  stage.addEventListener("touchend", e => {
     if (tmode !== "h") return;
-    clearTimeout(settleT);
-    const dx = e.changedTouches[0].clientX - tx, fling = Math.abs(vx) > 0.35 || Math.abs(dx) > 50;
-    const p = follow; let j;
-    if (fling && dx < 0) { j = CARS.findIndex(c => c.stop < p - 0.5); if (j < 0) j = CARS.length - 1; }
-    else if (fling && dx > 0) { j = -1; CARS.forEach((c, k) => { if (c.stop > p + 0.5) j = k; }); if (j < 0) j = 0; }
-    else j = nearestCar(p);
-    pos = Math.max(0, Math.min(N - 1, pos)); go(j);
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 30) go(idx + (dx < 0 ? 1 : -1));
   });
 
   // tap on the parked car opens its card
-  function inCar(cx, cy) {
-    const x = (cx * view.dpr - view.ox) / view.s, y = (cy * view.dpr - view.oy) / view.s;
-    return x > HIT.x1 && x < HIT.x2 && y > HIT.y1 && y < HIT.y2;
-  }
-  cv.addEventListener("mousemove", e => cv.classList.toggle("hot", atStop() && inCar(e.clientX, e.clientY)));
-  cv.addEventListener("click", e => { if (!moved && atStop() && inCar(e.clientX, e.clientY)) openCard(); moved = false; });
+  function inCar(cx, cy) { const x = (cx - view.ox) / view.s, y = (cy - view.oy) / view.s; return x > HIT.x1 && x < HIT.x2 && y > HIT.y1 && y < HIT.y2; }
+  stage.addEventListener("mousemove", e => stage.classList.toggle("hot", atStop() && inCar(e.clientX, e.clientY)));
+  stage.addEventListener("click", e => { if (!moved && atStop() && inCar(e.clientX, e.clientY)) openCard(); moved = false; });
   function openCard() {
     const c = CARS[idx];
     $("cName").textContent = c.name;
@@ -251,47 +265,27 @@
   let hinted = false; function hideHint() { if (!hinted) { hinted = true; $("hint").style.opacity = 0; } }
   setTimeout(hideHint, 4000);
 
-  // loading: the five stops first, then frames nearest to where the camera is / is going
+  // ---------- loading: 5 sharp stills first, then both videos fully into memory (no network during a move) ----------
   CARS.forEach(() => $("dots").appendChild(document.createElement("i")));
-  const want = new Uint8Array(N); let inflight = 0, focus = pos;
-  function prefetch(p) { focus = p; }
-  function nextToLoad() {
-    for (const c of CARS) if (!want[c.stop]) return c.stop;
-    const a = mode === "hop" ? hop.from : pos, b = mode === "hop" ? hop.to : focus;
-    const lo = Math.max(0, Math.floor(Math.min(a, b))), hi = Math.min(N - 1, Math.ceil(Math.max(a, b)));
-    const dirn = b >= a ? 1 : -1;
-    for (let k = 0; k <= hi - lo; k++) { const i = dirn > 0 ? lo + k : hi - k; if (!want[i]) return i; }
-    for (let d = 1; d < N; d++) for (const i of [Math.round(pos) - d, Math.round(pos) + d]) if (i >= 0 && i < N && !want[i]) return i;
-    return -1;
+  CARS.forEach(c => { const im = new Image(); im.onload = () => { if (c.stop === CARS[idx].stop) drawStill(); }; im.src = `${small ? "m" : "f"}/${String(c.stop).padStart(3, "0")}.webp`; stills[c.stop] = im; });
+  async function fetchBlob(url, onp) {
+    const r = await fetch(url); const total = +r.headers.get("content-length") || 0;
+    if (!r.body || !total) return URL.createObjectURL(await r.blob());
+    const rd = r.body.getReader(), parts = []; let got = 0;
+    for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; onp(got / total); }
+    return URL.createObjectURL(new Blob(parts, { type: "video/mp4" }));
   }
-  function pump() {
-    while (inflight < 6) {
-      const i = nextToLoad(); if (i < 0) return;
-      want[i] = 1; inflight++;
-      const im = new Image(); frames[i] = im;
-      im.onload = () => {
-        (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => {
-          ok[i] = 1; nLoaded++; inflight--; $("load").style.width = (nLoaded / N * 100) + "%";
-          if (nLoaded === N) $("load").style.opacity = 0;
-          if (Math.abs(i - pos) < 2) lastDrawn = "";
-          pump();
-        });
-      };
-      im.onerror = () => { inflight--; want[i] = 0; setTimeout(pump, 500); };
-      im.src = src(i);
-    }
+  const prog = [0, 0], bar = () => $("load").style.width = ((prog[0] + prog[1]) / 2 * 100) + "%";
+  function loadVideo(v, url, k) {
+    return fetchBlob(url, p => { prog[k] = p; bar(); }).then(b => new Promise(res => {
+      v.src = b; v.addEventListener("loadeddata", res, { once: true }); v.load();
+    }));
   }
-  // keep the frames just ahead decoded (Safari drops decoded bitmaps of far frames)
-  let warmAt = -99;
-  function warm() {
-    const p = Math.round(pos); if (Math.abs(p - warmAt) < 3) return; warmAt = p;
-    const d = mode === "hop" ? Math.sign(hop.to - hop.from) : 0;
-    for (let k = 1; k <= 8; k++) { const i = p + (d || 1) * k; if (i >= 0 && i < N && ok[i] && frames[i].decode) frames[i].decode().catch(() => {}); }
-  }
-  pump();
+  readyP = Promise.all([loadVideo(vf, `v/${pre}_fwd.mp4`, 0), loadVideo(vr, `v/${pre}_rev.mp4`, 1)])
+    .then(() => parkVideos(pos)).then(() => { ready = true; $("load").style.opacity = 0; });
   addEventListener("resize", () => { if (isPortrait() !== small) location.reload(); else resize(); });
   resize(); ui(); requestAnimationFrame(tick);
-  window.__state = () => ({ pos, idx, mode, loaded: nLoaded, parked: atStop(), cw: cv.width, bw: Math.round(cv.getBoundingClientRect().width) });
+  window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown, vf: vf.currentTime, vr: vr.currentTime });
 })();
 </script>
 </body>
