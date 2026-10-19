@@ -69,11 +69,11 @@
   .rail { position:absolute; left:50%; width:84px; margin-left:-42px; top:50%; height:0; z-index:2; }
   .rail i { position:absolute; top:-2.5px; width:5px; height:5px; margin-left:-2.5px; border-radius:3px; background:rgba(29,33,30,.30); }
   .rail .thumb { position:absolute; top:-3px; width:16px; height:6px; margin-left:-8px; border-radius:3px; background:rgba(29,33,30,.88); box-shadow:0 1px 2px rgba(0,0,0,.18); will-change:left; }
-  .hint { position:fixed; left:50%; top:22%; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:nowrap; max-width:90%; }
+  .hint { position:fixed; left:50%; top:auto; bottom:132px; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:nowrap; max-width:90%; }
   #load { position:fixed; left:0; top:0; height:2px; background:var(--acc); width:0; z-index:4; transition:width .2s, opacity .6s; }
   .credits { position:fixed; right:26px; bottom:calc(6px + env(safe-area-inset-bottom)); font-size:10px; color:var(--soft); }
   .credits a { color:inherit; }
-  @media (orientation:portrait) { .top { background:none; } .hint { top:auto; bottom:auto; } }
+  @media (orientation:portrait) { .top { background:none; } }
   /* big system text (Android/iOS text size = narrower page): stack the bar, no hint over the arrows */
   @media (max-width:340px) {
     .hint { display:none; }
@@ -338,13 +338,16 @@
       fb.style.background = `linear-gradient(rgba(239,236,230,0), ${BG} ${f / (H0 - (oy + h - f)) * 100}%)`;
       const below = oy + h;
       $("prev").style.top = $("next").style.top = (below + 34) + "px";
-      $("hint").style.top = (below + 18) + "px";
+      // Hint is positioned above the car information, outside the showroom scene.
       $("track").style.top = (below - 88) + "px"; $("track").style.bottom = "auto";   // glass capsule over the floor: it has something to refract
       // very big system text: no room for the side arrows between the picture and the car name -> swipe / dots only
       const barTop = $("info").getBoundingClientRect().top || innerHeight;
       const tight = below + 34 + $("next").offsetHeight + 6 > barTop;
       $("prev").classList.toggle("tight", tight); $("next").classList.toggle("tight", tight);
     } else { fa.style.display = fb.style.display = "none"; }
+    const hint = $("hint");
+    hint.style.bottom = "auto";
+    hint.style.top = Math.max(0, $("info").getBoundingClientRect().top - hint.offsetHeight - 18) + "px";
     drawStill();
   }
   function drawStill() {
