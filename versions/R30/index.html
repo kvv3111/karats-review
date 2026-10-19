@@ -161,6 +161,35 @@
   #sheet .sh-acts { display:flex; flex-wrap:wrap; gap:8px; } #sheet .sh-acts .btn { flex:1 1 118px; } #sheet .sh-acts .round { flex:none; }
   #sheet .sh-acts .btn { padding:0 12px; } #sheet .sh-acts .round { width:52px; height:52px; padding:0; border-radius:26px; }
   #sheet .label { position:absolute; top:10px; right:58px; }
+
+  /* ---------- details: the same sheet grows into a full panel over the frozen hall ---------- */
+  #sheet .s-hero, #sheet .s-full, #sheet .s-call { display:none; }
+  body.details #sheet { top:calc(8px + env(safe-area-inset-top)); bottom:calc(8px + env(safe-area-inset-bottom)); height:auto; max-height:none; max-width:760px;
+    padding:10px 18px 0; --lg-tint:.82; }
+  body.details #sheet .s-hero, body.details #sheet .s-full { display:block; }
+  body.details #sheet .s-call { display:inline-flex; }
+  body.details #sheet .thumbs, body.details #sheet .hl, body.details #sheet #sMore { display:none; }
+  #sheet .s-hero { margin:16px 0 14px; aspect-ratio:3/2; background:#e6e2da; overflow:hidden; border-radius:18px; }
+  #sheet .s-hero img { width:100%; height:100%; object-fit:cover; display:block; }
+  #sheet .s-full section { margin-top:22px; }
+  #sheet .s-full h4 { font-family:Jost,sans-serif; font-weight:400; font-size:21px; letter-spacing:.01em; margin:0 2px 10px; }
+  #sheet .s-specs { display:grid; grid-template-columns:repeat(2, 1fr); gap:7px; }
+  #sheet .s-spec { border-radius:var(--r-m); padding:10px 12px; background:rgba(255,255,255,.55); box-shadow:inset 0 0 0 .6px var(--line); min-width:0; }
+  #sheet .s-spec small { display:block; color:var(--soft); font-size:12px; } #sheet .s-spec b { display:block; font-weight:600; margin-top:2px; font-size:15px; overflow-wrap:anywhere; }
+  #sheet .s-equip { display:flex; flex-wrap:wrap; gap:6px; } #sheet .s-equip .chip { background:rgba(255,255,255,.55); }
+  #sheet .s-perks { display:grid; grid-template-columns:repeat(2, 1fr); gap:7px; }
+  #sheet .s-perk { border-radius:var(--r-m); padding:12px; background:rgba(255,255,255,.55); box-shadow:inset 0 0 0 .6px var(--line); }
+  #sheet .s-perk svg { width:22px; height:22px; color:var(--acc); } #sheet .s-perk b { display:block; margin-top:6px; font-weight:600; font-size:14.5px; } #sheet .s-perk small { color:var(--soft); font-size:12.5px; }
+  #sheet .s-gal { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }
+  #sheet .s-gal button { aspect-ratio:3/2; border:0; border-radius:12px; background:#ddd center/cover; cursor:zoom-in; transition:transform .35s var(--spring); }
+  #sheet .s-gal button:active { transform:scale(.95); }
+  #sheet .s-note { color:var(--faint); font-size:12px; text-align:center; margin:20px 0 6px; }
+  body.details #sheet .sh-acts { position:sticky; bottom:0; z-index:3; margin:14px -18px 0; padding:10px 18px calc(12px + env(safe-area-inset-bottom));
+    background:linear-gradient(rgba(247,245,240,0), rgba(247,245,240,.92) 30%); }
+  body.details #sheet .sh-acts .round { flex:none; }
+  @media (min-width:700px) { #sheet .s-specs { grid-template-columns:repeat(3, 1fr); } #sheet .s-perks { grid-template-columns:repeat(4, 1fr); } #sheet .s-gal { grid-template-columns:repeat(4, 1fr); } }
+  @media (min-width:900px) { body.details #sheet { left:auto; right:24px; top:24px; bottom:24px; width:min(700px, calc(100vw - 48px)); } }
+  @media (orientation:landscape) and (max-height:520px) { body.details #sheet { left:auto; right:12px; top:8px; bottom:8px; width:min(620px, 72vw); } #sheet .s-hero { aspect-ratio:16/7; } }
   @media (min-width:900px) { #sheet { left:auto; right:24px; bottom:24px; width:420px; } }
   .top { z-index:9; } .top .r { display:flex; align-items:center; gap:14px; }
   body.sheet .bar, body.menu .bar, body.sheet .credits, body.menu .credits { visibility:hidden; pointer-events:none; }
@@ -219,7 +248,21 @@
   <div class="chips" id="sChips"></div>
   <div class="thumbs" id="sThumbs"></div>
   <ul class="hl" id="sHl"></ul>
+  <div class="s-hero"><img id="sHero" alt="" decoding="async"></div>
+  <div class="s-full" id="sFull">
+    <section><h4>Datos principales</h4><div class="s-specs" id="sSpecs"></div></section>
+    <section><h4>Equipamiento destacado</h4><div class="s-equip" id="sEquip"></div></section>
+    <section><h4>Incluido con KARATS AUTO</h4><div class="s-perks">
+      <div class="s-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><b>Garantía 12 meses</b><small>Ampliable a 36</small></div>
+      <div class="s-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11l2 2 4-4"/></svg><b>Revisión 150 puntos</b><small>Informe en la entrega</small></div>
+      <div class="s-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><b>Transferencia incluida</b><small>Gestión DGT por nuestra cuenta</small></div>
+      <div class="s-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><b>Entrega en toda España</b><small>O recógelo en Barcelona</small></div>
+    </div></section>
+    <section><h4>Galería</h4><div class="s-gal" id="sGalGrid"></div></section>
+    <p class="s-note">Maqueta: fotos y datos de ejemplo. Las fotos reales se añaden después.</p>
+  </div>
   <div class="sh-acts">
+    <button type="button" class="btn lg round s-call" data-soon="call" aria-label="Llamar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg></button>
     <a class="btn primary" id="sMore" href="coche.html"><span>Más detalles</span></a>
     <a class="btn lg" id="sGal" href="coche.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg><span>Galería</span></a>
     <button type="button" class="btn wa round" data-soon="wa" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.2 2.2 2.2 0 00.1-1.2c0-.1-.2-.2-.5-.3z"/></svg></button>
@@ -242,6 +285,15 @@
     const pick = ["01_front34", "04_rear34", "08_wheel", "03_side"];
     $("sThumbs").innerHTML = pick.map((s, k) => `<button style="background-image:url(gal/ph/${s}_t.webp)" ${k === 3 ? `class="more" data-more="+${SH.length - 3}"` : ""} data-shot="${s}"></button>`).join("");
     $("sMore").href = `coche.html?id=${C.id}`; $("sGal").href = `coche.html?id=${C.id}#galeria`;
+    // details: the car exactly as it stands in the showroom (full frame, no portrait crop) + full data + gallery
+    const hero = $("sHero"); hero.alt = C.brand + " " + C.model;
+    hero.srcset = `c/${C.id}_s.webp 600w, c/${C.id}.webp 900w`; hero.sizes = "(min-width:900px) 700px, 100vw"; hero.src = `c/${C.id}.webp`;
+    $("sSpecs").innerHTML = [["Año", C.year], ["Kilómetros", fmtKM(C.km)], ["Combustible", C.fuel], ["Cambio", C.gear], ["Potencia", C.power], ["Consumo", C.cons],
+      ["Etiqueta DGT", C.label], ["Color", C.color], ["Puertas / plazas", `${C.doors} / ${C.seats}`], ["Propietarios", C.owners]]
+      .map(([k, v]) => `<div class="s-spec"><small>${k}</small><b>${v}</b></div>`).join("");
+    $("sEquip").innerHTML = C.equip.map(t => `<span class="chip">${t}</span>`).join("");
+    $("sGalGrid").innerHTML = SH.map(([s, n]) => `<button type="button" data-shot="${s}" aria-label="${n}" style="background-image:url(gal/ph/${s}_t.webp)"></button>`).join("");
+    $("sheet").scrollTop = 0;
   }
   $("sThumbs").onclick = e => { const b = e.target.closest("button"); if (b) location.href = KLang.url(`coche.html?id=${C.id}#foto-${b.dataset.shot}`); };
   const B = document.body;
@@ -256,6 +308,8 @@
   }
   let closing = false;
   function closeAll() {
+    if (detailAnimations.length && !B.classList.contains("details")) return;
+    if (B.classList.contains("details")) { closeDetails(); return; }
     if (closing || !(B.classList.contains("menu") || B.classList.contains("sheet"))) return;
     if (layer()) { closing = true; history.back(); } else B.classList.remove("menu", "sheet");
     if (opener) { opener.focus({ preventScroll: true }); opener = null; }
@@ -263,15 +317,57 @@
   // closed panels are inert: Tab and screen readers skip them
   const syncInert = () => { $("menu").inert = !B.classList.contains("menu"); $("sheet").inert = !B.classList.contains("sheet"); };
   new MutationObserver(syncInert).observe(B, { attributes: true, attributeFilter: ["class"] }); syncInert();
-  if (layer()) B.classList.add(layer());                      // reload / return with a menu or sheet step in history
-  addEventListener("popstate", () => { closing = false; const l = layer(); B.classList.remove("menu", "sheet"); if (l) B.classList.add(l); });
+  const applyLayer = l => { B.classList.remove("menu", "sheet", "details"); if (l === "details") B.classList.add("sheet", "details"); else if (l) B.classList.add(l); if (l !== "details") $("sheet").style.height = ""; };
+  if (layer()) applyLayer(layer());
+  addEventListener("popstate", () => { closing = false; transitionLayer(layer()); });
+  function openDetails() {
+    if (B.classList.contains("details")) return;
+    if (!B.classList.contains("sheet")) openLayer("sheet");
+    B.style.setProperty("--dy", "0px");
+    history.pushState({ layer: "details" }, "");
+    transitionLayer("details");
+  }
+  function closeDetails() { if (!closing && B.classList.contains("details")) { closing = true; if (layer() === "details") history.back(); else transitionLayer("sheet"); } }
   $("menuBtn").onclick = () => B.classList.contains("menu") ? closeAll() : openLayer("menu");
-  $("veil").onclick = $("sClose").onclick = closeAll;
+  $("veil").onclick = closeAll;
+  $("sClose").onclick = () => B.classList.contains("details") ? closeDetails() : closeAll();
+  $("sMore").addEventListener("click", e => { if (e.ctrlKey || e.metaKey || e.shiftKey || e.button) return; e.preventDefault(); openDetails(); });
   const nav = [...document.querySelectorAll("#menu nav .it")]; nav.forEach((a, k) => a.style.transitionDelay = (60 + k * 35) + "ms");
   // language switch: glass knob springs to the tapped language
   const L = [...document.querySelectorAll("#lang button")];
   L.forEach((b, k) => b.onclick = () => { L.forEach(x => x.classList.remove("on")); b.classList.add("on"); document.querySelector("#lang .knob").style.transform = `translateX(${k * 46}px)`; });
-  // Pull the anchored sheet upward; finish its expansion before opening details.
+  // Continuous in-place presentation: shared header, expanding shell, soft content reveal.
+  let detailAnimations = [], detailEpoch = 0;
+  function transitionLayer(next) {
+    const panel = $("sheet"), wasDetails = B.classList.contains("details"), toDetails = next === "details";
+    if (wasDetails === toDetails) { applyLayer(next); return; }
+    const from = panel.getBoundingClientRect(), opacity = getComputedStyle(panel).opacity;
+    const token = ++detailEpoch;
+    detailAnimations.forEach(a => a.cancel()); detailAnimations = [];
+    panel.style.cssText = ""; B.style.setProperty("--dy", "0px"); panel.scrollTop = 0;
+    applyLayer(next || "sheet");
+    const dest = panel.getBoundingClientRect();
+    // Keep the bottom attached to the viewport while its upper edge follows the spring.
+    panel.style.top = "auto"; panel.style.height = dest.height + "px";
+    panel.style.overflow = "hidden"; panel.dataset.motion = toDetails ? "expanding" : "collapsing";
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const duration = reduced ? 0 : (toDetails ? 560 : 460);
+    const animate = (el, frames, opts={}) => {
+      const a = el.animate(frames, {duration, easing:"cubic-bezier(.2,.86,.22,1)", fill:"both", ...opts});
+      detailAnimations.push(a);
+    };
+    animate(panel, [{height:from.height+"px", width:from.width+"px", opacity, transform:`translateY(${from.bottom-dest.bottom}px)`}, {height:dest.height+"px", width:dest.width+"px", opacity:1, transform:"translateY(0)"}]);
+    const entering = toDetails ? panel.querySelectorAll(".s-hero,.s-full") : panel.querySelectorAll(".thumbs,.hl,#sMore");
+    entering.forEach(el => animate(el, [{opacity:0, transform:"translateY(20px)"}, {opacity:0, transform:"translateY(20px)",offset:.18}, {opacity:1, transform:"translateY(0)"}], {easing:"cubic-bezier(.2,.8,.25,1)"}));
+    Promise.all(detailAnimations.map(a => a.finished.catch(() => {}))).then(() => {
+      if (token !== detailEpoch) return;
+      detailAnimations.forEach(a=>a.cancel()); detailAnimations=[]; panel.style.cssText=""; panel.dataset.motion="idle";
+      openingDetails=false;
+      if (!next) applyLayer(null);
+      $("sClose").focus({preventScroll:true});
+    });
+  }
+  // Pull the anchored sheet upward; expand the same panel, never navigate.
   const sh = $("sheet"); let drag = null, sheetMotion = null, openingDetails = false;
   function resizeSheet(height, done) {
     const from = sh.getBoundingClientRect().height;
@@ -283,31 +379,38 @@
       sh.style.height = height + "px"; animation.cancel(); sheetMotion = null; done();
     }).catch(() => {});
   }
-  addEventListener("pageshow", () => {
+  function resetDetailGesture() {
     if (sheetMotion) sheetMotion.cancel(); sheetMotion = null; openingDetails = false; drag = null;
     sh.style.height = ""; sh.classList.remove("drag"); B.style.setProperty("--dy", "0px");
-  });
+  }
+  addEventListener("pageshow", resetDetailGesture);
   sh.addEventListener("pointerdown", e => {
-    if (drag || sheetMotion || openingDetails || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0) || e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return;
+    if (drag || sheetMotion || detailAnimations.length || openingDetails || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0) || e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return;
     drag = { id:e.pointerId, x:e.clientX, y:e.clientY, dx:0, dy:0, height:sh.getBoundingClientRect().height };
-    sh.style.height = drag.height + "px";
+    if (!B.classList.contains("details")) sh.style.height = drag.height + "px";
     sh.classList.add("drag"); sh.setPointerCapture(e.pointerId);
   });
   sh.addEventListener("pointermove", e => {
     if (!drag || drag.id !== e.pointerId) return;
     drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
     const vertical = Math.abs(drag.dy) >= Math.abs(drag.dx);
+    if (B.classList.contains("details")) { B.style.setProperty("--dy", (vertical ? Math.max(0, drag.dy) : 0) + "px"); return; }
     sh.style.height = (drag.height + (vertical ? Math.max(0, -drag.dy) : 0)) + "px";
     B.style.setProperty("--dy", (vertical ? Math.max(0, drag.dy) : 0) + "px");
   });
   function finishDrag(e) {
     if (!drag || drag.id !== e.pointerId) return;
-    const d = drag; drag = null; sh.classList.remove("drag"); B.style.setProperty("--dy", "0px");
+    const d = drag; drag = null; sh.classList.remove("drag");
     const intentional = e.type === "pointerup" && Math.abs(d.dy) > Math.abs(d.dx) * 1.2;
+    if (B.classList.contains("details")) {
+      sh.style.height = "";
+      if (intentional && d.dy > 90) closeDetails();
+      else B.style.setProperty("--dy", "0px");
+      return;
+    }
+    B.style.setProperty("--dy", "0px");
     if (intentional && d.dy < -64) {
-      openingDetails = true;
-      const fullHeight = parseFloat(getComputedStyle(sh).maxHeight) || innerHeight - 16;
-      resizeSheet(fullHeight, () => $("sMore").click());
+      $("sMore").click();
     } else {
       if (intentional && d.dy > 110) closeAll();
       resizeSheet(d.height, () => { sh.style.height = ""; });
@@ -330,8 +433,17 @@
   // menu items are real links; drop the menu step so Back from the page returns to the hall, not to an open menu
   document.querySelectorAll("#menu .it").forEach(b => b.addEventListener("click", e => { if (!(e.metaKey || e.ctrlKey || e.shiftKey) && history.state && history.state.layer) history.replaceState(null, "", location.href); }));
   document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
-  window.KUI = { openSheet(i) { fill(i); openLayer("sheet"); }, isOpen: () => B.classList.contains("menu") || B.classList.contains("sheet") };
+  window.KUI = { openSheet(i) { fill(i); openLayer("sheet"); }, openDetails, isOpen: () => B.classList.contains("menu") || B.classList.contains("sheet") };
   if (B.classList.contains("sheet")) fill(+((/^#(\d)$/.exec(location.hash) || [0, 1])[1]) - 1);
+  {
+    const u = new URL(location.href);
+    if (u.searchParams.has("detalle")) {
+      const i = Math.max(0, Math.min(KARATS_CARS.length - 1, +((/^#(\d)$/.exec(location.hash) || [0, 1])[1]) - 1));
+      u.searchParams.delete("detalle"); history.replaceState(null, "", u.href);
+      fill(i); B.style.setProperty("--dy", "0px"); B.classList.add("sheet", "details");
+      history.pushState({ layer: "details" }, "");          // one Back = the hall at this car, a second = where the visitor came from
+    }
+  }
 })();
 </script>
 <script>
@@ -785,6 +897,6 @@
 </script>
 <script src="i18n.js?v=r31"></script>
 <script src="site.js?v=r31"></script>
-<script src="showroom-gallery.js?v=1"></script>
+<script src="showroom-gallery.js?v=2"></script>
 </body>
 </html>

@@ -35,7 +35,7 @@
     dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
   }
   document.addEventListener('click',e=>{
-    const target=e.target.closest('#sGal,#sThumbs button');
+    const target=e.target.closest('#sGal,#sThumbs button,#sGalGrid button,#sHero');
     if (!target || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button) return;
     const link = new URL(document.getElementById('sGal').href,location.href);
     const g={car:link.searchParams.get('id'),shot:target.dataset.shot || KARATS_SHOTS[0][0],lang:window.KLang?.language || 'es'};
