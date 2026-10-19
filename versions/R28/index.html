@@ -38,13 +38,12 @@
   .info .price { color:var(--ink); font-weight:600; }
   .more { pointer-events:auto; flex:none; padding:13px 20px; border-radius:26px; border:0; background:var(--acc); color:#fff; font:inherit; font-weight:600; cursor:pointer; transition:opacity .35s; }
   .more.away { opacity:0; pointer-events:none; }
-  .track { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom) - 6px); width:150px; height:40px; z-index:3; touch-action:none; cursor:grab; -webkit-user-select:none; user-select:none; }
+  .track { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom) + 2px); width:150px; height:44px; z-index:3; touch-action:none; cursor:grab; -webkit-user-select:none; user-select:none; }
   .track.drag { cursor:grabbing; }
-  .rail { position:absolute; left:12px; right:12px; top:50%; height:0; }
-  .rail i { position:absolute; top:-3px; width:6px; height:6px; margin-left:-3px; border-radius:3px; background:rgba(29,33,30,.25); transition:transform .25s; }
-  .rail .thumb { position:absolute; top:-3px; width:22px; height:6px; margin-left:-11px; border-radius:3px; background:var(--ink); transition:height .2s, top .2s, width .2s, margin-left .2s; }
-  .track.drag .rail .thumb { top:-5px; height:10px; width:30px; margin-left:-15px; border-radius:5px; }
-  .track.drag .rail i { transform:scale(1.35); }
+  .rail { position:absolute; left:50%; width:72px; margin-left:-36px; top:50%; height:0; }
+  .rail i { position:absolute; top:-2px; width:4px; height:4px; margin-left:-2px; border-radius:2px; background:rgba(29,33,30,.28); }
+  .rail .thumb { position:absolute; top:-2.5px; width:14px; height:5px; margin-left:-7px; border-radius:3px; background:var(--ink); transition:transform .2s; will-change:left; }
+  .track.drag .rail .thumb { transform:scale(1.25); }
   .hint { position:fixed; left:50%; top:22%; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:nowrap; max-width:90%; }
   #load { position:fixed; left:0; top:0; height:2px; background:var(--acc); width:0; z-index:4; transition:width .2s, opacity .6s; }
   #card { position:fixed; inset:0; background:rgba(20,22,20,.45); display:none; align-items:flex-end; justify-content:center; z-index:6; }
@@ -60,8 +59,7 @@
   .credits a { color:inherit; }
   @media (orientation:portrait) { .top { background:none; } .hint { top:auto; bottom:auto; } }
   @media (max-width:640px) {
-    .track { width:min(70vw, 280px); height:48px; bottom:calc(env(safe-area-inset-bottom) + 4px); }
-    .bar { padding-bottom:calc(56px + env(safe-area-inset-bottom)); }
+    .bar { padding-bottom:calc(46px + env(safe-area-inset-bottom)); }
     .side { width:46px; height:46px; } .info h2 { font-size:21px; } .more { padding:11px 16px; }
     .credits { display:none; }
   }
@@ -183,6 +181,7 @@
     idx = i; ui(); hideHint(); setAway(true);
     if (to === pos && mode !== "follow") { mode = "idle"; arrive(my); return; }
     if (!ready) { await readyP; if (my !== seq) return; }
+    { const cur = active(); if (cur) pos = posOf(cur); }
     const from = Math.round(pos), v = to > from ? vf : vr, other = v === vf ? vr : vf;
     mode = "hop"; hopTarget = to;
     if (shown !== "still" && shown !== (v === vf ? "vf" : "vr")) {   // scrubbing showed the other video: hold it, line this one up
@@ -205,52 +204,68 @@
     parkVideos(pos).then(() => {});
   }
 
-  // ---------- scrub (wheel / drag): seek the forward video, smooth follow ----------
-  let settleT = null, seekBusy = false;
+  // ---------- scrub (wheel / finger): DRIVE the playing video instead of seeking it ----------
+  // Seeking a video frame by frame is slow on phones (each seek decodes from a keyframe) -> jerky.
+  // Instead the finger sets a target and the video PLAYS toward it (forward copy or reversed copy),
+  // with a speed proportional to the distance: hardware playback = smooth at any speed.
+  let settleT = null, switching = false;
   function scrub(df) {
     if (!ready) return;
-    if (mode !== "follow") { seq++; vf.pause(); vr.pause(); follow = pos; mode = "follow"; }
+    if (mode !== "follow") { seq++; follow = pos; mode = "follow"; }
     follow = Math.max(0, Math.min(N - 1, follow + df));
     setAway(true); hideHint();
-    clearTimeout(settleT); settleT = setTimeout(() => { if (!trackDrag) go(nearestCar(follow)); }, 180);
+    clearTimeout(settleT); settleT = setTimeout(() => { if (!trackDrag) go(nearestCar(follow)); }, 220);
   }
-  // ---------- dots track: thumb shows where the camera is; press + slide = drive the camera along the row ----------
-  const LAST = CARS[0].stop;                                   // frame of the left-most car (frames run right -> left)
-  const fracOf = p => 1 - p / LAST, frameOf = f => (1 - f) * LAST;
+  const active = () => shown === "vf" ? vf : shown === "vr" ? vr : null;
+  const posOf = v => { const k = v.currentTime * FPS - 0.5; return Math.max(0, Math.min(N - 1, v === vf ? k : N - 1 - k)); };
+  function drive() {
+    if (switching) return;
+    const cur = active();
+    if (cur) pos = posOf(cur);
+    const diff = follow - pos;
+    if (Math.abs(diff) < 1.2) { if (cur && !cur.paused) cur.pause(); return; }
+    const want = diff > 0 ? vf : vr;
+    if (cur !== want) {                                   // direction change: line the other copy up on this frame, then swap
+      switching = true; if (cur) cur.pause();
+      seekTo(want, Math.round(pos)).then(() => { show(want === vf ? "vf" : "vr"); switching = false; });
+      return;
+    }
+    const rate = Math.max(0.35, Math.min(3, Math.abs(diff) / (FPS * 0.28)));
+    if (Math.abs(want.playbackRate - rate) > 0.15) want.playbackRate = Math.round(rate * 8) / 8;
+    if (want.paused) want.play().catch(() => {});
+  }
+  // ---------- dots track: thumb shows where the camera is; press + slide drives the camera ----------
+  const LAST = CARS[0].stop, PER_CAR_PX = 64;                 // finger travel for one car
+  const fracOf = p => 1 - p / LAST;
   let trackDrag = null, liveIdx = -1;
-  function trackFrac(x) { const r = $("rail").getBoundingClientRect(); return Math.max(0, Math.min(1, (x - r.left) / r.width)); }
+  function railIdx(x) { const r = $("rail").getBoundingClientRect(); return Math.max(0, Math.min(CARS.length - 1, Math.round((x - r.left) / r.width * (CARS.length - 1)))); }
   $("track").addEventListener("pointerdown", e => {
     if (!ready) return;
     e.preventDefault(); $("track").setPointerCapture(e.pointerId); $("track").classList.add("drag");
-    trackDrag = { id: e.pointerId, x0: e.clientX, moved: false, f0: fracOf(pos) };
-    hideHint(); clearTimeout(settleT); liveIdx = idx; setAway(false);
-    if (mode !== "follow") { seq++; vf.pause(); vr.pause(); follow = pos; mode = "follow"; }
+    trackDrag = { id: e.pointerId, x0: e.clientX, moved: false, p0: pos };
+    hideHint(); clearTimeout(settleT); liveIdx = idx;
   });
   $("track").addEventListener("pointermove", e => {
     if (!trackDrag || e.pointerId !== trackDrag.id) return;
-    if (Math.abs(e.clientX - trackDrag.x0) > 4) trackDrag.moved = true;
+    const dx = e.clientX - trackDrag.x0;
+    if (!trackDrag.moved && Math.abs(dx) > 6) { trackDrag.moved = true; seq++; follow = pos; trackDrag.p0 = pos; trackDrag.x0 = e.clientX; mode = "follow"; setAway(false); return; }
     if (!trackDrag.moved) return;
-    follow = frameOf(trackFrac(e.clientX));                     // finger position on the track = camera position in the row
+    // finger to the right = camera to the right (= towards lower frame numbers)
+    follow = Math.max(0, Math.min(N - 1, trackDrag.p0 - (e.clientX - trackDrag.x0) / PER_CAR_PX * (LAST / (CARS.length - 1))));
     const k = nearestCar(follow); if (k !== liveIdx) { liveIdx = k; idx = k; ui(); }
   });
   function trackUp(e) {
     if (!trackDrag || e.pointerId !== trackDrag.id) return;
     const d = trackDrag; trackDrag = null; $("track").classList.remove("drag");
-    if (!d.moved) { go(Math.round(trackFrac(e.clientX) * (CARS.length - 1))); return; }   // tap on a dot = go to that car
+    if (!d.moved) { go(railIdx(e.clientX)); return; }         // tap on a dot = go to that car
     go(nearestCar(follow));
   }
   $("track").addEventListener("pointerup", trackUp); $("track").addEventListener("pointercancel", trackUp);
 
   function tick(t) {
-    const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0; lastT = t;
+    lastT = t;
+    if (mode === "follow") drive();
     $("thumb").style.left = (fracOf(pos) * 100) + "%";
-    if (mode === "follow") {
-      pos += (follow - pos) * (1 - Math.exp(-dt / 0.1));
-      const n = Math.round(pos);
-      if (!seekBusy && nOf(vf, vf.currentTime) !== n) {
-        seekBusy = true; seekTo(vf, n).then(() => { seekBusy = false; show("vf"); });
-      }
-    }
     requestAnimationFrame(tick);
   }
   addEventListener("wheel", e => { e.preventDefault(); if ($("card").classList.contains("on")) return; scrub(-(e.deltaY + e.deltaX) * 0.125); }, { passive: false });
