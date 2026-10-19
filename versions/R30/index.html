@@ -271,12 +271,29 @@
   // language switch: glass knob springs to the tapped language
   const L = [...document.querySelectorAll("#lang button")];
   L.forEach((b, k) => b.onclick = () => { L.forEach(x => x.classList.remove("on")); b.classList.add("on"); document.querySelector("#lang .knob").style.transform = `translateX(${k * 46}px)`; });
-  // drag the sheet down to close it
-  const sh = $("sheet"); let y0 = null, dy = 0;
-  sh.addEventListener("pointerdown", e => { if (e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return; y0 = e.clientY; dy = 0; sh.classList.add("drag"); sh.setPointerCapture(e.pointerId); });
-  sh.addEventListener("pointermove", e => { if (y0 === null) return; dy = e.clientY - y0; dy = dy < 0 ? dy / 6 : dy; B.style.setProperty("--dy", dy + "px"); });
-  const up = () => { if (y0 === null) return; y0 = null; sh.classList.remove("drag"); if (dy > 110) closeAll(); B.style.setProperty("--dy", "0px"); };
-  sh.addEventListener("pointerup", up); sh.addEventListener("pointercancel", up);
+  // Vertical gestures on the handle/header: up for details, down to dismiss.
+  const sh = $("sheet"); let drag = null;
+  sh.addEventListener("pointerdown", e => {
+    if (drag || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0) || e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return;
+    drag = { id:e.pointerId, x:e.clientX, y:e.clientY, dx:0, dy:0 };
+    sh.classList.add("drag"); sh.setPointerCapture(e.pointerId);
+  });
+  sh.addEventListener("pointermove", e => {
+    if (!drag || drag.id !== e.pointerId) return;
+    drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
+    const shift = Math.abs(drag.dx) > Math.abs(drag.dy) ? 0 : drag.dy < 0 ? Math.max(-48, drag.dy / 3) : drag.dy;
+    B.style.setProperty("--dy", shift + "px");
+  });
+  function finishDrag(e) {
+    if (!drag || drag.id !== e.pointerId) return;
+    const d = drag; drag = null; sh.classList.remove("drag"); B.style.setProperty("--dy", "0px");
+    if (e.type !== "pointerup" || Math.abs(d.dy) <= Math.abs(d.dx) * 1.2) return;
+    if (d.dy > 110) closeAll();
+    else if (d.dy < -64) $("sMore").click();
+  }
+  sh.addEventListener("pointerup", finishDrag);
+  sh.addEventListener("pointercancel", finishDrag);
+  sh.addEventListener("lostpointercapture", finishDrag);
   addEventListener("keydown", e => {
     if (e.key !== "Tab") return;
     const box = B.classList.contains("menu") ? $("menu") : B.classList.contains("sheet") ? $("sheet") : null; if (!box) return;
