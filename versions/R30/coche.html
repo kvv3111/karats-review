@@ -11,6 +11,7 @@
 <style>
   body { overflow-x:hidden; }
   body.viewer { overflow:hidden; }
+  body.gallery-embedded > :not(#viewer):not(script) { display:none !important; }
   /* ---------- hero ---------- */
   .hero { position:relative; height:min(68vh, 760px); min-height:380px; background:#ddd; overflow:hidden; }
   .hero img { width:100%; height:100%; object-fit:cover; object-position:50% 58%; display:block; cursor:zoom-in; }
@@ -154,6 +155,8 @@
   const $ = id => document.getElementById(id);
   const q = new URLSearchParams(location.search), C = KARATS_CARS.find(c => c.id === q.get("id")) || KARATS_CARS[1];
   const SH = KARATS_SHOTS, src = (s, v) => `gal/ph/${s}_${v}.webp`;
+  const embeddedGallery = q.get("galleryOverlay") === "1" && parent !== window;
+  if (embeddedGallery) document.body.classList.add("gallery-embedded");
   const svg = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
   document.title = `${C.brand} ${C.model} · KARATS AUTO`;
   $("heroImg").src = `f/${C.still}.webp`;   // hero = the car as it stands in the showroom
@@ -191,7 +194,8 @@
   function setCur(k) {
     cur = k; $("vcount").textContent = `${k + 1} / ${SH.length}`; $("vcap").textContent = SH[k][1];
     thumbs.forEach((b, i) => b.classList.toggle("on", i === k));
-    if (history.state && history.state.viewer) history.replaceState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]); thumbs[k].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    if (embeddedGallery) parent.postMessage({type:"karats:gallery-shot",shot:SH[k][0]},location.origin);
+    if (!embeddedGallery && history.state && history.state.viewer) history.replaceState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]); thumbs[k].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
     [k - 1, k, k + 1].forEach(load);
   }
   let base = location.pathname + location.search;
@@ -203,7 +207,8 @@
     viewerBackground.forEach(el => { el.inert = true; });
     $("vclose").focus({ preventScroll: true });
     document.body.classList.add("viewer"); [k - 1, k, k + 1].forEach(load); T.scrollLeft = k * T.clientWidth; setCur(k);
-    if (!(history.state && history.state.viewer)) history.pushState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]);
+    if (!embeddedGallery && !(history.state && history.state.viewer)) history.pushState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]);
+    if (embeddedGallery) parent.postMessage({type:"karats:gallery-ready"},location.origin);
   }
   function hide() {
     resetZoom(); document.body.classList.remove("viewer"); V.inert = true; V.removeAttribute("aria-modal");
@@ -214,6 +219,7 @@
   let closing = false;
   function close() {
     if (closing || !document.body.classList.contains("viewer")) return;
+    if (embeddedGallery) { parent.postMessage({type:"karats:gallery-close"},location.origin); return; }
     if (history.state && history.state.viewer) { closing = true; history.back(); } else { hide(); history.replaceState(null, "", base); }
   }
   addEventListener("popstate", () => {
@@ -287,7 +293,7 @@
 
   // a link straight to a photo: the plain car page goes underneath, so Back lands on it
   const h = location.hash.match(/^#foto-(.+)$/), k0 = h ? SH.findIndex(s => s[0] === h[1]) : location.hash === "#galeria" ? 0 : -1;
-  if (location.hash && !(history.state && history.state.viewer)) history.replaceState(null, "", base);
+  if (!embeddedGallery && location.hash && !(history.state && history.state.viewer)) history.replaceState(null, "", base);
   if (k0 >= 0) open(k0);
   const toast = document.createElement("div"); toast.className = "toast lg"; toast.innerHTML = "<span></span>"; document.body.appendChild(toast);
   const say = t => { toast.firstChild.textContent = t; toast.classList.add("on"); clearTimeout(say.t); say.t = setTimeout(() => toast.classList.remove("on"), 1800); };
