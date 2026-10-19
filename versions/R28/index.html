@@ -38,12 +38,21 @@
   .info .price { color:var(--ink); font-weight:600; }
   .more { pointer-events:auto; flex:none; padding:13px 20px; border-radius:26px; border:0; background:var(--acc); color:#fff; font:inherit; font-weight:600; cursor:pointer; transition:opacity .35s; }
   .more.away { opacity:0; pointer-events:none; }
-  .track { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom) + 2px); width:150px; height:44px; z-index:3; touch-action:none; cursor:grab; -webkit-user-select:none; user-select:none; }
+  /* dots track = Liquid Glass capsule (iOS 26 style): frosted blur + saturation, specular rim, refraction on Chromium */
+  .track { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom) + 14px); width:176px; height:56px; z-index:3; touch-action:none; cursor:grab; -webkit-user-select:none; user-select:none; }
   .track.drag { cursor:grabbing; }
-  .rail { position:absolute; left:50%; width:72px; margin-left:-36px; top:50%; height:0; }
-  .rail i { position:absolute; top:-2px; width:4px; height:4px; margin-left:-2px; border-radius:2px; background:rgba(29,33,30,.28); }
-  .rail .thumb { position:absolute; top:-2.5px; width:14px; height:5px; margin-left:-7px; border-radius:3px; background:var(--ink); transition:transform .2s; will-change:left; }
-  .track.drag .rail .thumb { transform:scale(1.25); }
+  .glass { position:absolute; left:50%; top:50%; width:132px; height:34px; margin:-17px 0 0 -66px; border-radius:17px; overflow:hidden; isolation:isolate;
+           box-shadow:0 8px 22px rgba(20,22,20,.16), 0 1px 3px rgba(20,22,20,.10);
+           transition:transform .45s cubic-bezier(.3,1.6,.45,1), box-shadow .3s; will-change:transform; }
+  .track.drag .glass { transform:scale(1.14, 1.08); box-shadow:0 12px 30px rgba(20,22,20,.20), 0 2px 6px rgba(20,22,20,.10); }
+  .glass > span { position:absolute; inset:0; border-radius:inherit; pointer-events:none; }
+  .glass__refract { -webkit-backdrop-filter:blur(10px) saturate(185%) brightness(1.06); backdrop-filter:blur(10px) url(#lg-refract) saturate(185%) brightness(1.06); }
+  .glass__tint { background:linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.06) 55%, rgba(255,255,255,.14)); }
+  .glass__specular { box-shadow: inset 0 1px 0 rgba(255,255,255,.85), inset 0 -1px 0 rgba(255,255,255,.30), inset 0 0 0 .5px rgba(255,255,255,.45), inset 0 -6px 10px rgba(255,255,255,.10), inset 0 -1.5px 3px rgba(40,36,30,.10); }
+  .glass__shine { background:radial-gradient(120% 90% at 30% -20%, rgba(255,255,255,.45), rgba(255,255,255,0) 55%); mix-blend-mode:screen; opacity:.8; }
+  .rail { position:absolute; left:50%; width:84px; margin-left:-42px; top:50%; height:0; z-index:2; }
+  .rail i { position:absolute; top:-2.5px; width:5px; height:5px; margin-left:-2.5px; border-radius:3px; background:rgba(29,33,30,.30); }
+  .rail .thumb { position:absolute; top:-3px; width:16px; height:6px; margin-left:-8px; border-radius:3px; background:rgba(29,33,30,.88); box-shadow:0 1px 2px rgba(0,0,0,.18); will-change:left; }
   .hint { position:fixed; left:50%; top:22%; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:nowrap; max-width:90%; }
   #load { position:fixed; left:0; top:0; height:2px; background:var(--acc); width:0; z-index:4; transition:width .2s, opacity .6s; }
   #card { position:fixed; inset:0; background:rgba(20,22,20,.45); display:none; align-items:flex-end; justify-content:center; z-index:6; }
@@ -59,7 +68,6 @@
   .credits a { color:inherit; }
   @media (orientation:portrait) { .top { background:none; } .hint { top:auto; bottom:auto; } }
   @media (max-width:640px) {
-    .bar { padding-bottom:calc(46px + env(safe-area-inset-bottom)); }
     .side { width:46px; height:46px; } .info h2 { font-size:21px; } .more { padding:11px 16px; }
     .credits { display:none; }
   }
@@ -80,7 +88,12 @@
   <div class="info" id="info"><h2 id="name"></h2><p id="meta"></p></div>
   <button class="more" id="more">Ver coche</button>
 </div>
-<div class="track" id="track" aria-label="Recorrer coches"><div class="rail" id="rail"><b class="thumb" id="thumb"></b></div></div>
+<div class="track" id="track" aria-label="Recorrer coches"><div class="glass"><span class="glass__refract"></span><span class="glass__tint"></span><span class="glass__shine"></span><span class="glass__specular"></span><div class="rail" id="rail"><b class="thumb" id="thumb"></b></div></div></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="lg-refract" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+    <feImage result="map" x="0" y="0" width="132" height="34" preserveAspectRatio="none" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIQAAAAiCAIAAAARY+YDAAAJDklEQVR42u3ayW5TZwOH8ecaQhdd9CpKKFIXVZeEqrTqAkwRjZQEQnAGz8PxmQePsZ3BhECIRBHFZVF1UBOWVReVKMNVdNFF4R6+c177OHZyPEGo6Cek3972efR/XyU66Dr/B7S324i/gncx3p4q72K8RUnexXiLeoz3m403aaTvYATT+hnhuahv0lhJxmtgBjmeGMYYDjKYbVqHn0Edy3E8dyXI0CpjxOhuYI3LeHWmywxmWAd0n+ZTuyhmHwby69DH013l1WMcymALjnGcbHMgq81qsdtMwXA8uqAJqqDYHrnD8uQ6zEEk4zjldM+hJAN6DCnRyuAIeYPCKzNHYHny3ewDjtNm5z1WHrPgMQroBbQCagFFkPPkBMlpy9pdrAOZFnMExivKulV0TyfJgB5DStgig/s0iwYlg7JBpR9zZJanfJTdy6HUkvcUC0KRQpF8CaeEXcYqY1bQK2gVlApymVwZqUS2RKZI2lXwpPKC40m67F7WYYkWc2RGsKRByiAtqkj+SgJ79I1xuITuZXAfd9WgZlA3x2f1YbfVOhxfvq1aEIqsukpUylQqlCsUVylUcWpYdYw6ah25jlQjUyW9SrJCwlUmXiJeJOYqeKJ5n+Oz2yIdVh/m2KIGMVHFTZLRh/foG6NToiwy1A02DBomNwazBrKPcHrlPQ1XQSh6NktsltmssLHKepW1GvU61XUqG5QaODcwt1C2kG6QapDYILZOpM5KjeUqS6ssVlgss1giXBQKQp7rLU4v+whrIHOQsMmSQUQkSXb1GDVGZxbtTeheiTU3g8FNkx2T3aOsYewgTpc8d1oKvqJQYqcsVLi9yu0qt+psr7G1QaPBxk1qtyjdwdpF3iV1h+gtlm4SbrCwwfwaV+tcqXJllbkKc2XPbInZolDw5T0zLqeLHcQaxjxszuSam8RgRfRI6e0egePoG6M1i6JORfc24Za4bXDX5L5J0+ShyxqBHcTplef7joJQFEpCmWaF5irNKg9qPKjz3Tr3N7m3xd1b7O6y/S1rD3AeIj1k5QHz3zKzy/QtLm9xaZOv17lY52KNUJXQKqEKF8pcKAlFoSDk2867nF52EGsEJiGTSybTJlcMr4e7j4ROeuA4AmK0bov2LHQ2dLbdEgZNg59NHnVYI7CDOL3yvoKvKJTYLwsV9lfZr7FXZ2+dXxv8cpOfdvjhLs0md36kvE9yn9kfCTX56i5f7PD5TT5rcHads3WmakytMlVhquw5U+JMUSj48j6nlx3EGoHZds5NYjBtMG+wpBPT2+No3RxDYhw6o8o6NZ2Gzo7OfbeEwW8Gz8wRWJ6n/di9nC55X0Eo8rQklHla4UmVJzWerPNng8fb/LHL70329th+zPxjzu7xSZOPdzm9zUcNTq1zqsapKpMVJstMloQikwUh73O62L2sYCdbzOE+NThncMlgTiesE9VJDjypBsXwziidLZ1dnabOI51nOn8ZvHx9Zn9WF9vnCHleFnhZ5EWJF6u8qPPPDf6+x/PnfPic9+/x3g1O1DmxyokSE0UmCkzkmXAE22d1MfszXtcHBid1zuiEdGZ0FnQiundSDYyhHTA0TA1Lw9EoaFQ06hpbGrsaTY1HGs80/lJ5+fqU/uQuOZ8kZHmZ4WWaFylexHkR4Z/r/H2Z5x/y4Ye8f5n3rnMiwok4J1JMpJnIMJFlQhJyPrmL0p/6uj5QOalxRiOkMaOxoBHRSGhkNCQNWUPRUDW0LoNilDVqGg2NHY37Kj+r/KbyTBmB7HnaT66X1CXrywhpnqaEJE8TPInxJMqTZf4M83ieP2b4PcTeWbZPM3+as2f5JMTHM5ye56Mwp5Y5FeVUjMkEk0kmU0KayYyQ9Uldcr3kYCdblOE+VTmnckllTiOsEdVIjh6j1cONYYsYJY2qxobGtspdlabbQ+FRhzyCXBCpV9aX8aWFFPtJIcF+nP0oexH2lvk1zC/X+GmOH6ZphrjzJeUpklPMfkkoxFfTfDHH59f4LMzZZc5GmIoyFWcqwVTScybFmbSQ8WV9Uq9cEHkESts5hZDKtMq8ypJGTCMlYuREjEMlgmOYIoY7jmLrpFJpqNx2eyjcV2gqPHTJI8gFkXpl+b4jI6SFlJCkmaAZpxnjQZQHEb5b5v4i9xa4e5XdGba/Ye0iznmk86xcZP4bZmaYvsrlBS4t8vUyFyNcjBKKEYoTSnAhyYWUkBYyQrbtvEvqlQsij8DNoHBJYVrhikpYJaJ6Z1RazCIXNAsRQx90UnnjUFkTPW4q7CjsHiUPkwsidclypyXjSwspdpJCgttxbse4FWF7ha0lGmE2rlG7SmkWawZ5htQs0assXSMcZmGJ+RWuRrgS40qcuQRzSc9sitm0kPFlPTMuqUsuiDyMcticwjXFK7GiElPbs+h3Rvl/9PUfh3dzqF4Pdx8bbhKFG4PJA+WOkHplPQ1XRkh7NlNsJtlMsBFnPcZalHqE6jKVJUphnOuYCygLSNdJhUksEVsmEmElynKMpTiLCRaTLKYIp4WMkOV6i9Qrd4Q8kDJIWGFJbMItkVTbJfrNYlAMq6tHSaUiktTcKsr45D5ybbUOyZdtq2aENKuuFJUklQTlBMU4hRhOFCuCEUGNIEeQomRipOMkEyRcSeIp4mlirownmvVJvlxbpEPuQxlbVGRIuJvoKiEPiTG0h0pR9ZKURZVgyshkT/moXC+JUkvWU8wIaQpp8imcFHYSK4mZQE+gJVASyElySaQU2RSZNGlXxpPKCpIn6cr1kg9LtCgjU4MlRYa0W0IdXqJvjO4erfvDlVe9Kq9IGYHsyXfLHXCkNjvrsbKYGY+RQc+gZVAzKIKcJSdIUls210U+kGlRRqC+oqzI0Lon+pU4EqN/j04SuzUU9TjZykBym9WSazMFQ/LogiaogpLzyB2yJ9ehDCKpxynnr6GVYXCJI/+1DepxKMkY1FdnupRghnxA92k+tYui9KEivw5tPJ0Mg0sMj9GdpFPlEONYqGPQO5Q2rUNtU8eiHQMliNo/w7AY/XscqvIm6KNQg2n9aMOpb9Lgjx7tJTbtP0b7rxnz9c53Mf7dEiO83vkuxr+SYcwXn9/FeGMNOv4Hm0F4bGQuQasAAAAASUVORK5CYII="/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="-28" xChannelSelector="R" yChannelSelector="G"/>
+  </filter></defs></svg>
 <div class="hint" id="hint">desliza · scroll · flechas</div>
 <div class="credits">Modelos 3D: <a href="credits.html">créditos (CC BY)</a></div>
 <div id="card"><div class="sheet"><h3 id="cName"></h3><div class="demo">Datos de ejemplo</div><ul id="cList"></ul><div class="row"><a href="#" onclick="return false">Contactar</a><button id="close">Cerrar</button></div></div></div>
@@ -131,6 +144,7 @@
       const below = oy + h;
       $("prev").style.top = $("next").style.top = (below + 34) + "px";
       $("hint").style.top = (below + 18) + "px";
+      $("track").style.top = (below - 46) + "px"; $("track").style.bottom = "auto";   // glass capsule over the floor: it has something to refract
     } else { fa.style.display = fb.style.display = "none"; }
     drawStill();
   }
