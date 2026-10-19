@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>KARATS AUTO · Showroom (R28)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; background:#efece6; color:var(--ink); font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; overflow:hidden; overscroll-behavior:none; }
+  #c { position:fixed; inset:0; width:100vw; height:100vh; height:100dvh; display:block; touch-action:none; }
+  #c.hot { cursor:pointer; }
+  .top { position:fixed; top:0; left:0; right:0; padding:calc(16px + env(safe-area-inset-top)) 26px 26px; display:flex; justify-content:space-between; align-items:center; pointer-events:none;
+         background:linear-gradient(rgba(239,236,230,.82),rgba(239,236,230,0)); }
+  .brand { font-family:Jost,sans-serif; font-weight:400; letter-spacing:.32em; font-size:15px; }
+  .brand small { display:block; font-size:9px; letter-spacing:.6em; color:var(--soft); margin-top:1px; }
+  .count { font-family:Jost,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:.12em; color:var(--ink); font-size:14px; }
+  .count span { color:var(--soft); }
+  .side { position:fixed; top:50%; transform:translateY(-50%); width:56px; height:56px; border-radius:50%; border:1px solid rgba(29,33,30,.14);
+          background:rgba(251,250,247,.72); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:var(--ink); cursor:pointer; z-index:3;
+          display:flex; align-items:center; justify-content:center; transition:opacity .3s, background .2s; box-shadow:0 6px 20px rgba(0,0,0,.08); }
+  .side:hover { background:rgba(255,255,255,.92); }
+  .side svg { width:22px; height:22px; }
+  .side:disabled { opacity:0; pointer-events:none; }
+  #prev { left:max(18px, env(safe-area-inset-left)); } #next { right:max(18px, env(safe-area-inset-right)); }
+  .bar { position:fixed; left:0; right:0; bottom:0; padding:40px 26px calc(22px + env(safe-area-inset-bottom)); display:flex; align-items:flex-end; justify-content:space-between; gap:16px; pointer-events:none;
+         background:linear-gradient(rgba(239,236,230,0),rgba(239,236,230,.9) 55%); }
+  .info { min-width:0; transition:opacity .35s, transform .35s; }
+  .info.away { opacity:0; transform:translateY(8px); }
+  .info h2 { font-family:Jost,sans-serif; font-size:26px; font-weight:500; letter-spacing:.01em; }
+  .info p { color:var(--soft); margin-top:3px; }
+  .info .price { color:var(--ink); font-weight:600; }
+  .more { pointer-events:auto; flex:none; padding:13px 20px; border-radius:26px; border:0; background:var(--acc); color:#fff; font:inherit; font-weight:600; cursor:pointer; transition:opacity .35s; }
+  .more.away { opacity:0; pointer-events:none; }
+  .dots { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(10px + env(safe-area-inset-bottom)); display:flex; gap:7px; pointer-events:none; }
+  .dots i { width:6px; height:6px; border-radius:3px; background:rgba(29,33,30,.25); transition:width .3s, background .3s; }
+  .dots i.on { width:18px; background:var(--ink); }
+  .hint { position:fixed; left:50%; top:22%; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:nowrap; }
+  #load { position:fixed; left:0; top:0; height:2px; background:var(--acc); width:0; z-index:4; transition:width .2s, opacity .6s; }
+  #card { position:fixed; inset:0; background:rgba(20,22,20,.45); display:none; align-items:flex-end; justify-content:center; z-index:6; }
+  #card.on { display:flex; }
+  #card .sheet { background:#fbfbf8; width:min(560px,100%); border-radius:18px 18px 0 0; padding:24px 22px calc(26px + env(safe-area-inset-bottom)); }
+  #card h3 { font-family:Jost,sans-serif; font-weight:500; font-size:24px; }
+  #card .demo { color:var(--soft); font-size:12px; margin-top:2px; }
+  #card ul { list-style:none; margin:14px 0 18px; color:var(--soft); } #card li { padding:7px 0; border-bottom:1px solid #e6e5e0; display:flex; justify-content:space-between; }
+  #card li b { color:var(--ink); font-weight:600; }
+  #card .row { display:flex; gap:10px; } #card a, #card button { flex:1; text-align:center; padding:14px; border-radius:12px; border:0; font:inherit; font-weight:600; cursor:pointer; text-decoration:none; }
+  #card a { background:var(--acc); color:#fff; } #card button { background:#e9e8e4; color:var(--ink); }
+  .credits { position:fixed; right:26px; bottom:calc(6px + env(safe-area-inset-bottom)); font-size:10px; color:var(--soft); }
+  .credits a { color:inherit; }
+  @media (orientation:portrait) { .hint { top:auto; bottom:30%; } .top { background:none; } .side { top:75%; } }
+  @media (max-width:640px) {
+    .side { width:46px; height:46px; } .info h2 { font-size:21px; } .more { padding:11px 16px; }
+    .credits { display:none; }
+  }
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Showroom KARATS AUTO"></canvas>
+<div id="load"></div>
+<div class="top"><div class="brand">KARATS<small>AUTO</small></div><div class="count" id="count">01 <span>/ 05</span></div></div>
+<button class="side" id="prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+<button class="side" id="next" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+<div class="bar">
+  <div class="info" id="info"><h2 id="name"></h2><p id="meta"></p></div>
+  <button class="more" id="more">Ver coche</button>
+</div>
+<div class="dots" id="dots"></div>
+<div class="hint" id="hint">desliza · scroll · flechas</div>
+<div class="credits">Modelos 3D: <a href="credits.html">créditos (CC BY)</a></div>
+<div id="card"><div class="sheet"><h3 id="cName"></h3><div class="demo">Datos de ejemplo</div><ul id="cList"></ul><div class="row"><a href="#" onclick="return false">Contactar</a><button id="close">Cerrar</button></div></div></div>
+<script>
+(() => {
+  // Frames: one continuous camera move along the row. Cars listed left -> right in the hall,
+  // "next" moves the camera to the right (the hall slides left), as on a carousel.
+  // stop = frame where the camera is parked in front of the car (frames rendered Golf -> Kia, so reversed here).
+  const CARS = [
+    { name: "Kia Sportage",       year: 2022, km: "38 000 km", fuel: "Gasolina MHEV", gear: "Automático", price: "27 900 €", stop: 284 },
+    { name: "BMW Serie 3",        year: 2023, km: "24 000 km", fuel: "Diésel",        gear: "Automático", price: "36 500 €", stop: 213 },
+    { name: "Toyota Corolla",     year: 2021, km: "45 000 km", fuel: "Híbrido",       gear: "Automático", price: "18 900 €", stop: 142 },
+    { name: "Hyundai Ioniq 6",    year: 2023, km: "19 000 km", fuel: "Eléctrico",     gear: "Automático", price: "34 900 €", stop: 71  },
+    { name: "Volkswagen Golf 8",  year: 2021, km: "52 000 km", fuel: "Gasolina",      gear: "Manual",     price: "21 400 €", stop: 0   },
+  ];
+  const N = 285, IW = 1440, IH = 960, BG = "rgb(239,236,230)", BG0 = "rgba(239,236,230,0)";
+  // car on screen at a stop, in image px (1440x960): used for the tap target and for the portrait crop
+  const HIT = { x1: 330, y1: 320, x2: 1050, y2: 730 }, FOCUS_X = (HIT.x1 + HIT.x2) / 2 / IW;
+  const small = Math.min(innerWidth, innerHeight) < 700 || innerWidth * devicePixelRatio < 1300;
+  const dir = small ? "m" : "f", SW = small ? 960 : 1440, SH = small ? 640 : 960;
+  const src = i => `${dir}/${String(i).padStart(3, "0")}.webp`;
+  const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+  const $ = id => document.getElementById(id);
+  const frames = new Array(N), ok = new Uint8Array(N); let nLoaded = 0;
+  let pos = CARS[0].stop, target = pos, idx = 0, last = 0, view = { s: 1, ox: 0, oy: 0 }, drawn = -1;
+
+  function resize() {
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
+    const portrait = cv.height > cv.width * 1.05;
+    let s, ox, oy;
+    if (portrait) {                                   // phone: car fills the width, hall band in the middle, feathered edges
+      s = cv.width / 820; ox = cv.width / 2 - FOCUS_X * IW * s;
+      oy = cv.height * 0.45 - IH * s * 0.55;
+    } else {                                          // cover, keep the car on screen
+      s = Math.max(cv.width / IW, cv.height / IH); ox = (cv.width - IW * s) / 2;
+      if (IW * s > cv.width) { ox = cv.width / 2 - FOCUS_X * IW * s; ox = Math.min(0, Math.max(cv.width - IW * s, ox)); }
+      oy = (cv.height - IH * s) / 2;
+    }
+    view = { s, ox, oy, dpr, portrait };
+    drawn = -1; draw(pos);
+  }
+  function nearestLoaded(i) { for (let d = 0; d < N; d++) { if (i - d >= 0 && ok[i - d]) return i - d; if (i + d < N && ok[i + d]) return i + d; } return -1; }
+  function draw(p) {
+    const i = nearestLoaded(Math.round(p)); if (i < 0 || i === drawn) return;
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(frames[i], view.ox, view.oy, IW * view.s, IH * view.s); drawn = i;
+    if (view.portrait) {
+      const h = IH * view.s, f = Math.min(90 * view.dpr, h * 0.16), W = cv.width;
+      ctx.fillStyle = BG; ctx.fillRect(0, 0, W, view.oy + 1); ctx.fillRect(0, view.oy + h - 1, W, cv.height);
+      let g = ctx.createLinearGradient(0, view.oy, 0, view.oy + f); g.addColorStop(0, BG); g.addColorStop(1, BG0);
+      ctx.fillStyle = g; ctx.fillRect(0, view.oy, W, f);
+      g = ctx.createLinearGradient(0, view.oy + h - f, 0, view.oy + h); g.addColorStop(0, BG0); g.addColorStop(1, BG);
+      ctx.fillStyle = g; ctx.fillRect(0, view.oy + h - f, W, f);
+    }
+  }
+  const parked = () => pos === target && pos === CARS[idx].stop;
+  function ui() {
+    const c = CARS[idx];
+    $("count").innerHTML = `${String(idx + 1).padStart(2, "0")} <span>/ ${String(CARS.length).padStart(2, "0")}</span>`;
+    $("name").textContent = c.name;
+    $("meta").innerHTML = `${c.year} · ${c.km} · <span class="price">${c.price}</span>`;
+    $("prev").disabled = idx === 0; $("next").disabled = idx === CARS.length - 1;
+    [...$("dots").children].forEach((d, k) => d.classList.toggle("on", k === idx));
+  }
+  function setAway(a) { $("info").classList.toggle("away", a); $("more").classList.toggle("away", a); }
+  function go(i) { idx = Math.max(0, Math.min(CARS.length - 1, i)); target = CARS[idx].stop; ui(); hideHint(); }
+
+  // motion: ease toward target with a speed that keeps a 71-frame hop around 2.4 s
+  let vel = 0;
+  function tick(t) {
+    const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
+    if (pos !== target) {
+      const d = target - pos, maxV = 34, acc = 60;                 // frames/s, frames/s^2
+      const want = Math.sign(d) * Math.min(maxV, Math.sqrt(2 * acc * Math.abs(d)));
+      vel += Math.max(-acc * dt, Math.min(acc * dt, want - vel));
+      const step = vel * dt;
+      pos = (Math.abs(d) <= Math.abs(step) || Math.abs(d) < 0.25) ? target : pos + step;
+      if (pos === target) vel = 0;
+      setAway(true);
+    } else setAway(!parked());
+    draw(pos);
+    requestAnimationFrame(tick);
+  }
+
+  // wheel / trackpad: scrub along the row, settle on the nearest car
+  let settleT = null;
+  function scrub(df) {
+    pos = Math.max(0, Math.min(N - 1, pos + df)); target = pos; vel = 0; draw(pos); setAway(true);
+    clearTimeout(settleT);
+    settleT = setTimeout(() => {
+      let best = 0; CARS.forEach((c, k) => { if (Math.abs(c.stop - pos) < Math.abs(CARS[best].stop - pos)) best = k; });
+      go(best);
+    }, 160);
+    hideHint();
+  }
+  // scrolling down / right = next car = lower frame index (frames run Golf -> Kia, list runs Kia -> Golf)
+  addEventListener("wheel", e => { e.preventDefault(); if ($("card").classList.contains("on")) return; scrub(-(e.deltaY + e.deltaX) * 0.05); }, { passive: false });
+  addEventListener("keydown", e => {
+    if (e.key === "Escape") $("card").classList.remove("on");
+    if ($("card").classList.contains("on")) return;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") go(idx + 1);
+    if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(idx - 1);
+    if (e.key === "Enter" && parked()) openCard();
+  });
+  $("next").onclick = () => go(idx + 1); $("prev").onclick = () => go(idx - 1);
+  $("more").onclick = () => openCard();
+
+  // touch: horizontal swipe = next/prev car; vertical drag = scrub like scrolling
+  let tx = 0, ty = 0, lx = 0, ly = 0, mode = null, moved = false;
+  cv.addEventListener("touchstart", e => { const t = e.touches[0]; tx = lx = t.clientX; ty = ly = t.clientY; mode = null; moved = false; }, { passive: true });
+  cv.addEventListener("touchmove", e => {
+    const t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty;
+    if (!mode && Math.hypot(dx, dy) > 10) mode = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
+    if (mode === "h") { scrub((t.clientX - lx) * 0.16); lx = t.clientX; }      // finger left = next car
+    if (mode === "v") { scrub((t.clientY - ly) * 0.16); ly = t.clientY; }
+    moved = true;
+  }, { passive: true });
+  cv.addEventListener("touchend", e => {
+    if (mode !== "h") return;
+    const dx = e.changedTouches[0].clientX - tx;
+    clearTimeout(settleT);
+    if (Math.abs(dx) > 40) {      // flick: next car in the swipe direction from where the finger left the hall
+      let j;
+      if (dx < 0) { j = CARS.findIndex(c => c.stop < pos - 0.5); if (j < 0) j = CARS.length - 1; }
+      else { j = -1; CARS.forEach((c, k) => { if (c.stop > pos + 0.5) j = k; }); if (j < 0) j = 0; }
+      go(j);
+    } else { let best = 0; CARS.forEach((c, j) => { if (Math.abs(c.stop - pos) < Math.abs(CARS[best].stop - pos)) best = j; }); go(best); }
+  });
+
+  // tap on the parked car opens its card
+  function inCar(cx, cy) {
+    const x = (cx * view.dpr - view.ox) / view.s, y = (cy * view.dpr - view.oy) / view.s;
+    return x > HIT.x1 && x < HIT.x2 && y > HIT.y1 && y < HIT.y2;
+  }
+  cv.addEventListener("mousemove", e => cv.classList.toggle("hot", parked() && inCar(e.clientX, e.clientY)));
+  cv.addEventListener("click", e => { if (!moved && parked() && inCar(e.clientX, e.clientY)) openCard(); moved = false; });
+  function openCard() {
+    const c = CARS[idx];
+    $("cName").textContent = c.name;
+    const ul = $("cList"); ul.innerHTML = "";
+    [["Año", c.year], ["Kilómetros", c.km], ["Combustible", c.fuel], ["Cambio", c.gear], ["Precio", c.price]].forEach(([k, v]) => {
+      const li = document.createElement("li"); li.innerHTML = `<span>${k}</span><b></b>`; li.querySelector("b").textContent = v; ul.appendChild(li);
+    });
+    $("card").classList.add("on");
+  }
+  $("close").onclick = () => $("card").classList.remove("on");
+  $("card").addEventListener("click", e => { if (e.target.id === "card") e.currentTarget.classList.remove("on"); });
+  let hinted = false; function hideHint() { if (!hinted) { hinted = true; $("hint").style.opacity = 0; } }
+
+  // loading: the five stops first, then outward from the first car so the first hop is ready soonest
+  CARS.forEach(() => $("dots").appendChild(document.createElement("i")));
+  const order = [...CARS.map(c => c.stop)];
+  for (let d = 1; d < N; d++) for (const s of [CARS[0].stop]) { if (s - d >= 0) order.push(s - d); }
+  const seen = new Set(); const queue = order.filter(i => !seen.has(i) && seen.add(i));
+  let qi = 0;
+  function pump() {
+    if (qi >= queue.length) return;
+    const i = queue[qi++], im = new Image(); im.decoding = "async"; frames[i] = im;
+    im.onload = () => { ok[i] = 1; nLoaded++; $("load").style.width = (nLoaded / N * 100) + "%";
+      if (nLoaded === N) $("load").style.opacity = 0;
+      if (Math.abs(i - pos) < 3 || drawn < 0) { drawn = -1; draw(pos); } pump(); };
+    im.onerror = pump; im.src = src(i);
+  }
+  for (let k = 0; k < 6; k++) pump();
+  addEventListener("resize", resize); resize(); ui(); requestAnimationFrame(tick);
+  window.__state = () => ({ pos, target, idx, loaded: nLoaded, parked: parked() });
+})();
+</script>
+</body>
+</html>
