@@ -41,3 +41,9 @@ button, a { font:inherit; color:inherit; touch-action:manipulation; }
         background:rgba(255,255,255,.55); box-shadow:inset 0 0 0 .6px rgba(29,33,30,.10); white-space:nowrap; }
 .chip svg { width:15px; height:15px; color:var(--soft); }
 .demo-tag { display:inline-block; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--soft); }
+
+/* small glass toast for not-yet-connected actions */
+.toast { position:fixed; z-index:60; left:50%; top:calc(14px + env(safe-area-inset-top)); transform:translate(-50%, -140%); padding:11px 18px; border-radius:20px; font-size:14px; font-weight:600;
+         white-space:nowrap; transition:transform .5s var(--spring); pointer-events:none; }
+.toast.on { transform:translate(-50%, 0); }
+.toast span { position:relative; z-index:1; }

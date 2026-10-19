@@ -25,6 +25,7 @@
   .back { height:44px; padding:0 16px 0 10px; border-radius:22px; display:inline-flex; align-items:center; gap:4px; text-decoration:none; font-weight:600; font-size:14.5px; }
   .back svg { width:20px; height:20px; position:relative; z-index:1; } .back span { position:relative; z-index:1; }
   .topbar .r { display:flex; gap:8px; }
+  .gbtn.saved svg { fill:#c8463c; stroke:#c8463c; }
   .count-pill { position:absolute; z-index:2; right:14px; bottom:calc(38% - 10px); height:30px; padding:0 12px; border-radius:15px; display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; border:0; cursor:pointer; }
   .count-pill svg { width:15px; height:15px; position:relative; z-index:1; } .count-pill span { position:relative; z-index:1; }
 
@@ -125,8 +126,8 @@
 </main>
 <div class="buybar lg" id="buybar">
   <div class="p"><b id="bbPrice"></b><small id="bbName"></small></div>
-  <a class="btn lg round" href="#" aria-label="Llamar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg></a>
-  <a class="btn wa" href="#"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.2 2.2 2.2 0 00.1-1.2c0-.1-.2-.2-.5-.3z"/></svg><span>Escribir</span></a>
+  <button type="button" class="btn lg round" data-soon="call" aria-label="Llamar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg></button>
+  <button type="button" class="btn wa" data-soon="wa"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.2 2.2 2.2 0 00.1-1.2c0-.1-.2-.2-.5-.3z"/></svg><span>Escribir</span></button>
 </div>
 
 <div id="viewer" role="dialog" aria-label="Galería">
@@ -171,11 +172,19 @@
   const load = k => { const im = slides[k] && slides[k].firstChild; if (im && !im.src) im.src = im.dataset.src; };
   function setCur(k) {
     cur = k; $("vcount").textContent = `${k + 1} / ${SH.length}`; $("vcap").textContent = SH[k][1];
-    thumbs.forEach((b, i) => b.classList.toggle("on", i === k)); thumbs[k].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    thumbs.forEach((b, i) => b.classList.toggle("on", i === k));
+    if (history.state && history.state.viewer) history.replaceState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]); thumbs[k].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
     [k - 1, k, k + 1].forEach(load);
   }
-  function open(k) { document.body.classList.add("viewer"); [k - 1, k, k + 1].forEach(load); T.scrollLeft = k * T.clientWidth; setCur(k); history.replaceState(null, "", "#foto-" + SH[k][0]); }
-  function close() { resetZoom(); document.body.classList.remove("viewer"); history.replaceState(null, "", location.pathname + location.search); }
+  const base = location.pathname + location.search;
+  // the open gallery is its own history step: the phone's Back closes the photo first, not the page
+  function open(k) {
+    document.body.classList.add("viewer"); [k - 1, k, k + 1].forEach(load); T.scrollLeft = k * T.clientWidth; setCur(k);
+    if (!(history.state && history.state.viewer)) history.pushState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]);
+  }
+  function hide() { resetZoom(); document.body.classList.remove("viewer"); }
+  function close() { if (history.state && history.state.viewer) history.back(); else { hide(); history.replaceState(null, "", base); } }
+  addEventListener("popstate", () => { if (!(history.state && history.state.viewer)) hide(); });
   const go = k => { k = Math.max(0, Math.min(SH.length - 1, k)); resetZoom(); T.scrollTo({ left: k * T.clientWidth, behavior: "smooth" }); };
   T.addEventListener("scroll", () => { const k = Math.round(T.scrollLeft / T.clientWidth); if (k !== cur) setCur(k); }, { passive: true });
   $("strip").onclick = e => { const b = e.target.closest("button"); if (b) open(+b.dataset.k); };
@@ -225,7 +234,14 @@
   document.addEventListener("gesturestart", e => { if (document.body.classList.contains("viewer")) e.preventDefault(); });
 
   $("share").onclick = () => navigator.share ? navigator.share({ title: document.title, url: location.href }).catch(() => {}) : navigator.clipboard && navigator.clipboard.writeText(location.href);
-  const h = location.hash.match(/^#foto-(.+)$/); if (h) { const k = SH.findIndex(s => s[0] === h[1]); if (k >= 0) open(k); } else if (location.hash === "#galeria") open(0);
+  // a link straight to a photo: the plain car page goes underneath, so Back lands on it
+  const h = location.hash.match(/^#foto-(.+)$/), k0 = h ? SH.findIndex(s => s[0] === h[1]) : location.hash === "#galeria" ? 0 : -1;
+  if (location.hash && !(history.state && history.state.viewer)) history.replaceState(null, "", base);
+  if (k0 >= 0) open(k0);
+  const toast = document.createElement("div"); toast.className = "toast lg"; toast.innerHTML = "<span></span>"; document.body.appendChild(toast);
+  const say = t => { toast.firstChild.textContent = t; toast.classList.add("on"); clearTimeout(say.t); say.t = setTimeout(() => toast.classList.remove("on"), 1800); };
+  document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
+  document.querySelector('[aria-label="Guardar"]').onclick = e => { const on = e.currentTarget.classList.toggle("saved"); say(on ? "Guardado" : "Quitado de guardados"); };
 })();
 </script>
 </body>

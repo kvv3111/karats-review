@@ -35,14 +35,25 @@
           padding:72px 10px 14px; transform-origin:calc(100% - 32px) 22px; transform:scale(.18, .08); opacity:0; pointer-events:none;
           transition:transform .55s var(--spring), opacity .25s var(--ease); }
   body.menu #menu { transform:none; opacity:1; pointer-events:auto; }
-  #menu nav a { display:flex; align-items:center; gap:14px; padding:13px 16px; border-radius:18px; text-decoration:none; position:relative; z-index:1;
+  #menu { max-height:calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; }
+  #menu::-webkit-scrollbar { display:none; }
+  body #sheet { z-index:10; }                                     /* above the top bar: its close button must not sit under the menu button */
+  @media (max-height:600px) and (orientation:portrait) { #menu nav .it .t small { display:none; } }
+  @media (max-height:640px) { #menu { padding-top:64px; } #menu nav .it { padding:9px 14px; } #menu nav .it .t b { font-size:21px; } }
+  @media (orientation:landscape) and (max-height:520px) {
+    #menu { max-width:680px; padding:62px 10px 10px; }
+    #menu nav { display:grid; grid-template-columns:1fr 1fr; column-gap:4px; }
+    #menu nav .it { padding:8px 12px; } #menu nav .it .t b { font-size:19px; } #menu nav .it .t small { font-size:12px; }
+    #menu .foot { margin-top:6px; padding-top:10px; }
+  }
+  #menu nav .it { width:100%; border:0; background:none; text-align:left; cursor:pointer; color:inherit; font:inherit; display:flex; align-items:center; gap:14px; padding:13px 16px; border-radius:18px; text-decoration:none; position:relative; z-index:1;
                 opacity:0; transform:translateY(-8px); transition:opacity .35s var(--ease), transform .45s var(--spring), background .2s; }
-  body.menu #menu nav a { opacity:1; transform:none; }
-  #menu nav a:active { background:rgba(255,255,255,.45); }
-  #menu nav a .n { font-family:Jost,sans-serif; font-size:12px; color:var(--faint); letter-spacing:.1em; width:22px; }
-  #menu nav a .t { flex:1; } #menu nav a .t b { display:block; font-family:Jost,sans-serif; font-weight:400; font-size:25px; letter-spacing:.01em; line-height:1.15; }
-  #menu nav a .t small { color:var(--soft); font-size:13px; }
-  #menu nav a svg { width:18px; height:18px; color:var(--faint); }
+  body.menu #menu nav .it { opacity:1; transform:none; }
+  #menu nav .it:active { background:rgba(255,255,255,.45); }
+  #menu nav .it .n { font-family:Jost,sans-serif; font-size:12px; color:var(--faint); letter-spacing:.1em; width:22px; }
+  #menu nav .it .t { flex:1; } #menu nav .it .t b { display:block; font-family:Jost,sans-serif; font-weight:400; font-size:25px; letter-spacing:.01em; line-height:1.15; }
+  #menu nav .it .t small { color:var(--soft); font-size:13px; }
+  #menu nav .it svg { width:18px; height:18px; color:var(--faint); }
   #menu .foot { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 6px 0; padding-top:14px; border-top:1px solid var(--line); position:relative; z-index:1; }
   .seg { position:relative; display:flex; height:40px; padding:3px; border-radius:20px; background:rgba(29,33,30,.06); box-shadow:inset 0 0 0 .6px rgba(29,33,30,.08); }
   .seg button { position:relative; z-index:2; width:46px; border:0; background:none; font-size:13px; font-weight:600; letter-spacing:.06em; cursor:pointer; color:var(--soft); transition:color .25s; }
@@ -56,6 +67,13 @@
            padding:10px 18px 18px; transform:translateY(calc(100% + 30px)); transition:transform .6s var(--spring); touch-action:none; }
   body.sheet #sheet { transform:translateY(var(--dy, 0px)); }
   #sheet.drag { transition:none; }
+  #sheet { touch-action:pan-y; max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; }
+  #sheet::-webkit-scrollbar { display:none; }
+  #sheet .grab, #sheet .sh-head { touch-action:none; }
+  @media (orientation:landscape) and (max-height:520px) {
+    #sheet { left:auto; right:12px; width:min(440px, 60vw); bottom:8px; }
+    .thumbs { margin:10px 0 8px; } .hl { display:none; }
+  }
   #sheet > * { position:relative; z-index:1; }
   .grab { width:38px; height:5px; border-radius:3px; background:rgba(29,33,30,.22); margin:0 auto 12px; }
   .sh-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
@@ -92,17 +110,17 @@
 <div id="veil"></div>
 <div id="menu" class="lg" role="dialog" aria-label="Menú">
   <nav>
-    <a href="#"><span class="n">01</span><span class="t"><b>Coches</b><small>5 en el showroom · ver todos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
-    <a href="#"><span class="n">02</span><span class="t"><b>Sobre nosotros</b><small>Quiénes somos y cómo trabajamos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
-    <a href="#"><span class="n">03</span><span class="t"><b>Ventajas</b><small>Garantía, revisión, entrega</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
-    <a href="#"><span class="n">04</span><span class="t"><b>Cómo comprar</b><small>De la reserva a las llaves en 4 pasos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
-    <a href="#"><span class="n">05</span><span class="t"><b>Contacto</b><small>Barcelona · lun–sáb 10:00–20:00</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
+    <button type="button" class="it" data-sec="01"><span class="n">01</span><span class="t"><b>Coches</b><small>5 en el showroom · ver todos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button type="button" class="it" data-sec="02"><span class="n">02</span><span class="t"><b>Sobre nosotros</b><small>Quiénes somos y cómo trabajamos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button type="button" class="it" data-sec="03"><span class="n">03</span><span class="t"><b>Ventajas</b><small>Garantía, revisión, entrega</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button type="button" class="it" data-sec="04"><span class="n">04</span><span class="t"><b>Cómo comprar</b><small>De la reserva a las llaves en 4 pasos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button type="button" class="it" data-sec="05"><span class="n">05</span><span class="t"><b>Contacto</b><small>Barcelona · lun–sáb 10:00–20:00</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>
   </nav>
   <div class="foot">
     <div class="seg" id="lang"><span class="knob lg"></span><button class="on">ES</button><button>EN</button><button>RU</button></div>
     <div class="acts">
-      <a class="gbtn lg" href="#" aria-label="Llamar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg></a>
-      <a class="gbtn wa" href="#" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.2 2.2 2.2 0 00.1-1.2c0-.1-.2-.2-.5-.3z"/></svg></a>
+      <button type="button" class="gbtn lg" data-soon="call" aria-label="Llamar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg></button>
+      <button type="button" class="gbtn wa" data-soon="wa" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.2 2.2 2.2 0 00.1-1.2c0-.1-.2-.2-.5-.3z"/></svg></button>
     </div>
   </div>
 </div>
@@ -116,9 +134,9 @@
   <div class="thumbs" id="sThumbs"></div>
   <ul class="hl" id="sHl"></ul>
   <div class="sh-acts">
-    <a class="btn primary" id="sMore" href="#"><span>Más detalles</span></a>
-    <a class="btn lg" id="sGal" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg><span>Galería</span></a>
-    <a class="btn wa round" href="#" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.2 2.2 2.2 0 00.1-1.2c0-.1-.2-.2-.5-.3z"/></svg></a>
+    <a class="btn primary" id="sMore" href="coche.html"><span>Más detalles</span></a>
+    <a class="btn lg" id="sGal" href="coche.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg><span>Galería</span></a>
+    <button type="button" class="btn wa round" data-soon="wa" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.2 2.2 2.2 0 00.1-1.2c0-.1-.2-.2-.5-.3z"/></svg></button>
   </div>
 </div>
 <script src="cars.js"></script>
@@ -142,16 +160,21 @@
   $("menuBtn").onclick = () => { B.classList.remove("sheet"); B.classList.toggle("menu"); };
   $("open").onclick = () => { B.classList.remove("menu"); B.style.setProperty("--dy", "0px"); B.classList.add("sheet"); };
   $("veil").onclick = $("sClose").onclick = () => B.classList.remove("menu", "sheet");
-  const nav = [...document.querySelectorAll("#menu nav a")]; nav.forEach((a, k) => a.style.transitionDelay = (60 + k * 35) + "ms");
+  const nav = [...document.querySelectorAll("#menu nav .it")]; nav.forEach((a, k) => a.style.transitionDelay = (60 + k * 35) + "ms");
   // language switch: glass knob springs to the tapped language
   const L = [...document.querySelectorAll("#lang button")];
   L.forEach((b, k) => b.onclick = () => { L.forEach(x => x.classList.remove("on")); b.classList.add("on"); document.querySelector("#lang .knob").style.transform = `translateX(${k * 46}px)`; });
   // drag the sheet down to close it
   const sh = $("sheet"); let y0 = null, dy = 0;
-  sh.addEventListener("pointerdown", e => { if (e.target.closest("a,button")) return; y0 = e.clientY; dy = 0; sh.classList.add("drag"); sh.setPointerCapture(e.pointerId); });
+  sh.addEventListener("pointerdown", e => { if (e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return; y0 = e.clientY; dy = 0; sh.classList.add("drag"); sh.setPointerCapture(e.pointerId); });
   sh.addEventListener("pointermove", e => { if (y0 === null) return; dy = e.clientY - y0; dy = dy < 0 ? dy / 6 : dy; B.style.setProperty("--dy", dy + "px"); });
   const up = () => { if (y0 === null) return; y0 = null; sh.classList.remove("drag"); if (dy > 110) B.classList.remove("sheet"); B.style.setProperty("--dy", "0px"); };
   sh.addEventListener("pointerup", up); sh.addEventListener("pointercancel", up);
+  addEventListener("keydown", e => { if (e.key === "Escape") B.classList.remove("menu", "sheet"); });
+  const toast = document.createElement("div"); toast.className = "toast lg"; toast.innerHTML = "<span></span>"; document.body.appendChild(toast);
+  const say = t => { toast.firstChild.textContent = t; toast.classList.add("on"); clearTimeout(say.t); say.t = setTimeout(() => toast.classList.remove("on"), 1800); };
+  document.querySelectorAll("#menu .it").forEach(b => b.onclick = () => { B.classList.remove("menu"); say(b.querySelector("b").textContent + " · página en preparación"); });
+  document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
   const st = new URLSearchParams(location.search).get("state"); if (st) B.classList.add(st);
 })();
 </script>
