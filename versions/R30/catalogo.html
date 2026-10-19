@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" data-title-es="Coches · KARATS AUTO" data-title-en="Cars · KARATS AUTO" data-title-ru="Автомобили · KARATS AUTO">
+<html lang="es" data-title-es="Coches · KARATS AUTO" data-title-en="Cars · KARATS AUTO" data-title-ru="Автомобили · KARATS AUTO" data-title-ca="Cotxes · KARATS AUTO">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -14,13 +14,13 @@
 <div class="ptop">
   <a class="back lg" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Showroom</span></a>
   <a class="pbrand" href="index.html" translate="no" aria-label="KARATS AUTO"><span>KARATS</span><small>AUTO</small></a>
-  <div class="r"><select id="pageLang" class="language-select lg" aria-label="Idioma"><option value="es">ES</option><option value="en">EN</option><option value="ru">RU</option></select></div>
+  <div class="r"><select id="pageLang" class="language-select lg" aria-label="Idioma"><option value="es">ES</option><option value="ca">CA</option><option value="en">EN</option><option value="ru">RU</option></select></div>
 </div>
 <div class="pwrap wide" translate="no">
   <header class="phead">
     <span class="kick">KARATS AUTO</span>
-    <h1 data-t-es="Coches" data-t-en="Cars" data-t-ru="Автомобили">Coches</h1>
-    <p class="lead" data-t-es="Todos los coches que tenemos ahora. Precio final, IVA y transferencia incluidos." data-t-en="Every car we have right now. Final price, VAT and ownership transfer included." data-t-ru="Все машины, которые есть сейчас. Цена окончательная, НДС и переоформление включены.">Todos los coches que tenemos ahora. Precio final, IVA y transferencia incluidos.</p>
+    <h1 data-t-es="Coches" data-t-en="Cars" data-t-ru="Автомобили" data-t-ca="Cotxes">Coches</h1>
+    <p class="lead" data-t-es="Todos los coches que tenemos ahora. Precio final, IVA y transferencia incluidos." data-t-en="Every car we have right now. Final price, VAT and ownership transfer included." data-t-ru="Все машины, которые есть сейчас. Цена окончательная, НДС и переоформление включены." data-t-ca="Tots els cotxes que tenim ara. Preu final, IVA i transferència inclosos.">Todos los coches que tenemos ahora. Precio final, IVA y transferencia incluidos.</p>
   </header>
 
   <div class="cbar lg" id="cbar">
@@ -63,6 +63,11 @@
           n:k => k === 1 ? '1 car' : `${k} cars`, empty:'No cars match these filters.', vat:'VAT incl.',
           fuels:{ gas:'Petrol', die:'Diesel', hyb:'Hybrid', ele:'Electric' }, gears:{ a:'Automatic', m:'Manual' },
           note:'Sample data and photos while we prepare the site. Not an offer for sale.' },
+    ca: { search:'Cerca marca o model', filters:'Filtres', brand:'Marca', fuel:'Combustible', gear:'Canvi', price:'Preu fins a', km:'Quilòmetres fins a',
+          reset:'Treure els filtres', any:'Sense límit', sort:'Ordenar', s0:'Recomanats', s1:'Preu: de més baix a més alt', s2:'Preu: de més alt a més baix', s3:'Menys quilòmetres', s4:'Més nous',
+          n:k => k === 1 ? '1 cotxe' : `${k} cotxes`, empty:'No hi ha cotxes amb aquests filtres.', vat:'IVA incl.',
+          fuels:{ gas:'Gasolina', die:'Dièsel', hyb:'Híbrid', ele:'Elèctric' }, gears:{ a:'Automàtic', m:'Manual' },
+          note:'Dades i fotos d’exemple mentre preparem el web. No és una oferta de venda.' },
     ru: { search:'Марка или модель', filters:'Фильтры', brand:'Марка', fuel:'Топливо', gear:'Коробка', price:'Цена до', km:'Пробег до',
           reset:'Сбросить фильтры', any:'Без ограничений', sort:'Сортировка', s0:'Рекомендуемые', s1:'Сначала дешевле', s2:'Сначала дороже', s3:'Меньше пробег', s4:'Новее',
           n:k => { const m10 = k % 10, m100 = k % 100; return `${k} ` + (m10 === 1 && m100 !== 11 ? 'автомобиль' : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? 'автомобиля' : 'автомобилей'); },
@@ -124,7 +129,7 @@
     const href = window.KLang ? KLang.url('coche.html?id=' + c.id) : 'coche.html?id=' + c.id;
     const facts = [c.year, fmtKM(c.km), tr(c.fuel), tr(c.gear.split(' ')[0]), tr(c.power)].map(f => `<span>${esc(tr(String(f)))}</span>`).join('');
     return `<a class="ccar" href="${href}"><div class="img"><img src="c/${c.id}_s.webp" srcset="c/${c.id}_s.webp 600w, c/${c.id}.webp 900w" sizes="(min-width:980px) 380px, (min-width:620px) 50vw, 100vw" alt="${esc(c.brand + ' ' + c.model)}" loading="lazy" decoding="async" width="600" height="400">
-      <span class="badge">${esc(c.label === '0' ? ({ es:'CERO', en:'ZERO', ru:'0' })[L()] : c.label)}</span></div>
+      <span class="badge">${esc(c.label === '0' ? ({ es:'CERO', en:'ZERO', ru:'0', ca:'ZERO' })[L()] : c.label)}</span></div>
       <div class="body"><h3>${esc(c.brand + ' ' + tr(c.model))}</h3><div class="trim">${esc(tr(c.trim))}</div><div class="facts">${facts}</div>
       <div class="price"><b>${fmtEUR(c.price)}</b><small>${t('vat')}</small></div></div></a>`;
   }

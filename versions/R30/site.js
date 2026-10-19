@@ -21,6 +21,13 @@
           ana: 'Analytics', anaD: 'Visit statistics to improve the site. We do not use any such tool at the moment.',
           mkt: 'Advertising', mktD: 'Ad measurement and relevant ads. We do not use any at the moment.',
           always: 'Always on', saved: 'Preferences saved' },
+    ca: { title: 'Cookies', text: 'Només fem servir el que cal perquè el web funcioni i recordi el teu idioma. Les cookies d’anàlisi o de publicitat només s’activen si les acceptes. Pots canviar la teva decisió quan vulguis a «Configurar les cookies», al menú o al peu de cada pàgina.',
+          more: 'Política de cookies', accept: 'Acceptar', reject: 'Rebutjar', config: 'Configurar',
+          prefs: 'Configurar les cookies', save: 'Desar la selecció', acceptAll: 'Acceptar-les totes', rejectAll: 'Rebutjar-les totes', close: 'Tancar',
+          nec: 'Necessàries', necD: 'L’idioma triat i la teva decisió sobre les cookies. Sense aquestes dades, el web no recorda la configuració. Sempre actives.',
+          ana: 'Anàlisi', anaD: 'Estadístiques de visites per millorar el web. Ara mateix no fem servir cap eina d’aquest tipus.',
+          mkt: 'Publicitat', mktD: 'Mesurar anuncis i mostrar publicitat rellevant. Ara mateix no en fem servir cap.',
+          always: 'Sempre actives', saved: 'Preferències desades' },
     ru: { title: 'Cookies', text: 'Мы используем только то, без чего сайт не работает и не помнит выбранный язык. Аналитика и реклама включаются, только если вы согласитесь. Изменить решение можно в любой момент: «Настройки cookies» в меню или внизу каждой страницы.',
           more: 'Политика cookies', accept: 'Принять', reject: 'Отклонить', config: 'Настроить',
           prefs: 'Настройки cookies', save: 'Сохранить выбор', acceptAll: 'Принять все', rejectAll: 'Отклонить все', close: 'Закрыть',
@@ -164,16 +171,16 @@
 
   // ---------- shared footer: <footer data-footer></footer> ----------
   const NAV = [
-    ['index.html', 'Showroom', 'Showroom', 'Шоурум'], ['catalogo.html', 'Coches', 'Cars', 'Автомобили'],
-    ['nosotros.html', 'Sobre nosotros', 'About us', 'О нас'], ['ventajas.html', 'Ventajas', 'Benefits', 'Преимущества'],
-    ['comprar.html', 'Cómo comprar', 'How to buy', 'Как купить'], ['contacto.html', 'Contacto', 'Contact', 'Контакты']
+    ['index.html', 'Showroom', 'Showroom', 'Шоурум', 'Showroom'], ['catalogo.html', 'Coches', 'Cars', 'Автомобили', 'Cotxes'],
+    ['nosotros.html', 'Sobre nosotros', 'About us', 'О нас', 'Qui som'], ['ventajas.html', 'Ventajas', 'Benefits', 'Преимущества', 'Avantatges'],
+    ['comprar.html', 'Cómo comprar', 'How to buy', 'Как купить', 'Com comprar'], ['contacto.html', 'Contacto', 'Contact', 'Контакты', 'Contacte']
   ];
   const LEGAL = [
-    ['aviso-legal.html', 'Aviso legal', 'Legal notice', 'Правовая информация'], ['privacidad.html', 'Privacidad', 'Privacy', 'Конфиденциальность'],
-    ['cookies.html', 'Política de cookies', 'Cookie policy', 'Политика cookies']
+    ['aviso-legal.html', 'Aviso legal', 'Legal notice', 'Правовая информация', 'Avís legal'], ['privacidad.html', 'Privacidad', 'Privacy', 'Конфиденциальность', 'Privadesa'],
+    ['cookies.html', 'Política de cookies', 'Cookie policy', 'Политика cookies', 'Política de cookies']
   ];
   function footer() {
-    const i = ['es', 'en', 'ru'].indexOf(lang()) + 1, q = lang() !== 'es' ? '?lang=' + lang() : '';
+    const i = { es: 1, en: 2, ru: 3, ca: 4 }[lang()] || 1, q = lang() !== 'es' ? '?lang=' + lang() : '';
     document.querySelectorAll('[data-footer]').forEach(f => {
       f.setAttribute('translate', 'no'); f.classList.add('kfoot');
       f.innerHTML = `<nav class="kf-nav">${NAV.map(n => `<a href="${n[0]}${q}">${n[i]}</a>`).join('')}</nav>

@@ -2,7 +2,9 @@
    Observe text and accessibility labels only, NOT per-frame style/class/video changes. */
 (() => {
   'use strict';
-  const LANGS = ['es', 'en', 'ru'], KEY = 'karats.language';
+  const LANGS = ['es', 'ca', 'en', 'ru'], KEY = 'karats.language';
+  // Catalan sits next to Spanish; rows keep the [es, en, ru] layout and Catalan comes from CA (falls back to Spanish).
+  const CA = {"Ver coche": "Veure el cotxe", "desliza · scroll · flechas": "llisca · scroll · fletxes", "Modelos 3D:": "Models 3D:", "créditos (CC BY)": "crèdits (CC BY)", "Menú": "Menú", "Anterior": "Anterior", "Siguiente": "Següent", "Recorrer coches": "Recórrer els cotxes", "Showroom KARATS AUTO": "Showroom KARATS AUTO", "Coches": "Cotxes", "5 en el showroom · ver todos": "5 al showroom · veure'ls tots", "Sobre nosotros": "Qui som", "Quiénes somos y cómo trabajamos": "Qui som i com treballem", "Ventajas": "Avantatges", "Garantía, revisión, entrega": "Garantia, revisió, lliurament", "Cómo comprar": "Com comprar", "De la reserva a las llaves en 4 pasos": "De la reserva a les claus en 4 passos", "Contacto": "Contacte", "Barcelona · lun–sáb 10:00–20:00": "Barcelona · dl.–ds. 10:00–20:00", "Llamar": "Trucar", "Ficha": "Fitxa", "Datos de ejemplo": "Dades d'exemple", "Cerrar": "Tancar", "Más detalles": "Més detalls", "Galería": "Galeria", "Showroom": "Showroom", "Guardar": "Desar", "Compartir": "Compartir", "Datos principales": "Dades principals", "Equipamiento destacado": "Equipament destacat", "Incluido con KARATS AUTO": "Inclòs amb KARATS AUTO", "Garantía 12 meses": "Garantia de 12 mesos", "Ampliable a 36": "Ampliable a 36", "Revisión 150 puntos": "Revisió de 150 punts", "Informe en la entrega": "Informe al lliurament", "Transferencia incluida": "Transferència inclosa", "Gestión DGT por nuestra cuenta": "Tràmits de la DGT a càrrec nostre", "Entrega en toda España": "Lliurament a tot Espanya", "O recógelo en Barcelona": "O recull-lo a Barcelona", "Maqueta: fotos y datos de ejemplo. Las fotos reales se añaden después.": "Maqueta: fotos i dades d'exemple. Les fotos reals s'afegiran més endavant.", "Escribir": "Escriure", "Año": "Any", "Kilómetros": "Quilòmetres", "Combustible": "Combustible", "Cambio": "Canvi", "Potencia": "Potència", "Consumo": "Consum", "Etiqueta DGT": "Etiqueta DGT", "Color": "Color", "Puertas / plazas": "Portes / places", "Propietarios": "Propietaris", "WhatsApp · número pendiente": "WhatsApp · número pendent", "Teléfono · número pendiente": "Telèfon · número pendent", "Guardado": "Desat", "Quitado de guardados": "Tret dels desats", "Gasolina MHEV": "Gasolina MHEV", "Gasolina": "Gasolina", "Diésel": "Dièsel", "Híbrido": "Híbrid", "Eléctrico": "Elèctric", "Automático DCT": "Automàtic DCT", "Automático Steptronic": "Automàtic Steptronic", "Automático e-CVT": "Automàtic e-CVT", "Automático": "Automàtic", "Manual 6 vel.": "Manual 6 vel.", "Manual": "Manual", "320d Sedán": "320d Sedan", "Rojo Infra": "Vermell Infra", "Gris Dravit": "Gris Dravit", "Blanco Puro": "Blanc Pur", "Gris Gravity": "Gris Gravity", "Azul Atlántico": "Blau Atlàntic", "Etiqueta ECO": "Etiqueta ECO", "Un solo propietario": "Un sol propietari", "Libro de mantenimiento BMW": "Llibre de manteniment BMW", "Revisiones en Toyota": "Revisions a Toyota", "Etiqueta 0 emisiones": "Etiqueta 0 emissions", "Carga rápida 800 V": "Càrrega ràpida 800 V", "Garantía batería 8 años": "Garantia de bateria 8 anys", "Libro de mantenimiento VW": "Llibre de manteniment VW", "ITV recién pasada": "ITV recent", "Cámara 360°": "Càmera 360°", "Navegador 12,3\"": "Navegador 12,3\"", "Faros full LED": "Fars full LED", "Climatizador bizona": "Climatitzador bizona", "Asientos calefactados": "Seients calefactats", "Control de crucero adaptativo": "Control de creuer adaptatiu", "Portón eléctrico": "Porta del maleter elèctrica", "Faros LED adaptativos": "Fars LED adaptatius", "Asistente de aparcamiento": "Assistent d'aparcament", "Volante deportivo M": "Volant esportiu M", "Climatizador trizona": "Climatitzador trizona", "Carga inalámbrica": "Càrrega sense fil", "Retrovisores abatibles": "Retrovisors abatibles", "Sensores delante y detrás": "Sensors davant i darrere", "Cámara trasera": "Càmera posterior", "Faros LED": "Fars LED", "Arranque sin llave": "Arrencada sense clau", "Llantas 16\"": "Llandes de 16\"", "Bomba de calor": "Bomba de calor", "Carga 10→80 % en 18 min": "Càrrega 10→80 % en 18 min", "Pantalla panorámica 12,3\"": "Pantalla panoràmica 12,3\"", "Highway Driving Assist": "Highway Driving Assist", "Asientos ventilados": "Seients ventilats", "Head-up display": "Head-up display", "V2L (enchufe 220 V)": "V2L (endoll 220 V)", "Faros LED paramétricos": "Fars LED paramètrics", "Navegador Discover": "Navegador Discover", "App-Connect inalámbrico": "App-Connect sense fil", "Lane Assist": "Lane Assist", "Front Assist": "Front Assist", "Sensores de aparcamiento": "Sensors d'aparcament", "Tres cuartos delantero": "Tres quarts davanter", "Frontal": "Frontal", "Lateral": "Lateral", "Tres cuartos trasero": "Tres quarts posterior", "Trasera": "Part posterior", "Tres cuartos izquierdo": "Tres quarts esquerre", "Vista superior": "Vista superior", "Ángulo bajo": "Angle baix", "Llanta": "Llanda", "Faro": "Far", "Piloto trasero": "Pilot posterior", "Créditos": "Crèdits", "Créditos · KARATS AUTO": "Crèdits · KARATS AUTO", "Escena renderizada con Blender Cycles. Modelos 3D de coches (Sketchfab), recoloreados y con materiales modificados:": "Escena renderitzada amb Blender Cycles. Models 3D de cotxes (Sketchfab), amb colors i materials modificats:", "Texturas y HDRI: Poly Haven (CC0). Las marcas pertenecen a sus titulares; los datos de los coches son de ejemplo.": "Textures i HDRI: Poly Haven (CC0). Les marques pertanyen als seus titulars; les dades dels cotxes són d'exemple.", "← Volver": "← Tornar", "Idioma": "Idioma", "KARATS AUTO · Showroom": "KARATS AUTO · Showroom", "Aviso legal": "Avís legal", "Privacidad": "Privadesa", "Política de cookies": "Política de cookies", "Configurar cookies": "Configurar les cookies", "Fuente Jost: Indestructible Type, SIL Open Font License 1.1.": "Tipografia Jost: Indestructible Type, SIL Open Font License 1.1."};
   const rows = [
     ['Ver coche','View car','Смотреть авто'],
     ['desliza · scroll · flechas','swipe · scroll · arrows','свайп · скролл · стрелки'],
@@ -58,7 +60,9 @@
     ['Configurar cookies','Cookie settings','Настройки cookies'],
     ['Fuente Jost: Indestructible Type, SIL Open Font License 1.1.','Jost typeface: Indestructible Type, SIL Open Font License 1.1.','Шрифт Jost: Indestructible Type, SIL Open Font License 1.1.']
   ];
-  const dictionaries = Object.fromEntries(LANGS.map((l,i)=>[l,Object.fromEntries(rows.map(r=>[r[0],r[i]]))]));
+  const COL = { es:0, en:1, ru:2 };
+  const dictionaries = Object.fromEntries(LANGS.map(l=>[l,Object.fromEntries(rows.map(r=>[r[0], l==='ca' ? (CA[r[0]] ?? r[0]) : r[COL[l]]]))]));
+  const missingCA = rows.filter(r=>!(r[0] in CA)).map(r=>r[0]); if (missingCA.length) console.warn('CA missing', missingCA);
   const stored = () => { try { return localStorage.getItem(KEY); } catch (_) { return null; } };
   const requested = new URL(location.href).searchParams.get('lang');
   const back = performance.getEntriesByType('navigation')[0]?.type === 'back_forward';
@@ -66,18 +70,18 @@
   if (!LANGS.includes(lang)) lang = 'es';
   const memory = new WeakMap();
   function translate(raw) {
-    const s = raw.trim(), index = LANGS.indexOf(lang);
+    const s = raw.trim(), pick = (es, en, ru, ca) => ({ es, en, ru, ca: ca ?? es })[lang];
     let t = dictionaries[lang][s];
     if (t === undefined) {
-      if (/^o desde \d+ €\/mes$/.test(s)) { const n=s.match(/\d+/)[0]; t=[s,`or from €${n}/month`,`или от ${n} €/мес`][index]; }
-      else if (/^\d+ fotos$/.test(s)) { const n=s.match(/\d+/)[0]; t=[s,`${n} photos`,`${n} фото`][index]; }
-      else if (s.endsWith(' · página en preparación')) t=translate(s.slice(0,-' · página en preparación'.length))+[' · página en preparación',' · page in preparation',' · страница пока не готова'][index];
-      else if (s.startsWith('por ')) t=[s,'by '+s.slice(4),'автор: '+s.slice(4)][index];
-      else t = s.replace(/BMW Serie 3/g,['BMW Serie 3','BMW 3 Series','BMW 3 серии'][index])
-                .replace(/(\d+) CV\b/g,`$1 ${['CV','PS','л.с.'][index]}`)
-                .replace(/\bkm\b/g,['km','km','км'][index])
-                .replace(/\bl\/100/g,['l/100','L/100','л/100'][index])
-                .replace(/\bkWh\b/g,['kWh','kWh','кВт⋅ч'][index]);
+      if (/^o desde \d+ €\/mes$/.test(s)) { const n=s.match(/\d+/)[0]; t=pick(s,`or from €${n}/month`,`или от ${n} €/мес`,`o des de ${n} €/mes`); }
+      else if (/^\d+ fotos$/.test(s)) { const n=s.match(/\d+/)[0]; t=pick(s,`${n} photos`,`${n} фото`,`${n} fotos`); }
+      else if (s.endsWith(' · página en preparación')) t=translate(s.slice(0,-' · página en preparación'.length))+pick(' · página en preparación',' · page in preparation',' · страница пока не готова',' · pàgina en preparació');
+      else if (s.startsWith('por ')) t=pick(s,'by '+s.slice(4),'автор: '+s.slice(4),'per '+s.slice(4));
+      else t = s.replace(/BMW Serie 3/g,pick('BMW Serie 3','BMW 3 Series','BMW 3 серии','BMW Sèrie 3'))
+                .replace(/(\d+) CV\b/g,`$1 ${pick('CV','PS','л.с.','CV')}`)
+                .replace(/\bkm\b/g,pick('km','km','км','km'))
+                .replace(/\bl\/100/g,pick('l/100','L/100','л/100','l/100'))
+                .replace(/\bkWh\b/g,pick('kWh','kWh','кВт⋅ч','kWh'));
       if (lang==='en') t=t.replace(/(\d),(\d)/g,'$1.$2');
     }
     return raw.slice(0,raw.indexOf(s))+t+raw.slice(raw.indexOf(s)+s.length);
@@ -96,7 +100,7 @@
     return u.href;
   }
   function artwork(path) {
-    return path.replace(/gal\/ph\/(?:en\/|ru\/)?(\d{2}_[a-z0-9]+_[fmt]\.webp)/g, 'gal/ph/'+(lang==='es'?'':lang+'/')+'$1');
+    return path.replace(/gal\/ph\/(?:en\/|ru\/|ca\/)?(\d{2}_[a-z0-9]+_[fmt]\.webp)/g, 'gal/ph/'+(lang==='es'?'':lang+'/')+'$1');
   }
   function scan(root) {
     if(root.nodeType===Node.TEXT_NODE) {
@@ -132,7 +136,7 @@
     value(document.documentElement,'pageTitle',document.title,v=>document.title=v);
     document.querySelectorAll('#lang button').forEach((b,i)=>{
       b.classList.toggle('on',LANGS[i]===lang); b.setAttribute('aria-pressed',String(LANGS[i]===lang));
-      b.setAttribute('aria-label',['Español','English','Русский'][i]);
+      b.setAttribute('aria-label',['Español','Català','English','Русский'][i]);
     });
     const knob=document.querySelector('#lang .knob'); if(knob) knob.style.transform=`translateX(${LANGS.indexOf(lang)*46}px)`;
     const select=document.getElementById('pageLang'); if(select) select.value=lang;
