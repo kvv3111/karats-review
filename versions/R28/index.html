@@ -44,7 +44,16 @@
   .glass { position:absolute; left:50%; top:50%; width:132px; height:34px; margin:-17px 0 0 -66px; border-radius:17px; overflow:hidden; isolation:isolate;
            box-shadow:0 8px 22px rgba(20,22,20,.16), 0 1px 3px rgba(20,22,20,.10);
            transition:transform .45s cubic-bezier(.3,1.6,.45,1), box-shadow .3s; will-change:transform; }
-  .track.drag .glass { transform:scale(1.14, 1.08); box-shadow:0 12px 30px rgba(20,22,20,.20), 0 2px 6px rgba(20,22,20,.10); }
+  #lensWrap { position:fixed; left:0; top:0; width:62px; height:46px; z-index:4; pointer-events:none; border-radius:23px;
+              opacity:0; transform:scale(.45, .5); transition:transform .42s cubic-bezier(.25,1.55,.4,1), opacity .18s ease; will-change:transform,left; }
+  #lensWrap canvas { width:100%; height:100%; display:block; border-radius:23px; }
+  .lens__rim { position:absolute; inset:0; border-radius:23px;
+               box-shadow: inset 0 0 0 .7px rgba(20,22,20,.45), inset 0 1.2px .5px rgba(255,255,255,.85), inset 0 -1px .5px rgba(255,255,255,.45),
+                           0 6px 16px rgba(20,22,20,.20), 0 1px 3px rgba(20,22,20,.12); }
+  .track.lens ~ #lensWrap { opacity:1; transform:none; }
+  .track.lens .rail .thumb { opacity:0; }
+  .rail .thumb { transition:opacity .15s; }
+  .track.drag .glass { transform:scale(1.06, 1.04); box-shadow:0 12px 30px rgba(20,22,20,.20), 0 2px 6px rgba(20,22,20,.10); }
   .glass > span { position:absolute; inset:0; border-radius:inherit; pointer-events:none; }
   .glass__refract { -webkit-backdrop-filter:blur(10px) saturate(185%) brightness(1.06); backdrop-filter:blur(10px) url(#lg-refract) saturate(185%) brightness(1.06); }
   .glass__tint { background:linear-gradient(180deg, rgba(255,255,255,.24), rgba(255,255,255,.06) 55%, rgba(255,255,255,.14)); }
@@ -84,11 +93,12 @@
 <div class="top"><div class="brand">KARATS<small>AUTO</small></div><div class="count" id="count">01 <span>/ 05</span></div></div>
 <button class="side" id="prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
 <button class="side" id="next" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
-<div class="bar">
+<div class="bar" id="bar">
   <div class="info" id="info"><h2 id="name"></h2><p id="meta"></p></div>
   <button class="more" id="more">Ver coche</button>
 </div>
-<div class="track" id="track" aria-label="Recorrer coches"><div class="glass"><span class="glass__refract"></span><span class="glass__tint"></span><span class="glass__shine"></span><span class="glass__specular"></span><div class="rail" id="rail"><b class="thumb" id="thumb"></b></div></div></div>
+<div class="track" id="track" aria-label="Recorrer coches"><div class="glass" id="glassEl"><span class="glass__refract"></span><span class="glass__tint"></span><span class="glass__shine"></span><span class="glass__specular"></span><div class="rail" id="rail"><b class="thumb" id="thumb"></b></div></div></div>
+<div id="lensWrap" aria-hidden="true"><canvas id="lens"></canvas><span class="lens__rim"></span></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <filter id="lg-refract" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
     <feImage result="map" x="0" y="0" width="132" height="34" preserveAspectRatio="none" href="data:image/png;base64,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"/>
@@ -144,7 +154,7 @@
       const below = oy + h;
       $("prev").style.top = $("next").style.top = (below + 34) + "px";
       $("hint").style.top = (below + 18) + "px";
-      $("track").style.top = (below - 46) + "px"; $("track").style.bottom = "auto";   // glass capsule over the floor: it has something to refract
+      $("track").style.top = (below - 88) + "px"; $("track").style.bottom = "auto";   // glass capsule over the floor: it has something to refract
     } else { fa.style.display = fb.style.display = "none"; }
     drawStill();
   }
@@ -264,6 +274,7 @@
     if (!ready) return;
     e.preventDefault(); $("track").setPointerCapture(e.pointerId); $("track").classList.add("drag");
     trackDrag = { id: e.pointerId, x0: e.clientX, moved: false, p0: pos };
+    lensShow(true); lensVis = 1;
     hideHint(); clearTimeout(settleT); liveIdx = idx;
   });
   $("track").addEventListener("pointermove", e => {
@@ -277,16 +288,95 @@
   });
   function trackUp(e) {
     if (!trackDrag || e.pointerId !== trackDrag.id) return;
-    const d = trackDrag; trackDrag = null; $("track").classList.remove("drag");
+    const d = trackDrag; trackDrag = null; $("track").classList.remove("drag"); lensShow(false);
     if (!d.moved) { go(railIdx(e.clientX)); return; }         // tap on a dot = go to that car
     go(nearestCar(follow));
   }
   $("track").addEventListener("pointerup", trackUp); $("track").addEventListener("pointercancel", trackUp);
 
+  // ---------- Liquid Glass lens over the dots (iOS 26 tab-bar "bubble") ----------
+  // Safari cannot refract with CSS, so the lens is drawn by hand: we know exactly what is under it
+  // (the current video frame or still, the floor fade, the glass capsule and its dots), copy that strip,
+  // and re-sample it through a curved-glass map: clear centre with slight magnification, content bent and
+  // squeezed toward the rim, separate R/G/B bending = the rainbow fringe on the edge.
+  const LW = 62, LH = 46, LM = 18;                          // lens css size, sampling margin around it
+  const ld = Math.min(2, devicePixelRatio || 1);
+  const lensWrap = $("lensWrap"), lens = $("lens"), lctx = lens.getContext("2d");
+  lens.width = Math.round(LW * ld); lens.height = Math.round(LH * ld);
+  const src = document.createElement("canvas"), sctx = src.getContext("2d", { willReadFrequently: true });
+  src.width = Math.round((LW + 2 * LM) * ld); src.height = Math.round((LH + 2 * LM) * ld);
+  const out = lctx.createImageData(lens.width, lens.height);
+  // per output pixel: source index for R, G, B + alpha (pill mask, antialiased) + edge shade
+  const NP = lens.width * lens.height, mapR = new Int32Array(NP), mapG = new Int32Array(NP), mapB = new Int32Array(NP), mA = new Float32Array(NP), mS = new Float32Array(NP);
+  (function buildMap() {
+    const W = lens.width, H = lens.height, SW = src.width, SH = src.height, r = H / 2, cx = W / 2, cy = H / 2;
+    const mag = 1.32, bez = H * 0.40, K = H * 0.62, CA = 0.22;    // centre magnification, rim width, rim bend, colour split
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = y * W + x, px = x + 0.5 - cx, py = y + 0.5 - cy;
+      // signed distance to a horizontal pill (capsule) + its outward normal
+      const ax = Math.max(Math.abs(px) - (W / 2 - r), 0), dist = Math.hypot(ax, py) - r;
+      let nx = 0, ny = 0; const nl = Math.hypot(ax, py) || 1; nx = Math.sign(px) * ax / nl; ny = py / nl;
+      mA[i] = Math.max(0, Math.min(1, 0.5 - dist));             // 1px antialias
+      const t = Math.max(0, Math.min(1, -dist / bez)), e = Math.pow(1 - t, 2.2);   // e: 0 inside .. 1 at the rim
+      mS[i] = 1 - 0.16 * Math.pow(1 - t, 7) + 0.10 * Math.max(0, -ny) * Math.pow(1 - t, 3);   // dark rim line, light top lip
+      const bx = px / mag + nx * e * K, by = py / mag + ny * e * K;
+      const put = (arr, k) => {
+        let sx = Math.round(SW / 2 + bx * k), sy = Math.round(SH / 2 + by * k);
+        sx = Math.max(0, Math.min(SW - 1, sx)); sy = Math.max(0, Math.min(SH - 1, sy)); arr[i] = (sy * SW + sx) * 4;
+      };
+      put(mapR, 1 + CA * e); put(mapG, 1); put(mapB, 1 - CA * e);
+    }
+  })();
+  const fadeAlpha = y => {                                    // what the page paints over the hall at screen y
+    let a = 0;
+    if (view.portrait) { const h = IH * view.s, f = Math.min(90, h * 0.16), y0 = view.oy + h - f; a = Math.max(0, Math.min(1, (y - y0) / f)); if (y < view.oy) a = 1; }
+    const br = $("bar").getBoundingClientRect(); if (y > br.top) a = Math.max(a, 0.9 * Math.min(1, (y - br.top) / (br.height * 0.55)));
+    return a;
+  };
+  let lensOn = false, lensVis = 0;
+  function renderLens() {
+    const rr = $("rail").getBoundingClientRect(), gr = $("glassEl").getBoundingClientRect();
+    const cxs = rr.left + fracOf(pos) * rr.width, cys = gr.top + gr.height / 2;
+    lensWrap.style.left = (cxs - LW / 2) + "px"; lensWrap.style.top = (cys - LH / 2) + "px";
+    // 1) the scene strip under the lens (+margin), in screen space
+    const x0 = cxs - LW / 2 - LM, y0 = cys - LH / 2 - LM, w = LW + 2 * LM, h = LH + 2 * LM;
+    sctx.setTransform(ld, 0, 0, ld, -x0 * ld, -y0 * ld);
+    sctx.fillStyle = BG; sctx.fillRect(x0, y0, w, h);
+    const v = active();
+    if (v) {                                                    // only the needed piece of the frame (cheap on phones)
+      const L = view.ox + CROPX * view.s, T = view.oy, sc = view.s;
+      let sx = (x0 - L) / sc, sy = (y0 - T) / sc, sw = w / sc, sh = h / sc;
+      const cx0 = Math.max(0, sx), cy0 = Math.max(0, sy), cx1 = Math.min(CW, sx + sw), cy1 = Math.min(IH, sy + sh);
+      if (cx1 > cx0 && cy1 > cy0) sctx.drawImage(v, cx0, cy0, cx1 - cx0, cy1 - cy0, L + cx0 * sc, T + cy0 * sc, (cx1 - cx0) * sc, (cy1 - cy0) * sc);
+    } else {
+      const d = view.dpr, cx0 = Math.max(0, x0 * d), cy0 = Math.max(0, y0 * d), cx1 = Math.min(cv.width, (x0 + w) * d), cy1 = Math.min(cv.height, (y0 + h) * d);
+      if (cx1 > cx0 && cy1 > cy0) sctx.drawImage(cv, cx0, cy0, cx1 - cx0, cy1 - cy0, cx0 / d, cy0 / d, (cx1 - cx0) / d, (cy1 - cy0) / d);
+    }
+    for (let yy = Math.floor(y0); yy < y0 + h; yy += 2) { const a = fadeAlpha(yy); if (a > 0) { sctx.fillStyle = `rgba(239,236,230,${a})`; sctx.fillRect(x0, yy, w, 2); } }
+    // 2) the capsule's own tint and dots (seen sharp and magnified through the clear lens)
+    sctx.fillStyle = "rgba(255,255,255,0.07)";
+    const R = gr.height / 2; sctx.beginPath(); sctx.moveTo(gr.left + R, gr.top); sctx.arcTo(gr.right, gr.top, gr.right, gr.bottom, R); sctx.arcTo(gr.right, gr.bottom, gr.left, gr.bottom, R);
+    sctx.arcTo(gr.left, gr.bottom, gr.left, gr.top, R); sctx.arcTo(gr.left, gr.top, gr.right, gr.top, R); sctx.fill();
+    sctx.fillStyle = "rgba(29,33,30,0.42)";
+    for (let k = 0; k < CARS.length; k++) { sctx.beginPath(); sctx.arc(rr.left + k / (CARS.length - 1) * rr.width, cys, 2.6, 0, 6.283); sctx.fill(); }
+    sctx.fillStyle = "rgba(29,33,30,0.9)"; sctx.beginPath(); sctx.arc(cxs - 4, cys, 3, 1.571, 4.712); sctx.arc(cxs + 4, cys, 3, -1.571, 1.571); sctx.fill();
+    // 3) re-sample through the glass map
+    const s = sctx.getImageData(0, 0, src.width, src.height).data, o = out.data;
+    for (let i = 0, j = 0; i < NP; i++, j += 4) {
+      const sh = mS[i];
+      o[j] = s[mapR[i]] * sh; o[j + 1] = s[mapG[i] + 1] * sh; o[j + 2] = s[mapB[i] + 2] * sh; o[j + 3] = 255 * mA[i];
+    }
+    lctx.putImageData(out, 0, 0);
+  }
+  window.__lensBench = renderLens;
+  function lensShow(on) { lensOn = on; $("track").classList.toggle("lens", on); }
+
   function tick(t) {
     lastT = t;
+    if (lensOn || $("track").classList.contains("lens")) renderLens();
     if (mode === "follow") drive();
     $("thumb").style.left = (fracOf(pos) * 100) + "%";
+    if (lensVis > 0 && !lensOn) { lensVis = Math.max(0, lensVis - 0.04); if (lensVis > 0) renderLens(); }
     requestAnimationFrame(tick);
   }
   addEventListener("wheel", e => { e.preventDefault(); if ($("card").classList.contains("on")) return; scrub(-(e.deltaY + e.deltaX) * 0.125); }, { passive: false });
