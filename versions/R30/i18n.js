@@ -53,7 +53,10 @@
     ['Créditos','Credits','Авторы и лицензии'],['Créditos · KARATS AUTO','Credits · KARATS AUTO','Авторы и лицензии · KARATS AUTO'],
     ['Escena renderizada con Blender Cycles. Modelos 3D de coches (Sketchfab), recoloreados y con materiales modificados:','Scene rendered with Blender Cycles. Car 3D models (Sketchfab), recoloured with modified materials:','Сцена отрендерена в Blender Cycles. 3D-модели автомобилей (Sketchfab), с изменёнными цветами и материалами:'],
     ['Texturas y HDRI: Poly Haven (CC0). Las marcas pertenecen a sus titulares; los datos de los coches son de ejemplo.','Textures and HDRI: Poly Haven (CC0). Trademarks belong to their respective owners; vehicle data is illustrative.','Текстуры и HDRI: Poly Haven (CC0). Товарные знаки принадлежат их владельцам; данные автомобилей демонстрационные.'],
-    ['← Volver','← Back','← Назад'],['Idioma','Language','Язык'],['KARATS AUTO · Showroom','KARATS AUTO · Showroom','KARATS AUTO · Шоурум']
+    ['← Volver','← Back','← Назад'],['Idioma','Language','Язык'],['KARATS AUTO · Showroom','KARATS AUTO · Showroom','KARATS AUTO · Шоурум'],
+    ['Aviso legal','Legal notice','Правовая информация'],['Privacidad','Privacy','Конфиденциальность'],['Política de cookies','Cookie policy','Политика cookies'],
+    ['Configurar cookies','Cookie settings','Настройки cookies'],
+    ['Fuente Jost: Indestructible Type, SIL Open Font License 1.1.','Jost typeface: Indestructible Type, SIL Open Font License 1.1.','Шрифт Jost: Indestructible Type, SIL Open Font License 1.1.']
   ];
   const dictionaries = Object.fromEntries(LANGS.map((l,i)=>[l,Object.fromEntries(rows.map(r=>[r[0],r[i]]))]));
   const stored = () => { try { return localStorage.getItem(KEY); } catch (_) { return null; } };

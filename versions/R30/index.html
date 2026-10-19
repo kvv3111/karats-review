@@ -6,8 +6,7 @@
 <meta name="color-scheme" content="only light">
 <meta name="robots" content="noindex">
 <title>KARATS AUTO · Showroom</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/jost.css">
 <link rel="stylesheet" href="ui.css?v=r30-i18n1">
 <style>
   :root { color-scheme:only light; --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
@@ -107,8 +106,11 @@
     #menu { max-width:680px; padding:62px 10px 10px; }
     #menu nav { display:grid; grid-template-columns:1fr 1fr; column-gap:4px; }
     #menu nav .it { padding:8px 12px; } #menu nav .it .t b { font-size:19px; } #menu nav .it .t small { font-size:12px; }
-    #menu .foot { margin-top:6px; padding-top:10px; }
+  #menu .foot { margin-top:6px; padding-top:10px; }
   }
+  #menu .mlegal { position:relative; z-index:1; display:flex; flex-wrap:wrap; gap:2px 14px; margin:10px 8px 2px; font-size:12.5px; }
+  #menu .mlegal a, #menu .mlegal button { color:var(--soft); text-decoration:none; background:none; border:0; padding:4px 0; cursor:pointer; font:inherit; }
+  #menu .mlegal a:hover, #menu .mlegal button:hover { text-decoration:underline; }
   #menu nav .it { width:100%; border:0; background:none; text-align:left; cursor:pointer; color:inherit; font:inherit; display:flex; align-items:center; gap:14px; padding:13px 16px; border-radius:18px; text-decoration:none; position:relative; z-index:1;
                 opacity:0; transform:translateY(-8px); transition:opacity .35s var(--ease), transform .45s var(--spring), background .2s; }
   body.menu #menu nav .it { opacity:1; transform:none; }
@@ -193,11 +195,11 @@
 <div id="veil"></div>
 <div id="menu" class="lg" role="dialog" aria-label="Menú">
   <nav>
-    <button type="button" class="it" data-sec="01"><span class="n">01</span><span class="t"><b>Coches</b><small>5 en el showroom · ver todos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>
-    <button type="button" class="it" data-sec="02"><span class="n">02</span><span class="t"><b>Sobre nosotros</b><small>Quiénes somos y cómo trabajamos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>
-    <button type="button" class="it" data-sec="03"><span class="n">03</span><span class="t"><b>Ventajas</b><small>Garantía, revisión, entrega</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>
-    <button type="button" class="it" data-sec="04"><span class="n">04</span><span class="t"><b>Cómo comprar</b><small>De la reserva a las llaves en 4 pasos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>
-    <button type="button" class="it" data-sec="05"><span class="n">05</span><span class="t"><b>Contacto</b><small>Barcelona · lun–sáb 10:00–20:00</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    <a class="it" data-sec="01" href="catalogo.html"><span class="n">01</span><span class="t"><b>Coches</b><small>5 en el showroom · ver todos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
+    <a class="it" data-sec="02" href="nosotros.html"><span class="n">02</span><span class="t"><b>Sobre nosotros</b><small>Quiénes somos y cómo trabajamos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
+    <a class="it" data-sec="03" href="ventajas.html"><span class="n">03</span><span class="t"><b>Ventajas</b><small>Garantía, revisión, entrega</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
+    <a class="it" data-sec="04" href="comprar.html"><span class="n">04</span><span class="t"><b>Cómo comprar</b><small>De la reserva a las llaves en 4 pasos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
+    <a class="it" data-sec="05" href="contacto.html"><span class="n">05</span><span class="t"><b>Contacto</b><small>Barcelona · lun–sáb 10:00–20:00</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
   </nav>
   <div class="foot">
     <div class="seg" id="lang"><span class="knob lg"></span><button class="on">ES</button><button>EN</button><button>RU</button></div>
@@ -206,6 +208,7 @@
       <button type="button" class="gbtn wa" data-soon="wa" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.2 2.2 2.2 0 00.1-1.2c0-.1-.2-.2-.5-.3z"/></svg></button>
     </div>
   </div>
+  <div class="mlegal"><a href="aviso-legal.html">Aviso legal</a><a href="privacidad.html">Privacidad</a><a href="cookies.html">Política de cookies</a><button type="button" data-cookies>Configurar cookies</button></div>
 </div>
 
 <div id="sheet" class="lg" role="dialog" aria-label="Ficha">
@@ -285,7 +288,8 @@
   addEventListener("keydown", e => { if (e.key === "Escape" && (B.classList.contains("menu") || B.classList.contains("sheet"))) closeAll(); });
   const toast = document.createElement("div"); toast.className = "toast lg"; toast.innerHTML = "<span></span>"; document.body.appendChild(toast);
   const say = t => { toast.firstChild.textContent = t; toast.classList.add("on"); clearTimeout(say.t); say.t = setTimeout(() => toast.classList.remove("on"), 1800); };
-  document.querySelectorAll("#menu .it").forEach(b => b.onclick = () => { closeAll(); say(b.querySelector("b").textContent + " · página en preparación"); });
+  // menu items are real links; drop the menu step so Back from the page returns to the hall, not to an open menu
+  document.querySelectorAll("#menu .it").forEach(b => b.addEventListener("click", e => { if (!(e.metaKey || e.ctrlKey || e.shiftKey) && history.state && history.state.layer) history.replaceState(null, "", location.href); }));
   document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
   window.KUI = { openSheet(i) { fill(i); openLayer("sheet"); }, isOpen: () => B.classList.contains("menu") || B.classList.contains("sheet") };
   if (B.classList.contains("sheet")) fill(+((/^#(\d)$/.exec(location.hash) || [0, 1])[1]) - 1);
@@ -740,6 +744,7 @@
   window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown, vf: vf.currentTime, vr: vr.currentTime });
 })();
 </script>
-<script src="i18n.js?v=1"></script>
+<script src="i18n.js?v=r31"></script>
+<script src="site.js?v=r31"></script>
 </body>
 </html>

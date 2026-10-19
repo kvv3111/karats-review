@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es" data-title-es="Coches · KARATS AUTO" data-title-en="Cars · KARATS AUTO" data-title-ru="Автомобили · KARATS AUTO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="only light">
+<meta name="robots" content="noindex">
+<title>Coches · KARATS AUTO</title>
+<link rel="stylesheet" href="fonts/jost.css">
+<link rel="stylesheet" href="ui.css?v=r31">
+<link rel="stylesheet" href="pages.css?v=r31">
+</head>
+<body class="page">
+<div class="ptop">
+  <a class="back lg" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Showroom</span></a>
+  <a class="pbrand" href="index.html" translate="no" aria-label="KARATS AUTO"><span>KARATS</span><small>AUTO</small></a>
+  <div class="r"><select id="pageLang" class="language-select lg" aria-label="Idioma"><option value="es">ES</option><option value="en">EN</option><option value="ru">RU</option></select></div>
+</div>
+<div class="pwrap wide" translate="no">
+  <header class="phead">
+    <span class="kick">KARATS AUTO</span>
+    <h1 data-t-es="Coches" data-t-en="Cars" data-t-ru="Автомобили">Coches</h1>
+    <p class="lead" data-t-es="Todos los coches que tenemos ahora. Precio final, IVA y transferencia incluidos." data-t-en="Every car we have right now. Final price, VAT and ownership transfer included." data-t-ru="Все машины, которые есть сейчас. Цена окончательная, НДС и переоформление включены.">Todos los coches que tenemos ahora. Precio final, IVA y transferencia incluidos.</p>
+  </header>
+
+  <div class="cbar lg" id="cbar">
+    <div class="crow">
+      <input id="q" class="csearch" type="search" autocomplete="off" enterkeyhint="search">
+      <button type="button" class="cfbtn" id="fbtn" aria-expanded="false" aria-controls="filters"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg><span id="fbtnT"></span><i id="fcount" hidden></i></button>
+    </div>
+    <div class="cfilters" id="filters">
+      <div class="cfgroup"><small id="lBrand"></small><div class="cfchips" id="fBrand"></div></div>
+      <div class="cfgroup"><small id="lFuel"></small><div class="cfchips" id="fFuel"></div></div>
+      <div class="cfgroup"><small id="lGear"></small><div class="cfchips" id="fGear"></div></div>
+      <div class="cfgroup"><small id="lPrice"></small><div class="cfrange"><input type="range" id="fPrice"><output id="oPrice"></output></div></div>
+      <div class="cfgroup"><small id="lKm"></small><div class="cfrange"><input type="range" id="fKm"><output id="oKm"></output></div></div>
+      <button type="button" class="cfreset" id="freset"></button>
+    </div>
+  </div>
+
+  <div class="cmeta"><span id="count" aria-live="polite"></span>
+    <label><span id="lSort" class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)"></span><select id="sort" class="csort"></select></label></div>
+  <div class="cgrid" id="grid"></div>
+  <p class="cnote" id="note"></p>
+</div>
+<footer data-footer></footer>
+<script src="cars.js?v=r31"></script>
+<script src="i18n.js?v=r31"></script>
+<script src="site.js?v=r31"></script>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id), CARS = KARATS_CARS;
+  const L = () => (window.KLang && KLang.language) || 'es', tr = s => window.KLang ? KLang.translate(s) : s;
+  const T = {
+    es: { search:'Buscar marca o modelo', filters:'Filtros', brand:'Marca', fuel:'Combustible', gear:'Cambio', price:'Precio hasta', km:'Kilómetros hasta',
+          reset:'Quitar filtros', any:'Sin límite', sort:'Ordenar', s0:'Recomendados', s1:'Precio: de menor a mayor', s2:'Precio: de mayor a menor', s3:'Menos kilómetros', s4:'Más nuevos',
+          n:k => k === 1 ? '1 coche' : `${k} coches`, empty:'No hay coches con estos filtros.', vat:'IVA incl.',
+          fuels:{ gas:'Gasolina', die:'Diésel', hyb:'Híbrido', ele:'Eléctrico' }, gears:{ a:'Automático', m:'Manual' },
+          note:'Datos y fotos de ejemplo mientras preparamos la web. No es una oferta de venta.' },
+    en: { search:'Search make or model', filters:'Filters', brand:'Make', fuel:'Fuel', gear:'Transmission', price:'Max price', km:'Max mileage',
+          reset:'Clear filters', any:'Any', sort:'Sort', s0:'Recommended', s1:'Price: low to high', s2:'Price: high to low', s3:'Lowest mileage', s4:'Newest',
+          n:k => k === 1 ? '1 car' : `${k} cars`, empty:'No cars match these filters.', vat:'VAT incl.',
+          fuels:{ gas:'Petrol', die:'Diesel', hyb:'Hybrid', ele:'Electric' }, gears:{ a:'Automatic', m:'Manual' },
+          note:'Sample data and photos while we prepare the site. Not an offer for sale.' },
+    ru: { search:'Марка или модель', filters:'Фильтры', brand:'Марка', fuel:'Топливо', gear:'Коробка', price:'Цена до', km:'Пробег до',
+          reset:'Сбросить фильтры', any:'Без ограничений', sort:'Сортировка', s0:'Рекомендуемые', s1:'Сначала дешевле', s2:'Сначала дороже', s3:'Меньше пробег', s4:'Новее',
+          n:k => { const m10 = k % 10, m100 = k % 100; return `${k} ` + (m10 === 1 && m100 !== 11 ? 'автомобиль' : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? 'автомобиля' : 'автомобилей'); },
+          empty:'Нет машин с такими фильтрами.', vat:'НДС вкл.',
+          fuels:{ gas:'Бензин', die:'Дизель', hyb:'Гибрид', ele:'Электро' }, gears:{ a:'Автомат', m:'Механика' },
+          note:'Пока сайт готовится, данные и фото демонстрационные. Это не предложение о продаже.' }
+  };
+  const t = k => T[L()][k];
+  const fuelOf = c => /eléctr/i.test(c.fuel) ? 'ele' : /híbrid|mhev|hev/i.test(c.fuel) ? 'hyb' : /diés/i.test(c.fuel) ? 'die' : 'gas';
+  const gearOf = c => /^autom/i.test(c.gear) ? 'a' : 'm';
+  const brands = [...new Set(CARS.map(c => c.brand))].sort();
+  const fuels = ['gas', 'die', 'hyb', 'ele'].filter(f => CARS.some(c => fuelOf(c) === f));
+  const gears = ['a', 'm'].filter(g => CARS.some(c => gearOf(c) === g));
+  const step = (v, s) => Math.ceil(v / s) * s;
+  const PMIN = step(Math.min(...CARS.map(c => c.price)), 1000), PMAX = step(Math.max(...CARS.map(c => c.price)), 1000);
+  const KMAX = step(Math.max(...CARS.map(c => c.km)), 10000);
+  const S = { q:'', brand:new Set(), fuel:new Set(), gear:new Set(), price:PMAX, km:KMAX, sort:'0' };
+
+  // state <-> URL so Back from a car page and shared links keep the filters
+  function load() {
+    const p = new URLSearchParams(location.search);
+    S.q = p.get('q') || ''; S.sort = p.get('o') || '0';
+    ['brand', 'fuel', 'gear'].forEach(k => (p.get(k) || '').split(',').filter(Boolean).forEach(v => S[k].add(v)));
+    if (+p.get('p')) S.price = Math.min(PMAX, Math.max(PMIN, +p.get('p')));
+    if (+p.get('km')) S.km = Math.min(KMAX, +p.get('km'));
+  }
+  function save() {
+    const p = new URLSearchParams(location.search);
+    const set = (k, v, def) => v && v !== def ? p.set(k, v) : p.delete(k);
+    set('q', S.q.trim()); set('o', S.sort, '0'); ['brand', 'fuel', 'gear'].forEach(k => set(k, [...S[k]].join(',')));
+    set('p', String(S.price), String(PMAX)); set('km', String(S.km), String(KMAX));
+    const qs = p.toString(); history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : ''));
+  }
+  const chips = (el, items, key, label) => {
+    el.innerHTML = items.map(v => `<button type="button" data-v="${v}" aria-pressed="${S[key].has(v)}">${label(v)}</button>`).join('');
+    el.querySelectorAll('button').forEach(b => b.onclick = () => { const v = b.dataset.v; S[key].has(v) ? S[key].delete(v) : S[key].add(v); b.setAttribute('aria-pressed', S[key].has(v)); update(); });
+  };
+  function labels() {
+    $('q').placeholder = t('search'); $('q').setAttribute('aria-label', t('search'));
+    $('fbtnT').textContent = t('filters'); $('lBrand').textContent = t('brand'); $('lFuel').textContent = t('fuel'); $('lGear').textContent = t('gear');
+    $('lPrice').textContent = t('price'); $('lKm').textContent = t('km'); $('freset').textContent = t('reset'); $('lSort').textContent = t('sort');
+    $('sort').setAttribute('aria-label', t('sort'));
+    $('sort').innerHTML = ['s0', 's1', 's2', 's3', 's4'].map((k, i) => `<option value="${i}">${t(k)}</option>`).join(''); $('sort').value = S.sort;
+    chips($('fBrand'), brands, 'brand', v => v);
+    chips($('fFuel'), fuels, 'fuel', v => t('fuels')[v]);
+    chips($('fGear'), gears, 'gear', v => t('gears')[v]);
+    $('note').textContent = t('note');
+  }
+  const P = $('fPrice'), K = $('fKm');
+  P.min = PMIN; P.max = PMAX; P.step = 1000; K.min = 10000; K.max = KMAX; K.step = 10000;
+  P.oninput = () => { S.price = +P.value; update(); }; K.oninput = () => { S.km = +K.value; update(); };
+  $('q').oninput = () => { S.q = $('q').value; update(); };
+  $('sort').onchange = () => { S.sort = $('sort').value; update(); };
+  $('fbtn').onclick = () => { const o = $('cbar').classList.toggle('open'); $('fbtn').setAttribute('aria-expanded', o); };
+  $('freset').onclick = () => { S.brand.clear(); S.fuel.clear(); S.gear.clear(); S.price = PMAX; S.km = KMAX; S.q = ''; $('q').value = ''; labels(); update(); };
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+  function card(c) {
+    const href = window.KLang ? KLang.url('coche.html?id=' + c.id) : 'coche.html?id=' + c.id;
+    const facts = [c.year, fmtKM(c.km), tr(c.fuel), tr(c.gear.split(' ')[0]), tr(c.power)].map(f => `<span>${esc(tr(String(f)))}</span>`).join('');
+    return `<a class="ccar" href="${href}"><div class="img"><img src="c/${c.id}_s.webp" srcset="c/${c.id}_s.webp 600w, c/${c.id}.webp 900w" sizes="(min-width:980px) 380px, (min-width:620px) 50vw, 100vw" alt="${esc(c.brand + ' ' + c.model)}" loading="lazy" decoding="async" width="600" height="400">
+      <span class="badge">${esc(c.label === '0' ? ({ es:'CERO', en:'ZERO', ru:'0' })[L()] : c.label)}</span></div>
+      <div class="body"><h3>${esc(c.brand + ' ' + tr(c.model))}</h3><div class="trim">${esc(tr(c.trim))}</div><div class="facts">${facts}</div>
+      <div class="price"><b>${fmtEUR(c.price)}</b><small>${t('vat')}</small></div></div></a>`;
+  }
+  function update() {
+    P.value = S.price; K.value = S.km;
+    $('oPrice').textContent = S.price >= PMAX ? t('any') : fmtEUR(S.price);
+    $('oKm').textContent = S.km >= KMAX ? t('any') : fmtKM(S.km);
+    const q = S.q.trim().toLowerCase();
+    let list = CARS.filter(c => (!q || `${c.brand} ${c.model} ${c.trim}`.toLowerCase().includes(q))
+      && (!S.brand.size || S.brand.has(c.brand)) && (!S.fuel.size || S.fuel.has(fuelOf(c))) && (!S.gear.size || S.gear.has(gearOf(c)))
+      && c.price <= S.price && c.km <= S.km);
+    const by = { 1:(a, b) => a.price - b.price, 2:(a, b) => b.price - a.price, 3:(a, b) => a.km - b.km, 4:(a, b) => b.year - a.year || a.km - b.km }[S.sort];
+    if (by) list = list.slice().sort(by);
+    $('grid').innerHTML = list.length ? list.map(card).join('') : `<div class="cempty">${t('empty')}</div>`;
+    $('count').textContent = t('n')(list.length);
+    const nf = S.brand.size + S.fuel.size + S.gear.size + (S.price < PMAX) + (S.km < KMAX);
+    $('fcount').hidden = !nf; $('fcount').textContent = nf;
+    save();
+  }
+  load(); $('q').value = S.q;
+  if (S.brand.size || S.fuel.size || S.gear.size || S.price < PMAX || S.km < KMAX) { $('cbar').classList.add('open'); $('fbtn').setAttribute('aria-expanded', 'true'); }
+  labels(); update();
+  addEventListener('karats:language', () => { labels(); update(); });
+})();
+</script>
+</body>
+</html>
