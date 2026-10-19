@@ -18,8 +18,10 @@
   .fade { position:absolute; left:0; right:0; display:none; pointer-events:none; }
   .top { position:fixed; top:0; left:0; right:0; padding:calc(16px + env(safe-area-inset-top)) 26px 26px; display:flex; justify-content:space-between; align-items:center; pointer-events:none;
          background:linear-gradient(rgba(239,236,230,.82),rgba(239,236,230,0)); }
-  .brand { font-family:Jost,sans-serif; font-weight:400; letter-spacing:.32em; font-size:15px; }
-  .brand small { display:block; font-size:9px; letter-spacing:.6em; color:var(--soft); margin-top:1px; }
+  .brand { font-family:Jost,sans-serif; font-weight:400; letter-spacing:.34em; font-size:clamp(17px, 1.55vw, 30px); line-height:1.1; }
+  .brand { display:inline-block; text-align:center; }
+  .brand span { margin-right:-.34em; }                         /* letter-spacing adds space after the last letter: cancel it so both lines centre */
+  .brand small { display:block; font-size:.38em; letter-spacing:.9em; margin-right:-.9em; color:var(--soft); margin-top:.5em; }
   .count { font-family:Jost,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:.12em; color:var(--ink); font-size:14px; }
   .count span { color:var(--soft); }
   .side { position:fixed; top:50%; transform:translateY(-50%); width:56px; height:56px; border-radius:50%; border:1px solid rgba(29,33,30,.14);
@@ -90,7 +92,7 @@
   <div class="fade" id="fadeA"></div><div class="fade" id="fadeB"></div>
 </div>
 <div id="load"></div>
-<div class="top"><div class="brand">KARATS<small>AUTO</small></div><div class="count" id="count">01 <span>/ 05</span></div></div>
+<div class="top"><div class="brand"><span>KARATS</span><small>AUTO</small></div><div class="count" id="count">01 <span>/ 05</span></div></div>
 <button class="side" id="prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
 <button class="side" id="next" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
 <div class="bar" id="bar">
@@ -207,6 +209,7 @@
     if (!ready) { await readyP; if (my !== seq) return; }
     { const cur = active(); if (cur) pos = posOf(cur); }
     const from = Math.round(pos), v = to > from ? vf : vr, other = v === vf ? vr : vf;
+    if (to === from) { vf.pause(); vr.pause(); switching = false; pos = to; mode = "idle"; arrive(my); return; }
     mode = "hop"; hopTarget = to;
     if (shown !== "still" && shown !== (v === vf ? "vf" : "vr")) {   // scrubbing showed the other video: hold it, line this one up
       other.pause();
@@ -223,7 +226,8 @@
       if (fin) return true;
       if (my !== seq) { fin = true; return true; }
       const n = nOf(v, mt); pos = to > from ? Math.max(pos, n) : Math.min(pos, n);   // two clocks (rVFC, rAF) may differ by a frame
-      if ((to > from && n >= to) || (to < from && n <= to) || v.ended) { fin = true; v.pause(); pos = to; mode = "idle"; arrive(my); return true; }
+      if (v.ended) { fin = true; v.pause(); mode = "idle"; idx = nearestCar(pos); ui(); go(idx); return true; }
+      if ((to > from && n >= to) || (to < from && n <= to)) { fin = true; v.pause(); pos = to; mode = "idle"; arrive(my); return true; }
       return false;
     };
     const step = mt => { if (!check(mt)) onFrame(v, step); };
@@ -263,7 +267,7 @@
     }
     const rate = Math.max(0.35, Math.min(3, Math.abs(diff) / (FPS * 0.28)));
     if (Math.abs(want.playbackRate - rate) > 0.15) want.playbackRate = Math.round(rate * 8) / 8;
-    if (want.paused) want.play().catch(() => {});
+    if (want.paused && want.currentTime < want.duration - 1 / FPS) want.play().catch(() => {});
   }
   // ---------- dots track: thumb shows where the camera is; press + slide drives the camera ----------
   const LAST = CARS[0].stop, PER_CAR_PX = 64;                 // finger travel for one car
