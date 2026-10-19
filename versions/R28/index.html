@@ -10,8 +10,8 @@
 <style>
   :root { --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-  html,body { height:100%; background:#efece6; color:var(--ink); font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; overflow:hidden; overscroll-behavior:none; }
-  #c { position:fixed; inset:0; width:100vw; height:100vh; height:100dvh; display:block; touch-action:none; }
+  html,body { width:100%; max-width:100%; height:100%; background:#efece6; color:var(--ink); font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; overflow:hidden; overscroll-behavior:none; }
+  #c { position:fixed; left:0; top:0; width:100%; height:100%; display:block; touch-action:none; }
   #c.hot { cursor:pointer; }
   .top { position:fixed; top:0; left:0; right:0; padding:calc(16px + env(safe-area-inset-top)) 26px 26px; display:flex; justify-content:space-between; align-items:center; pointer-events:none;
          background:linear-gradient(rgba(239,236,230,.82),rgba(239,236,230,0)); }
@@ -38,7 +38,7 @@
   .dots { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(10px + env(safe-area-inset-bottom)); display:flex; gap:7px; pointer-events:none; }
   .dots i { width:6px; height:6px; border-radius:3px; background:rgba(29,33,30,.25); transition:width .3s, background .3s; }
   .dots i.on { width:18px; background:var(--ink); }
-  .hint { position:fixed; left:50%; top:22%; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:nowrap; }
+  .hint { position:fixed; left:50%; top:22%; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:nowrap; max-width:90%; }
   #load { position:fixed; left:0; top:0; height:2px; background:var(--acc); width:0; z-index:4; transition:width .2s, opacity .6s; }
   #card { position:fixed; inset:0; background:rgba(20,22,20,.45); display:none; align-items:flex-end; justify-content:center; z-index:6; }
   #card.on { display:flex; }
@@ -51,7 +51,7 @@
   #card a { background:var(--acc); color:#fff; } #card button { background:#e9e8e4; color:var(--ink); }
   .credits { position:fixed; right:26px; bottom:calc(6px + env(safe-area-inset-bottom)); font-size:10px; color:var(--soft); }
   .credits a { color:inherit; }
-  @media (orientation:portrait) { .hint { top:auto; bottom:30%; } .top { background:none; } .side { top:75%; } }
+  @media (orientation:portrait) { .top { background:none; } .hint { top:auto; bottom:auto; } }
   @media (max-width:640px) {
     .side { width:46px; height:46px; } .info h2 { font-size:21px; } .more { padding:11px 16px; }
     .credits { display:none; }
@@ -74,9 +74,8 @@
 <div id="card"><div class="sheet"><h3 id="cName"></h3><div class="demo">Datos de ejemplo</div><ul id="cList"></ul><div class="row"><a href="#" onclick="return false">Contactar</a><button id="close">Cerrar</button></div></div></div>
 <script>
 (() => {
-  // Frames: one continuous camera move along the row. Cars listed left -> right in the hall,
-  // "next" moves the camera to the right (the hall slides left), as on a carousel.
-  // stop = frame where the camera is parked in front of the car (frames rendered Golf -> Kia, so reversed here).
+  // Frames = one continuous camera move along the row (rendered Golf -> Kia, 24 fps, each hop already eased in/out).
+  // Cars are listed left -> right as they stand in the hall; "next" moves the camera to the right.
   const CARS = [
     { name: "Kia Sportage",       year: 2022, km: "38 000 km", fuel: "Gasolina MHEV", gear: "Automático", price: "27 900 €", stop: 284 },
     { name: "BMW Serie 3",        year: 2023, km: "24 000 km", fuel: "Diésel",        gear: "Automático", price: "36 500 €", stop: 213 },
@@ -85,48 +84,68 @@
     { name: "Volkswagen Golf 8",  year: 2021, km: "52 000 km", fuel: "Gasolina",      gear: "Manual",     price: "21 400 €", stop: 0   },
   ];
   const N = 285, IW = 1920, IH = 1280, BG = "rgb(239,236,230)", BG0 = "rgba(239,236,230,0)";
-  // car on screen at a stop, in image px (1440x960): used for the tap target and for the portrait crop
+  const HOP_FPS = 24;                      // frames were rendered for 24 fps: playing them 1:1 in time gives the camera's own ease
+  // car on screen at a stop, in frame px: tap target and portrait focus
   const HIT = { x1: 440, y1: 427, x2: 1400, y2: 973 }, FOCUS_X = (HIT.x1 + HIT.x2) / 2 / IW;
-  const small = innerHeight > innerWidth * 1.05;      // portrait phone/tablet: only the car band is shown
-  addEventListener("resize", () => { if ((innerHeight > innerWidth * 1.05) !== small) location.reload(); });
+  const isPortrait = () => document.documentElement.clientHeight > document.documentElement.clientWidth * 1.05;
+  const small = isPortrait();
   const dir = small ? "m" : "f", CROPX = small ? 360 : 0;   // phone frames = full-res crop x 360..1480 around the car
   const src = i => `${dir}/${String(i).padStart(3, "0")}.webp`;
-  const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+  const cv = document.getElementById("c"), ctx = cv.getContext("2d", { alpha: false });
   const $ = id => document.getElementById(id);
   const frames = new Array(N), ok = new Uint8Array(N); let nLoaded = 0;
-  let pos = CARS[0].stop, target = pos, idx = 0, last = 0, view = { s: 1, ox: 0, oy: 0 }, drawn = -1;
+  let pos = CARS[0].stop, idx = 0, view = { s: 1, ox: 0, oy: 0, dpr: 1 };
+  // motion state: "hop" = timed playback to a stop, "follow" = smooth follow of a scrub target, "idle"
+  let mode = "idle", hop = null, follow = CARS[0].stop, lastT = 0, lastDrawn = "";
 
   function resize() {
-    const dpr = Math.min(3, devicePixelRatio || 1);
-    cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr);
-    const portrait = cv.height > cv.width * 1.05;
+    // size from the canvas' real CSS box (innerWidth on iOS can be the wider layout viewport -> squashed, stale strip)
+    const r = cv.getBoundingClientRect(), dpr = Math.min(3, devicePixelRatio || 1);
+    cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+    const W = cv.width, H = cv.height, portrait = H > W * 1.05;
     let s, ox, oy;
-    if (portrait) {                                   // phone: car fills the width, hall band in the middle, feathered edges
-      s = cv.width / 1093; ox = cv.width / 2 - FOCUS_X * IW * s;
-      oy = cv.height * 0.45 - IH * s * 0.55;
-    } else {                                          // cover, keep the car on screen
-      s = Math.max(cv.width / IW, cv.height / IH); ox = (cv.width - IW * s) / 2;
-      if (IW * s > cv.width) { ox = cv.width / 2 - FOCUS_X * IW * s; ox = Math.min(0, Math.max(cv.width - IW * s, ox)); }
-      oy = (cv.height - IH * s) / 2;
+    if (portrait) {                    // phone: the car fills the width, hall band, feathered top/bottom
+      s = W / 1093; ox = W / 2 - FOCUS_X * IW * s; oy = H * 0.44 - IH * s * 0.55;
+    } else {                           // cover, keep the car on screen
+      s = Math.max(W / IW, H / IH); ox = (W - IW * s) / 2;
+      if (IW * s > W) { ox = W / 2 - FOCUS_X * IW * s; ox = Math.min(0, Math.max(W - IW * s, ox)); }
+      oy = (H - IH * s) / 2;
     }
     view = { s, ox, oy, dpr, portrait };
-    drawn = -1; draw(pos);
+    if (portrait) {                    // arrows centred on the hall band at the screen edges, hint under the band
+      const below = (oy + IH * s) / dpr;          // under the hall band, at the screen sides: never over a car
+      $("prev").style.top = $("next").style.top = (below + 34) + "px";
+      $("hint").style.top = (below + 18) + "px"; $("hint").style.bottom = "auto";
+    }
+    lastDrawn = ""; paint();
   }
   function nearestLoaded(i) { for (let d = 0; d < N; d++) { if (i - d >= 0 && ok[i - d]) return i - d; if (i + d < N && ok[i + d]) return i + d; } return -1; }
-  function draw(p) {
-    const i = nearestLoaded(Math.round(p)); if (i < 0 || i === drawn) return;
-    ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(frames[i], view.ox + CROPX * view.s, view.oy, frames[i].naturalWidth * view.s, IH * view.s); drawn = i;
+  function blit(i, a) {
+    const im = frames[i]; ctx.globalAlpha = a;
+    ctx.drawImage(im, view.ox + CROPX * view.s, view.oy, im.naturalWidth * view.s, IH * view.s);
+  }
+  function paint() {
+    // between two rendered frames: cross-fade them, so 24 rendered frames/s display as smooth 60 fps motion
+    const f0 = Math.floor(pos), fr = pos - f0;
+    let a = nearestLoaded(f0), b = fr > 0.02 && f0 + 1 < N && ok[f0 + 1] && a === f0 ? f0 + 1 : -1;
+    if (a < 0) return;
+    const key = a + ":" + (b < 0 ? 0 : Math.round(fr * 32));
+    if (key === lastDrawn) return; lastDrawn = key;
+    const W = cv.width, H = cv.height;
+    ctx.globalAlpha = 1; ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);          // clear everything: no stale strips
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+    blit(a, 1); if (b >= 0) blit(b, fr);
+    ctx.globalAlpha = 1;
     if (view.portrait) {
-      const h = IH * view.s, f = Math.min(90 * view.dpr, h * 0.16), W = cv.width;
-      ctx.fillStyle = BG; ctx.fillRect(0, 0, W, view.oy + 1); ctx.fillRect(0, view.oy + h - 1, W, cv.height);
+      const h = IH * view.s, f = Math.min(90 * view.dpr, h * 0.16);
       let g = ctx.createLinearGradient(0, view.oy, 0, view.oy + f); g.addColorStop(0, BG); g.addColorStop(1, BG0);
-      ctx.fillStyle = g; ctx.fillRect(0, view.oy, W, f);
+      ctx.fillStyle = g; ctx.fillRect(0, view.oy - 1, W, f + 1);
       g = ctx.createLinearGradient(0, view.oy + h - f, 0, view.oy + h); g.addColorStop(0, BG0); g.addColorStop(1, BG);
-      ctx.fillStyle = g; ctx.fillRect(0, view.oy + h - f, W, f);
+      ctx.fillStyle = g; ctx.fillRect(0, view.oy + h - f, W, f + 1);
+      ctx.fillStyle = BG; ctx.fillRect(0, 0, W, Math.max(0, view.oy)); ctx.fillRect(0, view.oy + h, W, H);
     }
   }
-  const parked = () => pos === target && pos === CARS[idx].stop;
+  const atStop = () => mode === "idle" && Math.abs(pos - CARS[idx].stop) < 0.01;
   function ui() {
     const c = CARS[idx];
     $("count").innerHTML = `${String(idx + 1).padStart(2, "0")} <span>/ ${String(CARS.length).padStart(2, "0")}</span>`;
@@ -136,68 +155,79 @@
     [...$("dots").children].forEach((d, k) => d.classList.toggle("on", k === idx));
   }
   function setAway(a) { $("info").classList.toggle("away", a); $("more").classList.toggle("away", a); }
-  function go(i) { idx = Math.max(0, Math.min(CARS.length - 1, i)); target = CARS[idx].stop; ui(); hideHint(); }
+  const nearestCar = p => { let b = 0; CARS.forEach((c, k) => { if (Math.abs(c.stop - p) < Math.abs(CARS[b].stop - p)) b = k; }); return b; };
 
-  // motion: ease toward target with a speed that keeps a 71-frame hop around 2.4 s
-  let vel = 0;
+  function go(i) {
+    idx = Math.max(0, Math.min(CARS.length - 1, i)); ui(); hideHint();
+    const to = CARS[idx].stop;
+    if (Math.abs(to - pos) < 0.01) { pos = to; mode = "idle"; return; }
+    // play the rendered frames 1:1 in time (24 fps): the camera eases out of one stop and into the next exactly as rendered.
+    // A partial hop (after a scrub) keeps the same speed; very long jumps are capped so they never drag.
+    const dist = Math.abs(to - pos), dur = dist <= 75 ? dist / HOP_FPS : Math.min(dist / HOP_FPS, 1.6 + dist / 60);
+    hop = { from: pos, to, t0: performance.now(), dur: dur * 1000 }; mode = "hop"; prefetch(to);
+  }
+  // when a hop starts from rest, frames near its ends are dense (the render eased there); a hop that starts mid-way
+  // (after a scrub) gets a gentle ease-out so it does not jerk.
+  function hopAt(now) {
+    const u = Math.min(1, (now - hop.t0) / hop.dur);
+    const fromStop = CARS.some(c => Math.abs(c.stop - hop.from) < 0.5);
+    const e = fromStop ? u : 1 - Math.pow(1 - u, 3);
+    return { p: hop.from + (hop.to - hop.from) * e, done: u >= 1 };
+  }
   function tick(t) {
-    const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
-    if (pos !== target) {
-      const d = target - pos, maxV = 34, acc = 60;                 // frames/s, frames/s^2
-      const want = Math.sign(d) * Math.min(maxV, Math.sqrt(2 * acc * Math.abs(d)));
-      vel += Math.max(-acc * dt, Math.min(acc * dt, want - vel));
-      const step = vel * dt;
-      pos = (Math.abs(d) <= Math.abs(step) || Math.abs(d) < 0.25) ? target : pos + step;
-      if (pos === target) vel = 0;
-      setAway(true);
-    } else setAway(!parked());
-    draw(pos);
+    const dt = lastT ? Math.min(0.05, (t - lastT) / 1000) : 0; lastT = t;
+    if (mode === "hop") {
+      const h = hopAt(t); pos = h.p;
+      if (h.done) { pos = hop.to; mode = "idle"; }
+    } else if (mode === "follow") {
+      const k = 1 - Math.exp(-dt / 0.11);                  // critically damped follow of the finger / wheel
+      pos += (follow - pos) * k;
+      if (Math.abs(follow - pos) < 0.02) pos = follow;
+    }
+    setAway(!atStop());
+    paint(); warm();
     requestAnimationFrame(tick);
   }
 
-  // wheel / trackpad: scrub along the row, settle on the nearest car
+  // wheel / trackpad / vertical drag: scrub along the row with inertia, then glide to the nearest car
   let settleT = null;
   function scrub(df) {
-    pos = Math.max(0, Math.min(N - 1, pos + df)); target = pos; vel = 0; draw(pos); setAway(true);
-    clearTimeout(settleT);
-    settleT = setTimeout(() => {
-      let best = 0; CARS.forEach((c, k) => { if (Math.abs(c.stop - pos) < Math.abs(CARS[best].stop - pos)) best = k; });
-      go(best);
-    }, 160);
+    if (mode !== "follow") follow = pos;
+    follow = Math.max(0, Math.min(N - 1, follow + df)); mode = "follow";
+    clearTimeout(settleT); settleT = setTimeout(() => go(nearestCar(follow)), 170);
     hideHint();
   }
-  // scrolling down / right = next car = lower frame index (frames run Golf -> Kia, list runs Kia -> Golf)
   addEventListener("wheel", e => { e.preventDefault(); if ($("card").classList.contains("on")) return; scrub(-(e.deltaY + e.deltaX) * 0.05); }, { passive: false });
   addEventListener("keydown", e => {
     if (e.key === "Escape") $("card").classList.remove("on");
     if ($("card").classList.contains("on")) return;
     if (e.key === "ArrowRight" || e.key === "ArrowDown") go(idx + 1);
     if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(idx - 1);
-    if (e.key === "Enter" && parked()) openCard();
+    if (e.key === "Enter" && atStop()) openCard();
   });
   $("next").onclick = () => go(idx + 1); $("prev").onclick = () => go(idx - 1);
   $("more").onclick = () => openCard();
 
-  // touch: horizontal swipe = next/prev car; vertical drag = scrub like scrolling
-  let tx = 0, ty = 0, lx = 0, ly = 0, mode = null, moved = false;
-  cv.addEventListener("touchstart", e => { const t = e.touches[0]; tx = lx = t.clientX; ty = ly = t.clientY; mode = null; moved = false; }, { passive: true });
+  // touch: the hall follows the finger; release = glide to the next car in the swipe direction (or back if barely moved)
+  let tx = 0, ty = 0, lx = 0, ly = 0, tmode = null, moved = false, vx = 0, lt = 0;
+  cv.addEventListener("touchstart", e => { const t = e.touches[0]; tx = lx = t.clientX; ty = ly = t.clientY; tmode = null; moved = false; vx = 0; lt = performance.now(); }, { passive: true });
   cv.addEventListener("touchmove", e => {
-    const t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty;
-    if (!mode && Math.hypot(dx, dy) > 10) mode = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
-    if (mode === "h") { scrub((t.clientX - lx) * 0.16); lx = t.clientX; }      // finger left = next car
-    if (mode === "v") { scrub((t.clientY - ly) * 0.16); ly = t.clientY; }
-    moved = true;
+    const t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty, now = performance.now();
+    if (!tmode && Math.hypot(dx, dy) > 10) tmode = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
+    const per = 70 / Math.max(320, cv.clientWidth);        // one screen width of drag ~ 70 frames ~ one car
+    if (tmode === "h") { const d = t.clientX - lx; vx = 0.7 * vx + 0.3 * d / Math.max(1, now - lt); scrub(d * per * 1.0); lx = t.clientX; }
+    if (tmode === "v") { scrub((t.clientY - ly) * per); ly = t.clientY; }
+    lt = now; moved = moved || !!tmode;
   }, { passive: true });
   cv.addEventListener("touchend", e => {
-    if (mode !== "h") return;
-    const dx = e.changedTouches[0].clientX - tx;
+    if (tmode !== "h") return;
     clearTimeout(settleT);
-    if (Math.abs(dx) > 40) {      // flick: next car in the swipe direction from where the finger left the hall
-      let j;
-      if (dx < 0) { j = CARS.findIndex(c => c.stop < pos - 0.5); if (j < 0) j = CARS.length - 1; }
-      else { j = -1; CARS.forEach((c, k) => { if (c.stop > pos + 0.5) j = k; }); if (j < 0) j = 0; }
-      go(j);
-    } else { let best = 0; CARS.forEach((c, j) => { if (Math.abs(c.stop - pos) < Math.abs(CARS[best].stop - pos)) best = j; }); go(best); }
+    const dx = e.changedTouches[0].clientX - tx, fling = Math.abs(vx) > 0.35 || Math.abs(dx) > 50;
+    const p = follow; let j;
+    if (fling && dx < 0) { j = CARS.findIndex(c => c.stop < p - 0.5); if (j < 0) j = CARS.length - 1; }
+    else if (fling && dx > 0) { j = -1; CARS.forEach((c, k) => { if (c.stop > p + 0.5) j = k; }); if (j < 0) j = 0; }
+    else j = nearestCar(p);
+    pos = Math.max(0, Math.min(N - 1, pos)); go(j);
   });
 
   // tap on the parked car opens its card
@@ -205,8 +235,8 @@
     const x = (cx * view.dpr - view.ox) / view.s, y = (cy * view.dpr - view.oy) / view.s;
     return x > HIT.x1 && x < HIT.x2 && y > HIT.y1 && y < HIT.y2;
   }
-  cv.addEventListener("mousemove", e => cv.classList.toggle("hot", parked() && inCar(e.clientX, e.clientY)));
-  cv.addEventListener("click", e => { if (!moved && parked() && inCar(e.clientX, e.clientY)) openCard(); moved = false; });
+  cv.addEventListener("mousemove", e => cv.classList.toggle("hot", atStop() && inCar(e.clientX, e.clientY)));
+  cv.addEventListener("click", e => { if (!moved && atStop() && inCar(e.clientX, e.clientY)) openCard(); moved = false; });
   function openCard() {
     const c = CARS[idx];
     $("cName").textContent = c.name;
@@ -219,24 +249,49 @@
   $("close").onclick = () => $("card").classList.remove("on");
   $("card").addEventListener("click", e => { if (e.target.id === "card") e.currentTarget.classList.remove("on"); });
   let hinted = false; function hideHint() { if (!hinted) { hinted = true; $("hint").style.opacity = 0; } }
+  setTimeout(hideHint, 4000);
 
-  // loading: the five stops first, then outward from the first car so the first hop is ready soonest
+  // loading: the five stops first, then frames nearest to where the camera is / is going
   CARS.forEach(() => $("dots").appendChild(document.createElement("i")));
-  const order = [...CARS.map(c => c.stop)];
-  for (let d = 1; d < N; d++) for (const s of [CARS[0].stop]) { if (s - d >= 0) order.push(s - d); }
-  const seen = new Set(); const queue = order.filter(i => !seen.has(i) && seen.add(i));
-  let qi = 0;
-  function pump() {
-    if (qi >= queue.length) return;
-    const i = queue[qi++], im = new Image(); im.decoding = "async"; frames[i] = im;
-    im.onload = () => { ok[i] = 1; nLoaded++; $("load").style.width = (nLoaded / N * 100) + "%";
-      if (nLoaded === N) $("load").style.opacity = 0;
-      if (Math.abs(i - pos) < 3 || drawn < 0) { drawn = -1; draw(pos); } pump(); };
-    im.onerror = pump; im.src = src(i);
+  const want = new Uint8Array(N); let inflight = 0, focus = pos;
+  function prefetch(p) { focus = p; }
+  function nextToLoad() {
+    for (const c of CARS) if (!want[c.stop]) return c.stop;
+    const a = mode === "hop" ? hop.from : pos, b = mode === "hop" ? hop.to : focus;
+    const lo = Math.max(0, Math.floor(Math.min(a, b))), hi = Math.min(N - 1, Math.ceil(Math.max(a, b)));
+    const dirn = b >= a ? 1 : -1;
+    for (let k = 0; k <= hi - lo; k++) { const i = dirn > 0 ? lo + k : hi - k; if (!want[i]) return i; }
+    for (let d = 1; d < N; d++) for (const i of [Math.round(pos) - d, Math.round(pos) + d]) if (i >= 0 && i < N && !want[i]) return i;
+    return -1;
   }
-  for (let k = 0; k < 6; k++) pump();
-  addEventListener("resize", resize); resize(); ui(); requestAnimationFrame(tick);
-  window.__state = () => ({ pos, target, idx, loaded: nLoaded, parked: parked() });
+  function pump() {
+    while (inflight < 6) {
+      const i = nextToLoad(); if (i < 0) return;
+      want[i] = 1; inflight++;
+      const im = new Image(); frames[i] = im;
+      im.onload = () => {
+        (im.decode ? im.decode() : Promise.resolve()).catch(() => {}).then(() => {
+          ok[i] = 1; nLoaded++; inflight--; $("load").style.width = (nLoaded / N * 100) + "%";
+          if (nLoaded === N) $("load").style.opacity = 0;
+          if (Math.abs(i - pos) < 2) lastDrawn = "";
+          pump();
+        });
+      };
+      im.onerror = () => { inflight--; want[i] = 0; setTimeout(pump, 500); };
+      im.src = src(i);
+    }
+  }
+  // keep the frames just ahead decoded (Safari drops decoded bitmaps of far frames)
+  let warmAt = -99;
+  function warm() {
+    const p = Math.round(pos); if (Math.abs(p - warmAt) < 3) return; warmAt = p;
+    const d = mode === "hop" ? Math.sign(hop.to - hop.from) : 0;
+    for (let k = 1; k <= 8; k++) { const i = p + (d || 1) * k; if (i >= 0 && i < N && ok[i] && frames[i].decode) frames[i].decode().catch(() => {}); }
+  }
+  pump();
+  addEventListener("resize", () => { if (isPortrait() !== small) location.reload(); else resize(); });
+  resize(); ui(); requestAnimationFrame(tick);
+  window.__state = () => ({ pos, idx, mode, loaded: nLoaded, parked: atStop(), cw: cv.width, bw: Math.round(cv.getBoundingClientRect().width) });
 })();
 </script>
 </body>
