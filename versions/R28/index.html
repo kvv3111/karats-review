@@ -86,13 +86,13 @@
   // iPhone cannot keep ~285 big decoded images in memory, so it re-decoded them on the fly -> stutter and blank flashes.
   // At every stop a full-quality still sits on top of the video, so a parked car is pixel-sharp.
   const CARS = [
-    { name: "Kia Sportage",       year: 2022, km: "38 000 km", fuel: "Gasolina MHEV", gear: "Automático", price: "27 900 €", stop: 284 },
-    { name: "BMW Serie 3",        year: 2023, km: "24 000 km", fuel: "Diésel",        gear: "Automático", price: "36 500 €", stop: 213 },
-    { name: "Toyota Corolla",     year: 2021, km: "45 000 km", fuel: "Híbrido",       gear: "Automático", price: "18 900 €", stop: 142 },
-    { name: "Hyundai Ioniq 6",    year: 2023, km: "19 000 km", fuel: "Eléctrico",     gear: "Automático", price: "34 900 €", stop: 71  },
-    { name: "Volkswagen Golf 8",  year: 2021, km: "52 000 km", fuel: "Gasolina",      gear: "Manual",     price: "21 400 €", stop: 0   },
+    { name: "Kia Sportage",       year: 2022, km: "38 000 km", fuel: "Gasolina MHEV", gear: "Automático", price: "27 900 €", stop: 716, still: 284 },
+    { name: "BMW Serie 3",        year: 2023, km: "24 000 km", fuel: "Diésel",        gear: "Automático", price: "36 500 €", stop: 537, still: 213 },
+    { name: "Toyota Corolla",     year: 2021, km: "45 000 km", fuel: "Híbrido",       gear: "Automático", price: "18 900 €", stop: 358, still: 142 },
+    { name: "Hyundai Ioniq 6",    year: 2023, km: "19 000 km", fuel: "Eléctrico",     gear: "Automático", price: "34 900 €", stop: 179, still: 71  },
+    { name: "Volkswagen Golf 8",  year: 2021, km: "52 000 km", fuel: "Gasolina",      gear: "Manual",     price: "21 400 €", stop: 0,   still: 0   },
   ];
-  const N = 285, FPS = 24, IW = 1920, IH = 1280, BG = "#efece6";
+  const N = 717, FPS = 60, IW = 1920, IH = 1280, BG = "#efece6";
   const HIT = { x1: 440, y1: 427, x2: 1400, y2: 973 }, FOCUS_X = (HIT.x1 + HIT.x2) / 2 / IW;
   const isPortrait = () => document.documentElement.clientHeight > document.documentElement.clientWidth * 1.05;
   const small = isPortrait();
@@ -220,7 +220,7 @@
     }
     requestAnimationFrame(tick);
   }
-  addEventListener("wheel", e => { e.preventDefault(); if ($("card").classList.contains("on")) return; scrub(-(e.deltaY + e.deltaX) * 0.05); }, { passive: false });
+  addEventListener("wheel", e => { e.preventDefault(); if ($("card").classList.contains("on")) return; scrub(-(e.deltaY + e.deltaX) * 0.125); }, { passive: false });
   addEventListener("keydown", e => {
     if (e.key === "Escape") $("card").classList.remove("on");
     if ($("card").classList.contains("on")) return;
@@ -238,7 +238,7 @@
   stage.addEventListener("touchmove", e => {
     const t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty;
     if (!tmode && Math.hypot(dx, dy) > 10) tmode = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
-    if (tmode === "v") { scrub((t.clientY - ly) * 70 / Math.max(320, innerWidth)); ly = t.clientY; }
+    if (tmode === "v") { scrub((t.clientY - ly) * 179 / Math.max(320, innerWidth)); ly = t.clientY; }
     moved = moved || !!tmode;
   }, { passive: true });
   stage.addEventListener("touchend", e => {
@@ -267,7 +267,7 @@
 
   // ---------- loading: 5 sharp stills first, then both videos fully into memory (no network during a move) ----------
   CARS.forEach(() => $("dots").appendChild(document.createElement("i")));
-  CARS.forEach(c => { const im = new Image(); im.onload = () => { if (c.stop === CARS[idx].stop) drawStill(); }; im.src = `${small ? "m" : "f"}/${String(c.stop).padStart(3, "0")}.webp`; stills[c.stop] = im; });
+  CARS.forEach(c => { const im = new Image(); im.onload = () => { if (c.stop === CARS[idx].stop) drawStill(); }; im.src = `${small ? "m" : "f"}/${String(c.still).padStart(3, "0")}.webp`; stills[c.stop] = im; });
   async function fetchBlob(url, onp) {
     const r = await fetch(url); const total = +r.headers.get("content-length") || 0;
     if (!r.body || !total) return URL.createObjectURL(await r.blob());
