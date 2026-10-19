@@ -187,17 +187,24 @@
     if (shown !== "still" && shown !== (v === vf ? "vf" : "vr")) {   // scrubbing showed the other video: hold it, line this one up
       other.pause();
     }
+    other.pause(); switching = false;
     await seekTo(v, from); if (my !== seq) return;
     show(v === vf ? "vf" : "vr");
     v.playbackRate = Math.min(3, Math.max(1, Math.abs(to - from) / (CARS[0].stop / (CARS.length - 1)) * 0.85));
     try { await v.play(); } catch (e) {}
-    const step = (mt) => {
-      if (my !== seq) return;
+    // stop exactly on the car: per presented video frame (rVFC) AND per screen frame (rAF) as a safety net,
+    // so a missed callback can never let the video run past the car
+    let fin = false;
+    const check = (mt) => {
+      if (fin) return true;
+      if (my !== seq) { fin = true; return true; }
       const n = nOf(v, mt); pos = n;
-      if ((to > from && n >= to) || (to < from && n <= to) || v.ended) { v.pause(); pos = to; mode = "idle"; arrive(my); return; }
-      onFrame(v, step);
+      if ((to > from && n >= to) || (to < from && n <= to) || v.ended) { fin = true; v.pause(); pos = to; mode = "idle"; arrive(my); return true; }
+      return false;
     };
-    onFrame(v, step);
+    const step = mt => { if (!check(mt)) onFrame(v, step); };
+    const poll = () => { if (!check(v.currentTime)) requestAnimationFrame(poll); };
+    onFrame(v, step); requestAnimationFrame(poll);
   }
   function arrive(my) {
     drawStill(); show("still"); setAway(false);
@@ -226,8 +233,8 @@
     if (Math.abs(diff) < 1.2) { if (cur && !cur.paused) cur.pause(); return; }
     const want = diff > 0 ? vf : vr;
     if (cur !== want) {                                   // direction change: line the other copy up on this frame, then swap
-      switching = true; if (cur) cur.pause();
-      seekTo(want, Math.round(pos)).then(() => { show(want === vf ? "vf" : "vr"); switching = false; });
+      switching = true; if (cur) cur.pause(); const tok = seq;
+      seekTo(want, Math.round(pos)).then(() => { switching = false; if (tok === seq && mode === "follow") show(want === vf ? "vf" : "vr"); });
       return;
     }
     const rate = Math.max(0.35, Math.min(3, Math.abs(diff) / (FPS * 0.28)));
