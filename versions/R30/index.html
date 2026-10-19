@@ -90,8 +90,6 @@
   #menuBtn i:nth-child(1) { top:18px; } #menuBtn i:nth-child(2) { top:24px; }
   body.menu #menuBtn i:nth-child(1) { top:21px; transform:rotate(45deg); } body.menu #menuBtn i:nth-child(2) { top:21px; transform:rotate(-45deg); }
 
-         background:linear-gradient(rgba(239,236,230,0),rgba(239,236,230,.9) 55%); }
-
   /* ---------- menu: glass panel from the top, hall blurred beneath ---------- */
   #veil { position:fixed; inset:0; z-index:7; background:rgba(239,236,230,.18); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); opacity:0; pointer-events:none;
           transition:opacity .4s var(--ease), backdrop-filter .5s var(--ease), -webkit-backdrop-filter .5s var(--ease); }
@@ -149,11 +147,13 @@
   #sheet .price { display:flex; align-items:baseline; gap:10px; margin:12px 0 12px; }
   #sheet .price { flex-wrap:wrap; } #sheet .price b { white-space:nowrap; font-family:Jost,sans-serif; font-weight:500; font-size:30px; letter-spacing:.01em; }
   #sheet .price span { color:var(--soft); font-size:14px; }
-  #sheet .chips { display:flex; gap:7px; overflow-x:auto; scrollbar-width:none; margin:0 -18px; padding:0 18px 2px; } #sheet .chips::-webkit-scrollbar { display:none; }
+  #sheet .chips { display:flex; flex-wrap:wrap; gap:7px; margin:0; padding:0 0 2px; }
+  #sheet .chip { flex:0 1 auto; min-width:0; max-width:100%; height:auto; min-height:32px; padding:6px 13px; white-space:normal; overflow-wrap:anywhere; }
+  #sheet .chip svg { flex:none; }
   #sheet .thumbs { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin:14px 0 12px; }
-  #sheet .thumbs button { position:relative; aspect-ratio:3/2; border:0; border-radius:12px; overflow:hidden; cursor:pointer; background:#ddd center/cover; transition:transform .35s var(--spring); }
+  #sheet .thumbs button { position:relative; aspect-ratio:3/2; border:0; border-radius:12px; clip-path:inset(0 round 12px); overflow:hidden; cursor:pointer; background:#ddd center/cover; transition:transform .35s var(--spring); }
   #sheet .thumbs button:active { transform:scale(.95); }
-  #sheet .thumbs button.more::after { content:attr(data-more); position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:15px; background:rgba(20,22,20,.42); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
+  #sheet .thumbs button.more::after { content:attr(data-more); position:absolute; inset:0; border-radius:inherit; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:15px; background:rgba(20,22,20,.42); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
   #sheet .hl { list-style:none; display:flex; flex-direction:column; gap:7px; margin:2px 0 16px; }
   #sheet .hl li { display:flex; align-items:center; gap:9px; font-size:14.5px; } #sheet .hl svg { width:17px; height:17px; color:var(--acc); flex:none; }
   #sheet .sh-acts { display:flex; flex-wrap:wrap; gap:8px; } #sheet .sh-acts .btn { flex:1 1 118px; } #sheet .sh-acts .round { flex:none; }
@@ -161,6 +161,7 @@
   #sheet .label { position:absolute; top:10px; right:58px; }
   @media (min-width:900px) { #sheet { left:auto; right:24px; bottom:24px; width:420px; } }
   .top { z-index:9; } .top .r { display:flex; align-items:center; gap:14px; }
+  body.sheet .bar, body.menu .bar, body.sheet .credits, body.menu .credits { visibility:hidden; pointer-events:none; }
   body.menu .side, body.sheet .side, body.menu #track, body.sheet #track, body.menu .hint, body.sheet .hint { opacity:0 !important; pointer-events:none; }
 
 </style>
@@ -321,9 +322,12 @@
   function positionHint() {
     const hint = $("hint");
     hint.style.bottom = "auto";
-    hint.style.top = Math.max(0, $("info").getBoundingClientRect().top - hint.offsetHeight - 18) + "px";
+    let top = Math.max(0, $("info").getBoundingClientRect().top - hint.offsetHeight - 18);
+    const nav = $("track").getBoundingClientRect();
+    if (view.portrait && top < nav.bottom + 12 && top + hint.offsetHeight > nav.top - 12) top = nav.top - hint.offsetHeight - 12;
+    hint.style.top = Math.max(0, top) + "px";
   }
-  new ResizeObserver(positionHint).observe($("info"));
+  new ResizeObserver(() => { if (view.portrait) resize(); else positionHint(); }).observe($("info"));
   function resize() {
     const r = document.documentElement, W0 = r.clientWidth, H0 = r.clientHeight, dpr = Math.min(3, devicePixelRatio || 1);
     cv.width = Math.round(W0 * dpr); cv.height = Math.round(H0 * dpr);
@@ -343,12 +347,12 @@
       fa.style.background = `linear-gradient(${BG} ${oy / (oy + f) * 100}%, rgba(239,236,230,0))`;
       fb.style.background = `linear-gradient(rgba(239,236,230,0), ${BG} ${f / (H0 - (oy + h - f)) * 100}%)`;
       const below = oy + h;
-      $("prev").style.top = $("next").style.top = (below + 34) + "px";
-      // Hint is positioned above the car information, outside the showroom scene.
-      $("track").style.top = (below - 88) + "px"; $("track").style.bottom = "auto";   // glass capsule over the floor: it has something to refract
-      // very big system text: no room for the side arrows between the picture and the car name -> swipe / dots only
       const barTop = $("info").getBoundingClientRect().top || innerHeight;
-      const tight = below + 34 + $("next").offsetHeight + 6 > barTop;
+      const navY = Math.min(below + 34, barTop - $("track").offsetHeight / 2 - 18);
+      $("prev").style.top = $("next").style.top = navY + "px";
+      $("track").style.top = (navY - $("track").offsetHeight / 2) + "px"; $("track").style.bottom = "auto";
+      // Reserve only the actual lower half of the centred arrow, not its full height.
+      const tight = navY + parseFloat(getComputedStyle($("next")).height) / 2 + 6 > barTop;
       $("prev").classList.toggle("tight", tight); $("next").classList.toggle("tight", tight);
     } else { fa.style.display = fb.style.display = "none"; }
     positionHint();
