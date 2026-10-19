@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="only light">
 <meta name="robots" content="noindex">
 <title>KARATS AUTO · Maqueta: menú y ficha</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,6 +23,7 @@
 
   .bar { position:fixed; left:0; right:0; bottom:0; padding:40px 22px calc(84px + env(safe-area-inset-bottom)); display:flex; align-items:flex-end; justify-content:space-between; gap:14px;
          background:linear-gradient(rgba(239,236,230,0),rgba(239,236,230,.9) 55%); }
+  @media (max-width:340px) { .bar { flex-wrap:wrap; } .bar > div:first-child { flex:1 1 100%; } .bar .btn { margin-left:auto; } }
   .bar h2 { font-family:Jost,sans-serif; font-size:23px; font-weight:500; } .bar p { color:var(--soft); margin-top:2px; } .bar b { color:var(--ink); }
   .bar .btn { height:46px; padding:0 18px; }
   .dots { position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 25px); transform:translateX(-50%); width:132px; height:34px; border-radius:17px; display:flex; align-items:center; justify-content:center; gap:14px; }
@@ -54,7 +56,7 @@
   #menu nav .it .t { flex:1; } #menu nav .it .t b { display:block; font-family:Jost,sans-serif; font-weight:400; font-size:25px; letter-spacing:.01em; line-height:1.15; }
   #menu nav .it .t small { color:var(--soft); font-size:13px; }
   #menu nav .it svg { width:18px; height:18px; color:var(--faint); }
-  #menu .foot { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 6px 0; padding-top:14px; border-top:1px solid var(--line); position:relative; z-index:1; }
+  #menu .foot { flex-wrap:wrap; row-gap:10px; display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 6px 0; padding-top:14px; border-top:1px solid var(--line); position:relative; z-index:1; }
   .seg { position:relative; display:flex; height:40px; padding:3px; border-radius:20px; background:rgba(29,33,30,.06); box-shadow:inset 0 0 0 .6px rgba(29,33,30,.08); }
   .seg button { position:relative; z-index:2; width:46px; border:0; background:none; font-size:13px; font-weight:600; letter-spacing:.06em; cursor:pointer; color:var(--soft); transition:color .25s; }
   .seg button.on { color:var(--ink); }
@@ -82,7 +84,7 @@
   .sh-head .x { flex:none; width:34px; height:34px; border-radius:17px; }
   .sh-head .x svg { width:15px; height:15px; }
   .price { display:flex; align-items:baseline; gap:10px; margin:12px 0 12px; }
-  .price b { font-family:Jost,sans-serif; font-weight:500; font-size:30px; letter-spacing:.01em; }
+  .price { flex-wrap:wrap; } .price b { white-space:nowrap; font-family:Jost,sans-serif; font-weight:500; font-size:30px; letter-spacing:.01em; }
   .price span { color:var(--soft); font-size:14px; }
   .chips { display:flex; gap:7px; overflow-x:auto; scrollbar-width:none; margin:0 -18px; padding:0 18px 2px; } .chips::-webkit-scrollbar { display:none; }
   .thumbs { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin:14px 0 12px; }
@@ -91,7 +93,7 @@
   .thumbs button.more::after { content:attr(data-more); position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:15px; background:rgba(20,22,20,.42); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
   .hl { list-style:none; display:flex; flex-direction:column; gap:7px; margin:2px 0 16px; }
   .hl li { display:flex; align-items:center; gap:9px; font-size:14.5px; } .hl svg { width:17px; height:17px; color:var(--acc); flex:none; }
-  .sh-acts { display:grid; grid-template-columns:1fr 1fr 52px; gap:8px; }
+  .sh-acts { display:flex; flex-wrap:wrap; gap:8px; } .sh-acts .btn { flex:1 1 118px; } .sh-acts .round { flex:none; }
   .sh-acts .btn { padding:0 12px; } .sh-acts .round { width:52px; height:52px; padding:0; border-radius:26px; }
   .label { position:absolute; top:10px; right:58px; }
   @media (min-width:900px) {
@@ -159,12 +161,24 @@
   const B = document.body;
   // an open menu or sheet is its own history step: Android's Back button / iOS edge swipe closes it instead of leaving the site
   const layer = () => history.state && history.state.layer;
+  let opener = null;
   function show(name) {
+    if (!opener) opener = document.activeElement;
+    setTimeout(() => { const f = name === "menu" ? document.querySelector("#menu .it") : $("sClose"); f && f.focus({ preventScroll: true }); }, 60);
     B.classList.remove("menu", "sheet"); if (name === "sheet") B.style.setProperty("--dy", "0px"); B.classList.add(name);
     if (layer()) history.replaceState({ layer: name }, ""); else history.pushState({ layer: name }, "");
   }
-  function closeAll() { if (layer()) history.back(); else B.classList.remove("menu", "sheet"); }
-  addEventListener("popstate", () => { const l = layer(); B.classList.remove("menu", "sheet"); if (l) B.classList.add(l); });
+  let closing = false;
+  function closeAll() {
+    if (closing || !(B.classList.contains("menu") || B.classList.contains("sheet"))) return;
+    if (layer()) { closing = true; history.back(); } else B.classList.remove("menu", "sheet");
+    if (opener) { opener.focus({ preventScroll: true }); opener = null; }
+  }
+  // closed panels are inert: Tab and screen readers skip them
+  const syncInert = () => { $("menu").inert = !B.classList.contains("menu"); $("sheet").inert = !B.classList.contains("sheet"); };
+  new MutationObserver(syncInert).observe(B, { attributes: true, attributeFilter: ["class"] }); syncInert();
+  if (layer()) B.classList.add(layer());                      // reload / return with a menu or sheet step in history
+  addEventListener("popstate", () => { closing = false; const l = layer(); B.classList.remove("menu", "sheet"); if (l) B.classList.add(l); });
   $("menuBtn").onclick = () => B.classList.contains("menu") ? closeAll() : show("menu");
   $("open").onclick = () => show("sheet");
   $("veil").onclick = $("sClose").onclick = closeAll;
@@ -178,6 +192,14 @@
   sh.addEventListener("pointermove", e => { if (y0 === null) return; dy = e.clientY - y0; dy = dy < 0 ? dy / 6 : dy; B.style.setProperty("--dy", dy + "px"); });
   const up = () => { if (y0 === null) return; y0 = null; sh.classList.remove("drag"); if (dy > 110) closeAll(); B.style.setProperty("--dy", "0px"); };
   sh.addEventListener("pointerup", up); sh.addEventListener("pointercancel", up);
+  addEventListener("keydown", e => {
+    if (e.key !== "Tab") return;
+    const box = B.classList.contains("menu") ? $("menu") : B.classList.contains("sheet") ? $("sheet") : null; if (!box) return;
+    const f = [...box.querySelectorAll("button, a[href]")].filter(x => x.offsetParent !== null);
+    if (box === $("menu")) f.push($("menuBtn"));                       // the ✕ of the menu sits on top of it
+    const i = f.indexOf(document.activeElement), n = f.length;
+    e.preventDefault(); f[i < 0 ? 0 : (i + (e.shiftKey ? n - 1 : 1)) % n].focus();
+  });
   addEventListener("keydown", e => { if (e.key === "Escape" && (B.classList.contains("menu") || B.classList.contains("sheet"))) closeAll(); });
   const toast = document.createElement("div"); toast.className = "toast lg"; toast.innerHTML = "<span></span>"; document.body.appendChild(toast);
   const say = t => { toast.firstChild.textContent = t; toast.classList.add("on"); clearTimeout(say.t); say.t = setTimeout(() => toast.classList.remove("on"), 1800); };

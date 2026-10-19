@@ -26,5 +26,6 @@ window.KARATS_SHOTS = [
   ["05_rear", "Trasera"], ["06_front34l", "Tres cuartos izquierdo"], ["07_high", "Vista superior"], ["10_low", "Ángulo bajo"],
   ["08_wheel", "Llanta"], ["09_lamp", "Faro"], ["12_tail", "Piloto trasero"],
 ];
-window.fmtEUR = n => n.toLocaleString("es-ES").replace(/\./g, " ") + " €";
-window.fmtKM = n => n.toLocaleString("es-ES").replace(/\./g, " ") + " km";
+// non-breaking spaces: "36 500 €" never splits over two lines (big system text)
+window.fmtEUR = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0") + "\u00a0€";
+window.fmtKM = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0") + "\u00a0km";

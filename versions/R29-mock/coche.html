@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="only light">
 <meta name="robots" content="noindex">
 <title>KARATS AUTO · Coche</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,10 +36,10 @@
   .head h1 { font-family:Jost,sans-serif; font-weight:500; font-size:32px; line-height:1.08; letter-spacing:.005em; }
   .head .trim { color:var(--soft); margin-top:4px; }
   .head .price { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 12px; margin:14px 0 14px; }
-  .head .price b { font-family:Jost,sans-serif; font-weight:500; font-size:34px; } .head .price span { color:var(--soft); }
+  .head .price b { white-space:nowrap; font-family:Jost,sans-serif; font-weight:500; font-size:34px; } .head .price span { color:var(--soft); }
   .chips { display:flex; flex-wrap:wrap; gap:7px; }
 
-  .strip { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x mandatory; margin:14px -12px 0; padding:2px 12px 6px; scrollbar-width:none; }
+  .strip { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; margin:14px -12px 0; padding:2px 12px 6px; scrollbar-width:none; }
   .strip::-webkit-scrollbar { display:none; }
   .strip button { flex:none; width:148px; aspect-ratio:3/2; border:0; border-radius:14px; background:#ddd center/cover; cursor:zoom-in; scroll-snap-align:start; transition:transform .35s var(--spring); box-shadow:0 4px 14px rgba(20,22,20,.10); }
   .strip button:active { transform:scale(.95); }
@@ -159,6 +160,11 @@
     .map(([k, v]) => `<div class="spec"><small>${k}</small><b>${v}</b></div>`).join("");
   $("equip").innerHTML = C.equip.map(t => `<span class="chip">${t}</span>`).join("");
   $("back").href = "index.html";
+  $("back").onclick = e => {
+    let fromHall = false;
+    try { const r = new URL(document.referrer); fromHall = r.origin === location.origin && /\/(index\.html)?$/.test(r.pathname) && r.pathname.replace(/[^/]*$/, "") === location.pathname.replace(/[^/]*$/, ""); } catch (_) {}
+    if (fromHall && history.length > 1) { e.preventDefault(); history.back(); }
+  };
   addEventListener("scroll", () => document.body.classList.toggle("scrolled", scrollY > innerHeight * .45), { passive: true });
   // buy bar shows up once the title card scrolls away
   new IntersectionObserver(([e]) => $("buybar").classList.toggle("on", !e.isIntersecting && e.boundingClientRect.top < 0), { threshold: 0 }).observe(document.querySelector(".head .price"));
@@ -183,10 +189,18 @@
     if (!(history.state && history.state.viewer)) history.pushState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]);
   }
   function hide() { resetZoom(); document.body.classList.remove("viewer"); }
-  function close() { if (history.state && history.state.viewer) history.back(); else { hide(); history.replaceState(null, "", base); } }
-  addEventListener("popstate", () => { if (!(history.state && history.state.viewer)) hide(); });
+  let closing = false;
+  function close() {
+    if (closing || !document.body.classList.contains("viewer")) return;
+    if (history.state && history.state.viewer) { closing = true; history.back(); } else { hide(); history.replaceState(null, "", base); }
+  }
+  addEventListener("popstate", () => { closing = false; if (!(history.state && history.state.viewer)) hide(); });
   const go = k => { k = Math.max(0, Math.min(SH.length - 1, k)); resetZoom(); T.scrollTo({ left: k * T.clientWidth, behavior: "smooth" }); };
   T.addEventListener("scroll", () => { const k = Math.round(T.scrollLeft / T.clientWidth); if (k !== cur) setCur(k); }, { passive: true });
+  $("strip").addEventListener("wheel", e => {
+    const s = $("strip"), d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : 0; if (!d) return;
+    if ((d > 0 && s.scrollLeft + s.clientWidth < s.scrollWidth - 1) || (d < 0 && s.scrollLeft > 0)) { e.preventDefault(); s.scrollLeft += d; }
+  }, { passive: false });
   $("strip").onclick = e => { const b = e.target.closest("button"); if (b) open(+b.dataset.k); };
   $("heroImg").onclick = () => open(0); $("allPhotos").onclick = () => open(0);
   $("vthumbs").onclick = e => { const b = e.target.closest("button"); if (b) go(+b.dataset.k); };

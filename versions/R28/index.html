@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="only light">
 <meta name="robots" content="noindex">
 <title>KARATS AUTO · Showroom (R28)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root { --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
+  :root { color-scheme:only light; --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html, body, button, a, .side, .more, #card { touch-action:manipulation; }
   html,body { width:100%; max-width:100%; height:100%; background:#efece6; color:var(--ink); font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; overflow:hidden; overscroll-behavior:none; }
@@ -28,9 +29,11 @@
   .side { position:fixed; top:50%; transform:translateY(-50%); width:56px; height:56px; border-radius:50%; border:1px solid rgba(29,33,30,.14);
           background:rgba(251,250,247,.86); color:var(--ink); cursor:pointer; z-index:3;
           display:flex; align-items:center; justify-content:center; transition:opacity .3s, background .2s; box-shadow:0 6px 20px rgba(0,0,0,.08); }
+  button:focus-visible, a:focus-visible { outline:2px solid var(--acc); outline-offset:3px; }
   .side:hover { background:rgba(255,255,255,.92); }
   .side svg { width:22px; height:22px; }
   .side:disabled { opacity:0; pointer-events:none; }
+  .side.tight { display:none; }
   #prev { left:max(18px, env(safe-area-inset-left)); } #next { right:max(18px, env(safe-area-inset-right)); }
   .bar { position:fixed; left:0; right:0; bottom:0; padding:40px 26px calc(22px + env(safe-area-inset-bottom)); display:flex; align-items:flex-end; justify-content:space-between; gap:16px; pointer-events:none;
          background:linear-gradient(rgba(239,236,230,0),rgba(239,236,230,.9) 55%); }
@@ -79,6 +82,12 @@
   .credits { position:fixed; right:26px; bottom:calc(6px + env(safe-area-inset-bottom)); font-size:10px; color:var(--soft); }
   .credits a { color:inherit; }
   @media (orientation:portrait) { .top { background:none; } .hint { top:auto; bottom:auto; } }
+  /* big system text (Android/iOS text size = narrower page): stack the bar, no hint over the arrows */
+  @media (max-width:340px) {
+    .hint { display:none; }
+    .bar { flex-wrap:wrap; padding-left:18px; padding-right:18px; } .info { flex:1 1 100%; } .more { margin-left:auto; }
+    .info h2 { font-size:19px; }
+  }
   @media (max-width:640px) {
     .side { width:46px; height:46px; } .info h2 { font-size:21px; } .more { padding:11px 16px; }
     .credits { display:none; }
@@ -160,6 +169,10 @@
       $("prev").style.top = $("next").style.top = (below + 34) + "px";
       $("hint").style.top = (below + 18) + "px";
       $("track").style.top = (below - 88) + "px"; $("track").style.bottom = "auto";   // glass capsule over the floor: it has something to refract
+      // very big system text: no room for the side arrows between the picture and the car name -> swipe / dots only
+      const barTop = $("info").getBoundingClientRect().top || innerHeight;
+      const tight = below + 34 + $("next").offsetHeight + 6 > barTop;
+      $("prev").classList.toggle("tight", tight); $("next").classList.toggle("tight", tight);
     } else { fa.style.display = fb.style.display = "none"; }
     drawStill();
   }
@@ -197,7 +210,8 @@
     const c = CARS[idx];
     $("count").innerHTML = `${String(idx + 1).padStart(2, "0")} <span>/ ${String(CARS.length).padStart(2, "0")}</span>`;
     $("name").textContent = c.name;
-    $("meta").innerHTML = `${c.year} · ${c.km} · <span class="price">${c.price}</span>`;
+    const nb = t => String(t).replace(/ /g, "\u00a0");
+    $("meta").innerHTML = `${c.year} · ${nb(c.km)} · <span class="price">${nb(c.price)}</span>`;
     $("prev").disabled = idx === 0; $("next").disabled = idx === CARS.length - 1;
   }
   function setAway(a) { $("info").classList.toggle("away", a); $("more").classList.toggle("away", a); }
@@ -482,8 +496,12 @@
     if (!(history.state && history.state.card)) history.pushState({ card: 1 }, "");
   }
   // Back (Android button / iOS edge swipe) closes the card instead of leaving the site
-  const closeCard = () => { if (history.state && history.state.card) history.back(); else $("card").classList.remove("on"); };
-  addEventListener("popstate", () => { if (!(history.state && history.state.card)) $("card").classList.remove("on"); });
+  let cardClosing = false;
+  const closeCard = () => {
+    if (cardClosing || !$("card").classList.contains("on")) return;
+    if (history.state && history.state.card) { cardClosing = true; history.back(); } else $("card").classList.remove("on");
+  };
+  addEventListener("popstate", () => { cardClosing = false; if (!(history.state && history.state.card)) $("card").classList.remove("on"); });
   $("close").onclick = closeCard;
   $("card").addEventListener("click", e => { if (e.target.id === "card") closeCard(); });
   let hinted = false; function hideHint() { if (!hinted) { hinted = true; $("hint").style.opacity = 0; } }
