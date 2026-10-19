@@ -259,7 +259,7 @@
   function showRest() { if (ready) { shown = ""; show(restLayer()); } else { drawStill(); show("still"); } }
   function arrive(my) {
     setAway(false);
-    try { history.replaceState(null, "", "#" + (idx + 1)); } catch (e) {}
+    try { history.replaceState(history.state, "", "#" + (idx + 1)); } catch (e) {}
     parkVideos(pos).then(() => { if (my === seq && mode === "idle") showRest(); });
   }
 
@@ -442,7 +442,7 @@
   }
   addEventListener("wheel", e => { e.preventDefault(); if ($("card").classList.contains("on")) return; scrub(-(e.deltaY + e.deltaX) * 0.125); }, { passive: false });
   addEventListener("keydown", e => {
-    if (e.key === "Escape") $("card").classList.remove("on");
+    if (e.key === "Escape" && $("card").classList.contains("on")) closeCard();
     if ($("card").classList.contains("on")) return;
     if (e.key === "ArrowRight" || e.key === "ArrowDown") go(idx + 1);
     if (e.key === "ArrowLeft" || e.key === "ArrowUp") go(idx - 1);
@@ -479,9 +479,13 @@
       const li = document.createElement("li"); li.innerHTML = `<span>${k}</span><b></b>`; li.querySelector("b").textContent = v; ul.appendChild(li);
     });
     $("card").classList.add("on");
+    if (!(history.state && history.state.card)) history.pushState({ card: 1 }, "");
   }
-  $("close").onclick = () => $("card").classList.remove("on");
-  $("card").addEventListener("click", e => { if (e.target.id === "card") e.currentTarget.classList.remove("on"); });
+  // Back (Android button / iOS edge swipe) closes the card instead of leaving the site
+  const closeCard = () => { if (history.state && history.state.card) history.back(); else $("card").classList.remove("on"); };
+  addEventListener("popstate", () => { if (!(history.state && history.state.card)) $("card").classList.remove("on"); });
+  $("close").onclick = closeCard;
+  $("card").addEventListener("click", e => { if (e.target.id === "card") closeCard(); });
   let hinted = false; function hideHint() { if (!hinted) { hinted = true; $("hint").style.opacity = 0; } }
   setTimeout(hideHint, 4000);
 

@@ -157,9 +157,17 @@
   $("sMore").href = `coche.html?id=${C.id}`; $("sGal").href = `coche.html?id=${C.id}#galeria`;
   $("sThumbs").onclick = e => { const b = e.target.closest("button"); if (b) location.href = `coche.html?id=${C.id}#foto-${b.dataset.shot}`; };
   const B = document.body;
-  $("menuBtn").onclick = () => { B.classList.remove("sheet"); B.classList.toggle("menu"); };
-  $("open").onclick = () => { B.classList.remove("menu"); B.style.setProperty("--dy", "0px"); B.classList.add("sheet"); };
-  $("veil").onclick = $("sClose").onclick = () => B.classList.remove("menu", "sheet");
+  // an open menu or sheet is its own history step: Android's Back button / iOS edge swipe closes it instead of leaving the site
+  const layer = () => history.state && history.state.layer;
+  function show(name) {
+    B.classList.remove("menu", "sheet"); if (name === "sheet") B.style.setProperty("--dy", "0px"); B.classList.add(name);
+    if (layer()) history.replaceState({ layer: name }, ""); else history.pushState({ layer: name }, "");
+  }
+  function closeAll() { if (layer()) history.back(); else B.classList.remove("menu", "sheet"); }
+  addEventListener("popstate", () => { const l = layer(); B.classList.remove("menu", "sheet"); if (l) B.classList.add(l); });
+  $("menuBtn").onclick = () => B.classList.contains("menu") ? closeAll() : show("menu");
+  $("open").onclick = () => show("sheet");
+  $("veil").onclick = $("sClose").onclick = closeAll;
   const nav = [...document.querySelectorAll("#menu nav .it")]; nav.forEach((a, k) => a.style.transitionDelay = (60 + k * 35) + "ms");
   // language switch: glass knob springs to the tapped language
   const L = [...document.querySelectorAll("#lang button")];
@@ -168,12 +176,12 @@
   const sh = $("sheet"); let y0 = null, dy = 0;
   sh.addEventListener("pointerdown", e => { if (e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return; y0 = e.clientY; dy = 0; sh.classList.add("drag"); sh.setPointerCapture(e.pointerId); });
   sh.addEventListener("pointermove", e => { if (y0 === null) return; dy = e.clientY - y0; dy = dy < 0 ? dy / 6 : dy; B.style.setProperty("--dy", dy + "px"); });
-  const up = () => { if (y0 === null) return; y0 = null; sh.classList.remove("drag"); if (dy > 110) B.classList.remove("sheet"); B.style.setProperty("--dy", "0px"); };
+  const up = () => { if (y0 === null) return; y0 = null; sh.classList.remove("drag"); if (dy > 110) closeAll(); B.style.setProperty("--dy", "0px"); };
   sh.addEventListener("pointerup", up); sh.addEventListener("pointercancel", up);
-  addEventListener("keydown", e => { if (e.key === "Escape") B.classList.remove("menu", "sheet"); });
+  addEventListener("keydown", e => { if (e.key === "Escape" && (B.classList.contains("menu") || B.classList.contains("sheet"))) closeAll(); });
   const toast = document.createElement("div"); toast.className = "toast lg"; toast.innerHTML = "<span></span>"; document.body.appendChild(toast);
   const say = t => { toast.firstChild.textContent = t; toast.classList.add("on"); clearTimeout(say.t); say.t = setTimeout(() => toast.classList.remove("on"), 1800); };
-  document.querySelectorAll("#menu .it").forEach(b => b.onclick = () => { B.classList.remove("menu"); say(b.querySelector("b").textContent + " · página en preparación"); });
+  document.querySelectorAll("#menu .it").forEach(b => b.onclick = () => { closeAll(); say(b.querySelector("b").textContent + " · página en preparación"); });
   document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
   const st = new URLSearchParams(location.search).get("state"); if (st) B.classList.add(st);
 })();
