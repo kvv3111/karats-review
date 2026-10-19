@@ -198,7 +198,7 @@
     const check = (mt) => {
       if (fin) return true;
       if (my !== seq) { fin = true; return true; }
-      const n = nOf(v, mt); pos = n;
+      const n = nOf(v, mt); pos = to > from ? Math.max(pos, n) : Math.min(pos, n);   // two clocks (rVFC, rAF) may differ by a frame
       if ((to > from && n >= to) || (to < from && n <= to) || v.ended) { fin = true; v.pause(); pos = to; mode = "idle"; arrive(my); return true; }
       return false;
     };
