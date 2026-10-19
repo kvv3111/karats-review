@@ -271,25 +271,47 @@
   // language switch: glass knob springs to the tapped language
   const L = [...document.querySelectorAll("#lang button")];
   L.forEach((b, k) => b.onclick = () => { L.forEach(x => x.classList.remove("on")); b.classList.add("on"); document.querySelector("#lang .knob").style.transform = `translateX(${k * 46}px)`; });
-  // Vertical gestures on the handle/header: up for details, down to dismiss.
-  const sh = $("sheet"); let drag = null;
+  // Pull the anchored sheet upward; finish its expansion before opening details.
+  const sh = $("sheet"); let drag = null, sheetMotion = null, openingDetails = false;
+  function resizeSheet(height, done) {
+    const from = sh.getBoundingClientRect().height;
+    const duration = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 320;
+    sheetMotion = sh.animate([{height:from + "px"}, {height:height + "px"}], {duration, easing:"cubic-bezier(.22,.8,.25,1)", fill:"forwards"});
+    const animation = sheetMotion;
+    animation.finished.then(() => {
+      if (sheetMotion !== animation) return;
+      sh.style.height = height + "px"; animation.cancel(); sheetMotion = null; done();
+    }).catch(() => {});
+  }
+  addEventListener("pageshow", () => {
+    if (sheetMotion) sheetMotion.cancel(); sheetMotion = null; openingDetails = false; drag = null;
+    sh.style.height = ""; sh.classList.remove("drag"); B.style.setProperty("--dy", "0px");
+  });
   sh.addEventListener("pointerdown", e => {
-    if (drag || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0) || e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return;
-    drag = { id:e.pointerId, x:e.clientX, y:e.clientY, dx:0, dy:0 };
+    if (drag || sheetMotion || openingDetails || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0) || e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return;
+    drag = { id:e.pointerId, x:e.clientX, y:e.clientY, dx:0, dy:0, height:sh.getBoundingClientRect().height };
+    sh.style.height = drag.height + "px";
     sh.classList.add("drag"); sh.setPointerCapture(e.pointerId);
   });
   sh.addEventListener("pointermove", e => {
     if (!drag || drag.id !== e.pointerId) return;
     drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
-    const shift = Math.abs(drag.dx) > Math.abs(drag.dy) ? 0 : drag.dy < 0 ? Math.max(-48, drag.dy / 3) : drag.dy;
-    B.style.setProperty("--dy", shift + "px");
+    const vertical = Math.abs(drag.dy) >= Math.abs(drag.dx);
+    sh.style.height = (drag.height + (vertical ? Math.max(0, -drag.dy) : 0)) + "px";
+    B.style.setProperty("--dy", (vertical ? Math.max(0, drag.dy) : 0) + "px");
   });
   function finishDrag(e) {
     if (!drag || drag.id !== e.pointerId) return;
     const d = drag; drag = null; sh.classList.remove("drag"); B.style.setProperty("--dy", "0px");
-    if (e.type !== "pointerup" || Math.abs(d.dy) <= Math.abs(d.dx) * 1.2) return;
-    if (d.dy > 110) closeAll();
-    else if (d.dy < -64) $("sMore").click();
+    const intentional = e.type === "pointerup" && Math.abs(d.dy) > Math.abs(d.dx) * 1.2;
+    if (intentional && d.dy < -64) {
+      openingDetails = true;
+      const fullHeight = parseFloat(getComputedStyle(sh).maxHeight) || innerHeight - 16;
+      resizeSheet(fullHeight, () => $("sMore").click());
+    } else {
+      if (intentional && d.dy > 110) closeAll();
+      resizeSheet(d.height, () => { sh.style.height = ""; });
+    }
   }
   sh.addEventListener("pointerup", finishDrag);
   sh.addEventListener("pointercancel", finishDrag);
