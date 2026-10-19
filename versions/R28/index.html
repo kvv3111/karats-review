@@ -96,8 +96,8 @@
 </head>
 <body>
 <div id="stage" aria-label="Showroom KARATS AUTO">
-  <video id="vf" muted playsinline preload="auto" disablepictureinpicture></video>
-  <video id="vr" muted playsinline preload="auto" disablepictureinpicture></video>
+  <video id="vf" data-dir="f" muted playsinline preload="auto" disablepictureinpicture></video>
+  <video id="vr" data-dir="r" muted playsinline preload="auto" disablepictureinpicture></video>
   <canvas id="c"></canvas>
   <div class="fade" id="fadeA"></div><div class="fade" id="fadeB"></div>
 </div>
@@ -192,8 +192,9 @@
   }
 
   // ---------- video helpers ----------
-  const tOf = (v, n) => ((v === vf ? n : N - 1 - n) + 0.5) / FPS;
-  const nOf = (v, t) => { const k = Math.min(N - 1, Math.max(0, Math.floor(t * FPS + 1e-3))); return v === vf ? k : N - 1 - k; };
+  const isF = v => v.dataset.dir === "f";
+  const tOf = (v, n) => ((isF(v) ? n : N - 1 - n) + 0.5) / FPS;
+  const nOf = (v, t) => { const k = Math.min(N - 1, Math.max(0, Math.floor(t * FPS + 1e-3))); return isF(v) ? k : N - 1 - k; };
   const onFrame = (v, cb) => v.requestVideoFrameCallback ? v.requestVideoFrameCallback((now, m) => cb(m.mediaTime)) : requestAnimationFrame(() => cb(v.currentTime));
   function seekTo(v, n) {                        // resolves when frame n is decoded and on screen in v
     return new Promise(res => {
@@ -290,7 +291,7 @@
     clearTimeout(settleT); settleT = setTimeout(() => { if (!trackDrag) go(nearestCar(follow)); }, 220);
   }
   const active = () => shown === "vf" ? vf : shown === "vr" ? vr : null;
-  const posOf = v => { const k = v.currentTime * FPS - 0.5; return Math.max(0, Math.min(N - 1, v === vf ? k : N - 1 - k)); };
+  const posOf = v => { const k = v.currentTime * FPS - 0.5; return Math.max(0, Math.min(N - 1, isF(v) ? k : N - 1 - k)); };
   function drive() {
     if (switching) return;
     const cur = active();
@@ -454,7 +455,18 @@
     if (lensVis > 0 && !lensOn) { lensVis = Math.max(0, lensVis - 0.04); if (lensVis > 0) renderLens(); }
     requestAnimationFrame(tick);
   }
-  addEventListener("wheel", e => { e.preventDefault(); if ($("card").classList.contains("on")) return; scrub(-(e.deltaY + e.deltaX) * 0.125); }, { passive: false });
+  // wheel / trackpad: ONE gesture = exactly ONE car, however hard the scroll. A gesture ends after 240 ms without
+  // wheel events, so the long inertia tail of a strong trackpad flick is swallowed instead of pushing on to a second car.
+  let wAcc = 0, wDone = false, wQuietT = null;
+  addEventListener("wheel", e => {
+    e.preventDefault(); if ($("card").classList.contains("on")) return;
+    clearTimeout(wQuietT); wQuietT = setTimeout(() => { wAcc = 0; wDone = false; }, 240);
+    if (wDone) return;
+    const d = (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? 800 : 1) * (Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX);
+    wAcc += d;
+    if (Math.abs(wAcc) < 24) return;                       // a few px of trackpad jitter is not a gesture
+    wDone = true; go(idx + (wAcc > 0 ? 1 : -1));
+  }, { passive: false });
   addEventListener("keydown", e => {
     if (e.key === "Escape" && $("card").classList.contains("on")) closeCard();
     if ($("card").classList.contains("on")) return;
@@ -472,13 +484,14 @@
   stage.addEventListener("touchmove", e => {
     const t = e.touches[0], dx = t.clientX - tx, dy = t.clientY - ty;
     if (!tmode && Math.hypot(dx, dy) > 10) tmode = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
-    if (tmode === "v") { scrub((t.clientY - ly) * 179 / Math.max(320, innerWidth)); ly = t.clientY; }
+    if (tmode === "v") ly = t.clientY;
     moved = moved || !!tmode;
   }, { passive: true });
   stage.addEventListener("touchend", e => {
-    if (tmode !== "h") return;
-    const dx = e.changedTouches[0].clientX - tx;
-    if (Math.abs(dx) > 30) go(idx + (dx < 0 ? 1 : -1));
+    // swipe left/right or up/down = exactly one car
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (tmode === "h" && Math.abs(dx) > 30) go(idx + (dx < 0 ? 1 : -1));
+    if (tmode === "v" && Math.abs(dy) > 30) go(idx + (dy < 0 ? 1 : -1));
   });
 
   // tap on the parked car opens its card
@@ -537,7 +550,7 @@
   function makeVideo(src, id) {
     const v = document.createElement("video");
     v.muted = true; v.playsInline = true; v.setAttribute("playsinline", ""); v.setAttribute("muted", ""); v.disablePictureInPicture = true;
-    v.preload = "auto"; v.id = id; v.style.opacity = 0;
+    v.preload = "auto"; v.id = id; v.dataset.dir = id[1]; v.style.opacity = 0;
     $("stage").insertBefore(v, cv);
     return new Promise(res => { v.addEventListener("loadeddata", () => res(v), { once: true }); v.src = src; v.load(); });
   }
