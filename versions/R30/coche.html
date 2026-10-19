@@ -8,7 +8,7 @@
 <title>KARATS AUTO · Coche</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="ui.css?v=r30-i18n1">
 <style>
   body { overflow-x:hidden; }
   body.viewer { overflow:hidden; }
@@ -101,6 +101,7 @@
 <div class="topbar">
   <a class="back lg" id="back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Showroom</span></a>
   <div class="r">
+    <select id="pageLang" class="language-select lg" aria-label="Idioma"><option value="es">ES</option><option value="en">EN</option><option value="ru">RU</option></select>
     <button class="gbtn lg" aria-label="Guardar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg></button>
     <button class="gbtn lg" id="share" aria-label="Compartir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8 7l4-4 4 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg></button>
   </div>
@@ -171,8 +172,11 @@
 
   /* ---------------- viewer: swipe between photos, pinch / double-tap / wheel zoom, pan when zoomed ---------------- */
   const V = $("viewer"), T = $("track");
+  V.inert = true;
+  let viewerOpener = null;
+  const viewerBackground = [...document.querySelectorAll(".topbar,.hero,main,.buybar")];
   T.innerHTML = SH.map(([s, n]) => `<div class="slide"><img alt="${n}" decoding="async" data-src="${src(s, "m")}" data-full="${src(s, "f")}"></div>`).join("");
-  $("vthumbs").innerHTML = SH.map(([s], k) => `<button data-k="${k}" style="background-image:url(${src(s, "t")})"></button>`).join("");
+  $("vthumbs").innerHTML = SH.map(([s, n], k) => `<button data-k="${k}" aria-label="${n}" style="background-image:url(${src(s, "t")})"></button>`).join("");
   const slides = [...T.children], thumbs = [...$("vthumbs").children];
   let cur = 0;
   const load = k => { const im = slides[k] && slides[k].firstChild; if (im && !im.src) im.src = im.dataset.src; };
@@ -182,19 +186,35 @@
     if (history.state && history.state.viewer) history.replaceState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]); thumbs[k].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
     [k - 1, k, k + 1].forEach(load);
   }
-  const base = location.pathname + location.search;
+  let base = location.pathname + location.search;
+  addEventListener("karats:language", () => { base = location.pathname + location.search; });
   // the open gallery is its own history step: the phone's Back closes the photo first, not the page
   function open(k) {
+    if (!document.body.classList.contains("viewer")) viewerOpener = document.activeElement;
+    V.inert = false; V.setAttribute("aria-modal", "true");
+    viewerBackground.forEach(el => { el.inert = true; });
+    $("vclose").focus({ preventScroll: true });
     document.body.classList.add("viewer"); [k - 1, k, k + 1].forEach(load); T.scrollLeft = k * T.clientWidth; setCur(k);
     if (!(history.state && history.state.viewer)) history.pushState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]);
   }
-  function hide() { resetZoom(); document.body.classList.remove("viewer"); }
+  function hide() {
+    resetZoom(); document.body.classList.remove("viewer"); V.inert = true; V.removeAttribute("aria-modal");
+    viewerBackground.forEach(el => { el.inert = false; });
+    if (viewerOpener && viewerOpener.isConnected) viewerOpener.focus({ preventScroll: true });
+    viewerOpener = null;
+  }
   let closing = false;
   function close() {
     if (closing || !document.body.classList.contains("viewer")) return;
     if (history.state && history.state.viewer) { closing = true; history.back(); } else { hide(); history.replaceState(null, "", base); }
   }
-  addEventListener("popstate", () => { closing = false; if (!(history.state && history.state.viewer)) hide(); });
+  addEventListener("popstate", () => {
+    closing = false;
+    if (history.state && history.state.viewer) {
+      const shot = location.hash.replace(/^#foto-/, ""), k = SH.findIndex(s => s[0] === shot);
+      open(Math.max(0, k));
+    } else hide();
+  });
   const go = k => { k = Math.max(0, Math.min(SH.length - 1, k)); resetZoom(); T.scrollTo({ left: k * T.clientWidth, behavior: "smooth" }); };
   T.addEventListener("scroll", () => { const k = Math.round(T.scrollLeft / T.clientWidth); if (k !== cur) setCur(k); }, { passive: true });
   $("strip").addEventListener("wheel", e => {
@@ -205,7 +225,17 @@
   $("heroImg").onclick = () => open(0); $("allPhotos").onclick = () => open(0);
   $("vthumbs").onclick = e => { const b = e.target.closest("button"); if (b) go(+b.dataset.k); };
   $("vclose").onclick = close; $("vprev").onclick = () => go(cur - 1); $("vnext").onclick = () => go(cur + 1);
-  addEventListener("keydown", e => { if (!document.body.classList.contains("viewer")) return; if (e.key === "Escape") close(); if (e.key === "ArrowLeft") go(cur - 1); if (e.key === "ArrowRight") go(cur + 1); });
+  addEventListener("keydown", e => {
+    if (!document.body.classList.contains("viewer")) return;
+    if (e.key === "Tab") {
+      const buttons = [...V.querySelectorAll("button")].filter(b => b.offsetParent !== null && !(V.classList.contains("zoomed") && b.closest(".vthumbs")));
+      const i = buttons.indexOf(document.activeElement), n = buttons.length;
+      e.preventDefault(); buttons[i < 0 ? 0 : (i + (e.shiftKey ? n - 1 : 1)) % n].focus({ preventScroll: true });
+    }
+    if (e.key === "Escape") { e.preventDefault(); close(); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); go(cur - 1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); go(cur + 1); }
+  });
 
   // zoom state for the current slide: scale s, translate x,y (transform-origin 0 0, in image-element pixels)
   let z = { s: 1, x: 0, y: 0 }, img = null;
@@ -258,5 +288,6 @@
   document.querySelector('[aria-label="Guardar"]').onclick = e => { const on = e.currentTarget.classList.toggle("saved"); say(on ? "Guardado" : "Quitado de guardados"); };
 })();
 </script>
+<script src="i18n.js?v=1"></script>
 </body>
 </html>
