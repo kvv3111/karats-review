@@ -318,6 +318,12 @@
   let ready = false, readyP;
 
   // ---------- layout ----------
+  function positionHint() {
+    const hint = $("hint");
+    hint.style.bottom = "auto";
+    hint.style.top = Math.max(0, $("info").getBoundingClientRect().top - hint.offsetHeight - 18) + "px";
+  }
+  new ResizeObserver(positionHint).observe($("info"));
   function resize() {
     const r = document.documentElement, W0 = r.clientWidth, H0 = r.clientHeight, dpr = Math.min(3, devicePixelRatio || 1);
     cv.width = Math.round(W0 * dpr); cv.height = Math.round(H0 * dpr);
@@ -345,9 +351,7 @@
       const tight = below + 34 + $("next").offsetHeight + 6 > barTop;
       $("prev").classList.toggle("tight", tight); $("next").classList.toggle("tight", tight);
     } else { fa.style.display = fb.style.display = "none"; }
-    const hint = $("hint");
-    hint.style.bottom = "auto";
-    hint.style.top = Math.max(0, $("info").getBoundingClientRect().top - hint.offsetHeight - 18) + "px";
+    positionHint();
     drawStill();
   }
   function drawStill() {
