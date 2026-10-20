@@ -105,12 +105,17 @@
     .strip button { width:200px; }
   }
 </style>
+<link rel="stylesheet" href="nav.css?v=r33">
+<style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
 </head>
 <body>
 <div class="topbar">
-  <a class="back lg" id="back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Showroom</span></a>
+  <a class="gbtn lg pback" id="back" href="index.html" aria-label="Showroom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span class="sr">Showroom</span></a>
+  <span class="ptitle" aria-hidden="true"></span>
   <div class="r">
     <button class="gbtn lg" aria-label="Guardar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg></button>
+  
+    <button class="gbtn lg" id="menuBtn" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu"><i></i><i></i></button>
   </div>
 </div>
 <div class="hero" id="hero"><img id="heroImg" alt=""></div>
@@ -304,5 +309,6 @@
 </script>
 <script src="i18n.js?v=r31"></script>
 <script src="site.js?v=r31"></script>
+<script src="nav.js?v=r33"></script>
 </body>
 </html>

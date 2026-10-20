@@ -1,14 +1,5 @@
 /* KARATS AUTO content pages: catalogue, about, benefits, how to buy, contact, legal */
 body.page { overflow-x:hidden; min-height:100vh; min-height:100dvh; background:var(--bg); }
-.ptop { position:sticky; z-index:20; top:0; padding:calc(10px + env(safe-area-inset-top)) 12px 10px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
-.ptop::before { content:""; position:absolute; z-index:-1; inset:0 0 -14px;
-  background:linear-gradient(rgba(239,236,230,.86), rgba(239,236,230,.55) 70%, rgba(239,236,230,0));
-  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); -webkit-mask-image:linear-gradient(#000 60%, transparent); mask-image:linear-gradient(#000 60%, transparent); }
-.ptop .back { height:44px; padding:0 16px 0 10px; border-radius:22px; display:inline-flex; align-items:center; gap:4px; text-decoration:none; font-weight:600; font-size:14.5px; }
-.ptop .back svg { width:20px; height:20px; position:relative; z-index:1; } .ptop .back span { position:relative; z-index:1; }
-.ptop .pbrand { font-family:Jost,sans-serif; letter-spacing:.34em; font-size:15px; text-align:center; line-height:1.1; text-decoration:none; color:var(--ink); }
-.ptop .pbrand span { margin-right:-.34em; } .ptop .pbrand small { display:block; font-size:.42em; letter-spacing:.9em; margin-right:-.9em; color:var(--soft); margin-top:.35em; }
-.ptop .r { display:flex; gap:8px; }
 
 .pwrap { max-width:880px; margin:0 auto; padding:8px 16px 0; }
 .phead { padding:26px 4px 8px; }
@@ -109,7 +100,7 @@ mark.pend { background:rgba(200,160,60,.18); color:#7a5a12; border-radius:6px; p
 }
 
 /* iPhone feel (mobile-native): no long-press text selection on controls; reduced transparency = solid glass */
-.btn, .gbtn, .cfbtn, .cfchips button, .ccar, .ptop .back, .kfoot button { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+.btn, .gbtn, .cfbtn, .cfchips button, .ccar, .kfoot button { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
 @media (hover:hover) { .ccar:hover { transform:translateY(-2px); } }
 @media (hover:none) { .ccar:hover { transform:none; box-shadow:inset 0 0 0 .6px var(--line), 0 6px 20px rgba(20,22,20,.06); } }
 @media (prefers-reduced-transparency: reduce) { .lg { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; background:rgba(247,245,240,.97) !important; } }

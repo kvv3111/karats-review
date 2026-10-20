@@ -9,13 +9,14 @@
 <link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="theme-color" content="#efece6">
 <link rel="stylesheet" href="fonts/jost.css">
 <link rel="stylesheet" href="ui.css?v=r32">
-<link rel="stylesheet" href="pages.css?v=r32">
+<link rel="stylesheet" href="pages.css?v=r33">
+<link rel="stylesheet" href="nav.css?v=r33">
 </head>
 <body class="page">
 <div class="ptop">
-  <a class="back lg" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>Showroom</span></a>
-  <a class="pbrand" href="index.html" translate="no" aria-label="KARATS AUTO"><span>KARATS</span><small>AUTO</small></a>
-  <div class="r"><select id="pageLang" class="language-select lg" aria-label="Idioma"><option value="es">ES</option><option value="ca">CA</option><option value="en">EN</option><option value="ru">RU</option></select></div>
+  <a class="gbtn lg pback" href="index.html" aria-label="Showroom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <span class="ptitle" aria-hidden="true"></span>
+  <button class="gbtn lg" id="menuBtn" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu"><i></i><i></i></button>
 </div>
 <div class="pwrap">
   <header class="phead" translate="no">
@@ -73,6 +74,7 @@
 <footer data-footer></footer>
 <script src="i18n.js?v=r31"></script>
 <script src="site.js?v=r31"></script>
+<script src="nav.js?v=r33"></script>
 <script>
 document.querySelectorAll('[data-soon-msg]').forEach(b => b.onclick = () => window.KToast && KToast(b.dataset.soonMsg));
 </script>
