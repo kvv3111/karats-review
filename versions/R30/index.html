@@ -568,7 +568,9 @@
   // ---------- which layer is visible: the still canvas or one video ----------
   let shownEl = null;
   // paint a video's current frame on the canvas, exactly where the video element sits (same pixels as the video)
+  let cvFrame = null;                                            // which frame the canvas shows (for tests)
   function paint(v) {
+    cvFrame = nOf(v, v.currentTime);
     const d = view.dpr, sc = view.s;
     ctx.fillStyle = BG; ctx.fillRect(0, 0, cv.width, cv.height);
     ctx.drawImage(v, (view.ox + CROPX * sc) * d, view.oy * d, CW * sc * d, IH * sc * d);
@@ -584,6 +586,7 @@
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(im, (view.ox + CROPX * view.s) * d, view.oy * d, im.naturalWidth * view.s * d, IH * view.s * d);
+    cvFrame = nearestStopFrame();
   }
   const nearestStopFrame = () => stills[Math.round(pos)] ? Math.round(pos) : CARS[idx].stop;   // where the camera IS, not where it is going
   // A video that was invisible needs a frame or two before the browser actually paints it: switching layers by
@@ -863,6 +866,7 @@
     return a;
   };
   let lensOn = false, lensVis = 0;
+  const lstage = document.createElement("canvas"), stx = lstage.getContext("2d"); let stageKey = "", stageT = 0;   // GPU staging
   function renderLens() {
     const rr = $("rail").getBoundingClientRect(), gr = $("glassEl").getBoundingClientRect();
     const cxs = rr.left + fracOf(pos) * rr.width, cys = gr.top + gr.height / 2;
@@ -871,12 +875,26 @@
     const x0 = cxs - LW / 2 - LM, y0 = cys - LH / 2 - LM, w = LW + 2 * LM, h = LH + 2 * LM;
     sctx.setTransform(ld, 0, 0, ld, -x0 * ld, -y0 * ld);
     sctx.fillStyle = BG; sctx.fillRect(x0, y0, w, h);
-    const v = active();
+    const v = +cv.style.opacity > 0.9 ? null : active();
     if (v) {                                                    // only the needed piece of the frame (cheap on phones)
       const L = view.ox + CROPX * view.s, T = view.oy, sc = view.s;
       let sx = (x0 - L) / sc, sy = (y0 - T) / sc, sw = w / sc, sh = h / sc;
       const cx0 = Math.max(0, sx), cy0 = Math.max(0, sy), cx1 = Math.min(CW, sx + sw), cy1 = Math.min(IH, sy + sh);
-      if (cx1 > cx0 && cy1 > cy0) sctx.drawImage(v, cx0, cy0, cx1 - cx0, cy1 - cy0, L + cx0 * sc, T + cy0 * sc, (cx1 - cx0) * sc, (cy1 - cy0) * sc);
+      if (cx1 > cx0 && cy1 > cy0) {
+        const piece = [L + cx0 * sc, T + cy0 * sc, (cx1 - cx0) * sc, (cy1 - cy0) * sc];
+        // a video frame copied straight into this CPU canvas (it is read back for the refraction) cost 5-75 ms per
+        // frame while dragging; the piece is first copied GPU->GPU into a small staging canvas, and only that tiny
+        // canvas is read back. The same frame is not copied twice.
+        const key = v.dataset.clip + ":" + v.currentTime + ":" + piece.map(Math.round).join(",");
+        const now = performance.now();
+        if (key !== stageKey && (now - stageT > 48 || !lstage.width)) {   // 20 updates/s under the lens are plenty
+          stageKey = key; stageT = now;
+          const sw0 = Math.ceil(piece[2] * ld), sh0 = Math.ceil(piece[3] * ld);
+          if (lstage.width !== sw0 || lstage.height !== sh0) { lstage.width = sw0; lstage.height = sh0; }
+          stx.drawImage(v, cx0, cy0, cx1 - cx0, cy1 - cy0, 0, 0, sw0, sh0);
+        }
+        sctx.drawImage(lstage, 0, 0, lstage.width, lstage.height, ...piece);
+      }
     } else {
       const d = view.dpr, cx0 = Math.max(0, x0 * d), cy0 = Math.max(0, y0 * d), cx1 = Math.min(cv.width, (x0 + w) * d), cy1 = Math.min(cv.height, (y0 + h) * d);
       if (cx1 > cx0 && cy1 > cy0) sctx.drawImage(cv, cx0, cy0, cx1 - cx0, cy1 - cy0, cx0 / d, cy0 / d, (cx1 - cx0) / d, (cy1 - cy0) / d);
@@ -1046,7 +1064,8 @@
   addEventListener("resize", () => { if (isPortrait() !== small) location.reload(); else resize(); });
   resize(); ui(); requestAnimationFrame(tick);
   window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown: shownEl ? (cOf(shownEl).dir === "f" ? "vf" : "vr") : "still",
-                            disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, rubberZ: Math.round(rubberZ * 1000) / 1000, rubber: !!rubberOn });
+                            disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, rubberZ: Math.round(rubberZ * 1000) / 1000, rubber: !!rubberOn,
+                            vis: +cv.style.opacity > 0.9 || !shownEl ? cvFrame : nOf(shownEl, shownEl.currentTime) });
 })();
 </script>
 <script src="i18n.js?v=r31"></script>
