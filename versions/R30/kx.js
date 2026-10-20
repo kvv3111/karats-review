@@ -17,6 +17,9 @@
   dispatchEvent(new CustomEvent('karats:fav', { detail: {} }));
   addEventListener('storage', e => { if (e.key === KEY) dispatchEvent(new CustomEvent('karats:fav', { detail: {} })); });
 
+  // cross-page transitions: a skipped transition (fast double tap, back gesture) is normal, keep it out of the console
+  const quiet = e => { const v = e.viewTransition; if (v) ['ready', 'finished', 'updateCallbackDone'].forEach(k => v[k] && v[k].catch(() => {})); };
+  addEventListener('pageswap', quiet); addEventListener('pagereveal', quiet);
   // ---------- instant navigation ----------
   // Chrome/Edge: speculation rules prefetch same-site pages on hover / touch start. Safari: <link rel=prefetch> on first touch.
   const sameSite = a => a && a.href && a.origin === location.origin && !a.target && !a.hasAttribute('download') && /\.html$|\/$|^[^.]*$/.test(a.pathname.split('/').pop());
