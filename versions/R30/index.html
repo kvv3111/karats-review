@@ -463,7 +463,7 @@
     { name: "Hyundai Ioniq 6",    year: 2023, km: "19 000 km", fuel: "Eléctrico",     gear: "Automático", price: "34 900 €", stop: 179, still: 71  },
     { name: "Volkswagen Golf 8",  year: 2021, km: "52 000 km", fuel: "Gasolina",      gear: "Manual",     price: "21 400 €", stop: 0,   still: 0   },
   ];
-  const N = 717, FPS = 60, IW = 1920, IH = 1280, BG = "#efece6";
+  const N = 717, FPS = 60, IW = 1920, IH = 1280, BG = "#efece6", ROOM = 0.02;
   const HIT = { x1: 440, y1: 427, x2: 1400, y2: 973 }, FOCUS_X = (HIT.x1 + HIT.x2) / 2 / IW;
   const isPortrait = () => document.documentElement.clientHeight > document.documentElement.clientWidth * 1.05;
   const small = isPortrait();
@@ -493,8 +493,11 @@
     const portrait = H0 > W0 * 1.05; let s, ox, oy;                  // s in CSS px per frame px
     if (portrait) { s = W0 / 1093; ox = W0 / 2 - FOCUS_X * IW * s; oy = H0 * 0.44 - IH * s * 0.55; }
     else {
-      s = Math.max(W0 / IW, H0 / IH); ox = (W0 - IW * s) / 2;
-      if (IW * s > W0) { ox = W0 / 2 - FOCUS_X * IW * s; ox = Math.min(0, Math.max(W0 - IW * s, ox)); }
+      // the frame is drawn 4 % larger than the screen, so a strip of the real room always waits beyond each edge
+      // (the rubber band at the ends of the row slides it in, no zoom needed)
+      const m = W0 * ROOM;
+      s = Math.max(W0 / IW, H0 / IH) * (1 + 2 * ROOM);
+      ox = W0 / 2 - FOCUS_X * IW * s; ox = Math.min(-m, Math.max(W0 - IW * s + m, ox));
       oy = (H0 - IH * s) / 2;
     }
     view = { s, ox, oy, dpr, portrait };
@@ -606,15 +609,19 @@
     const im = new Image(); im.decoding = "async"; if ("fetchPriority" in im) im.fetchPriority = "low";
     im.src = `f/${String(c.still).padStart(3, "0")}.webp`; wide[c.stop] = im;
   }
-  let rubberOn = 0;
+  let rubberOn = 0, rubberZ = 1;
   function rubber(sign) {
     if (reduceMotion.matches || mode !== "idle" || rubberOn) return;
-    const c = CARS[idx], ok = im => im && im.complete && im.naturalWidth;
-    const im = ok(wide[c.stop]) ? wide[c.stop] : stills[c.stop];
-    if (!ok(im)) return;
+    // source of the picture: phone = the full-width still (room beside the crop); otherwise the parked video frame
+    // itself (desktop video is the full frame) or the still of this car; never skipped because a file is missing
+    const c = CARS[idx], okI = im => im && im.complete && im.naturalWidth, vid = shownEl || restEl();
+    const im = okI(wide[c.stop]) ? wide[c.stop] : vid && vid.readyState >= 2 ? vid : okI(stills[c.stop]) ? stills[c.stop] : null;
+    if (!im) return;
+    const srcW = im.naturalWidth || im.videoWidth;
     const r = document.documentElement, W = r.clientWidth, H = r.clientHeight, d = view.dpr, cx = W / 2, cy = H / 2;
-    const x0 = view.ox + (im.naturalWidth >= IW ? 0 : CROPX) * view.s, w = im.naturalWidth * view.s, h = IH * view.s;
-    const amp = sign * Math.min(34, W * 0.06), my = ++rubberOn, t0 = performance.now(), OUT = 150, BACK = 520;
+    const x0 = view.ox + (srcW >= IW ? 0 : CROPX) * view.s, w = srcW * view.s, h = IH * view.s;
+    const amp = sign * (view.portrait ? Math.min(34, W * 0.06) : Math.max(8, Math.min(30, W * ROOM - 2)));
+    const my = ++rubberOn, t0 = performance.now(), OUT = 150, BACK = 520;
     show(null);                                                  // the canvas (same frame) takes over from the parked video
     const frame = now => {
       if (my !== rubberOn) return;
@@ -626,6 +633,7 @@
       let z = 1;
       if (cx - x0 > 0) z = Math.max(z, (cx + dx) / (cx - x0));               // left edge stays covered
       if (x0 + w - cx > 0) z = Math.max(z, (W - cx - dx) / (x0 + w - cx));   // right edge stays covered
+      rubberZ = Math.max(rubberZ, z);
       ctx.fillStyle = BG; ctx.fillRect(0, 0, cv.width, cv.height); ctx.imageSmoothingQuality = "high";
       const oy = view.portrait ? view.oy : cy + (view.oy - cy) * z;
       ctx.drawImage(im, (cx + (x0 - cx) * z + dx) * d, oy * d, w * z * d, h * z * d);
@@ -991,7 +999,7 @@
   addEventListener("resize", () => { if (isPortrait() !== small) location.reload(); else resize(); });
   resize(); ui(); requestAnimationFrame(tick);
   window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown: shownEl ? (cOf(shownEl).dir === "f" ? "vf" : "vr") : "still",
-                            disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN });
+                            disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, rubberZ: Math.round(rubberZ * 1000) / 1000 });
 })();
 </script>
 <script src="i18n.js?v=r31"></script>
