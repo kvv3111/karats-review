@@ -1,5 +1,5 @@
 /* KARATS AUTO content pages: catalogue, about, benefits, how to buy, contact, legal */
-body.page { overflow-x:hidden; min-height:100vh; background:var(--bg); }
+body.page { overflow-x:hidden; min-height:100vh; min-height:100dvh; background:var(--bg); }
 .ptop { position:sticky; z-index:20; top:0; padding:calc(10px + env(safe-area-inset-top)) 12px 10px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
 .ptop::before { content:""; position:absolute; z-index:-1; inset:0 0 -14px;
   background:linear-gradient(rgba(239,236,230,.86), rgba(239,236,230,.55) 70%, rgba(239,236,230,0));
@@ -54,7 +54,7 @@ mark.pend { background:rgba(200,160,60,.18); color:#7a5a12; border-radius:6px; p
 .cbar { position:sticky; top:calc(64px + env(safe-area-inset-top)); z-index:10; margin:14px -6px 0; padding:8px; border-radius:24px; --lg-tint:.62; }
 .cbar > * { position:relative; z-index:1; }
 .crow { display:flex; gap:8px; align-items:center; }
-.csearch { flex:1; min-width:0; height:44px; border:0; border-radius:22px; padding:0 16px 0 40px; font:inherit; font-size:15px; color:var(--ink);
+.csearch { flex:1; min-width:0; height:44px; border:0; border-radius:22px; padding:0 16px 0 40px; font:inherit; font-size:16px; color:var(--ink);
   background:rgba(255,255,255,.7) no-repeat 14px 50%/18px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b716c' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-4-4'/%3E%3C/svg%3E");
   box-shadow:inset 0 0 0 .6px rgba(29,33,30,.12); outline:none; }
 .csearch:focus { box-shadow:inset 0 0 0 1.5px var(--acc); }
@@ -71,7 +71,7 @@ mark.pend { background:rgba(200,160,60,.18); color:#7a5a12; border-radius:6px; p
 .cfrange output { min-width:96px; text-align:right; font-weight:600; font-variant-numeric:tabular-nums; }
 .cfreset { border:0; background:none; color:var(--acc); text-decoration:underline; cursor:pointer; font:inherit; font-size:14px; padding:6px 4px; }
 .cmeta { display:flex; justify-content:space-between; align-items:center; gap:10px; margin:16px 4px 8px; color:var(--soft); font-size:14px; }
-.csort { height:38px; border:0; border-radius:19px; padding:0 12px; background:rgba(255,255,255,.7); box-shadow:inset 0 0 0 .6px rgba(29,33,30,.12); font:inherit; font-size:14px; color:var(--ink); cursor:pointer; }
+.csort { height:38px; border:0; border-radius:19px; padding:0 12px; background:rgba(255,255,255,.7); box-shadow:inset 0 0 0 .6px rgba(29,33,30,.12); font:inherit; font-size:16px; color:var(--ink); cursor:pointer; }
 .cgrid { display:grid; grid-template-columns:1fr; gap:14px; }
 @media (min-width:620px) { .cgrid { grid-template-columns:1fr 1fr; } }
 @media (min-width:980px) { .pwrap.wide { max-width:1180px; } .cgrid { grid-template-columns:1fr 1fr 1fr; } }
@@ -107,3 +107,10 @@ mark.pend { background:rgba(200,160,60,.18); color:#7a5a12; border-radius:6px; p
   .prose td[data-label]::before { content:attr(data-label); display:block; font-size:12px; color:var(--soft); }
   .prose td:first-child { font-weight:600; }
 }
+
+/* iPhone feel (mobile-native): no long-press text selection on controls; reduced transparency = solid glass */
+.btn, .gbtn, .cfbtn, .cfchips button, .ccar, .ptop .back, .kfoot button { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+@media (hover:hover) { .ccar:hover { transform:translateY(-2px); } }
+@media (hover:none) { .ccar:hover { transform:none; box-shadow:inset 0 0 0 .6px var(--line), 0 6px 20px rgba(20,22,20,.06); } }
+@media (prefers-reduced-transparency: reduce) { .lg { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; background:rgba(247,245,240,.97) !important; } }
+@media (prefers-reduced-motion: reduce) { .ccar, .btn, .gbtn { transition:none !important; } }

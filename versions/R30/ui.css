@@ -51,7 +51,7 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--acc); outline-of
 .toast { transition:transform .5s var(--spring), opacity .25s; }
 .toast span { position:relative; z-index:1; }
 /* Language control uses the existing glass treatment. Long translations wrap. */
-.language-select { height:44px; width:62px; flex:none; border:0; padding:0 6px; font-family:inherit; font-size:13px; font-weight:600; color:var(--ink); cursor:pointer; }
+.language-select { height:44px; width:62px; flex:none; border:0; padding:0 6px; font-family:inherit; font-size:16px; font-weight:600; color:var(--ink); cursor:pointer; }
 .toast { max-width:calc(100vw - 24px); white-space:normal; width:max-content; text-align:center; }
 .equip .chip { height:auto; min-height:34px; max-width:100%; white-space:normal; padding-top:6px; padding-bottom:6px; }
 .spec b, .spec small { overflow-wrap:anywhere; }

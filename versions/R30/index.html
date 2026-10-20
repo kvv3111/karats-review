@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <title>KARATS AUTO · Showroom</title>
 <link rel="stylesheet" href="fonts/jost.css">
-<link rel="stylesheet" href="ui.css?v=r30-i18n1">
+<link rel="stylesheet" href="ui.css?v=r32">
 <style>
   :root { color-scheme:only light; --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
@@ -161,6 +161,10 @@
   #sheet .sh-acts { display:flex; flex-wrap:wrap; gap:8px; } #sheet .sh-acts .btn { flex:1 1 118px; } #sheet .sh-acts .round { flex:none; }
   #sheet .sh-acts .btn { padding:0 12px; } #sheet .sh-acts .round { width:52px; height:52px; padding:0; border-radius:26px; }
   #sheet .label { position:absolute; top:10px; right:58px; }
+  /* iPhone feel: no text selection / callout on long press over the hall and controls */
+  #stage, .top, .side, #track, #more, .info, #sheet .grab, #sheet .sh-head, .gbtn, .btn { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  @media (prefers-reduced-motion: reduce) { #sheet, #menu, #veil, .toast, #kc-bar { transition-duration:.15s !important; } }
+  @media (prefers-reduced-transparency: reduce) { .lg { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; background:rgba(247,245,240,.97) !important; } }
 
   /* ---------- details: the same sheet grows into a full panel over the frozen hall ---------- */
   #sheet .s-hero, #sheet .s-full, #sheet .s-call { display:none; }
@@ -199,8 +203,6 @@
 </head>
 <body>
 <div id="stage" aria-label="Showroom KARATS AUTO">
-  <video id="vf" data-dir="f" muted playsinline preload="auto" disablepictureinpicture></video>
-  <video id="vr" data-dir="r" muted playsinline preload="auto" disablepictureinpicture></video>
   <canvas id="c"></canvas>
   <div class="fade" id="fadeA"></div><div class="fade" id="fadeB"></div>
 </div>
@@ -386,13 +388,14 @@
   addEventListener("pageshow", resetDetailGesture);
   sh.addEventListener("pointerdown", e => {
     if (drag || sheetMotion || detailAnimations.length || openingDetails || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0) || e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return;
-    drag = { id:e.pointerId, x:e.clientX, y:e.clientY, dx:0, dy:0, height:sh.getBoundingClientRect().height };
+    drag = { id:e.pointerId, x:e.clientX, y:e.clientY, dx:0, dy:0, height:sh.getBoundingClientRect().height, hist:[[e.timeStamp, e.clientY]] };
     if (!B.classList.contains("details")) sh.style.height = drag.height + "px";
     sh.classList.add("drag"); sh.setPointerCapture(e.pointerId);
   });
   sh.addEventListener("pointermove", e => {
     if (!drag || drag.id !== e.pointerId) return;
     drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
+    drag.hist.push([e.timeStamp, e.clientY]); while (drag.hist.length > 2 && e.timeStamp - drag.hist[0][0] > 100) drag.hist.shift();
     const vertical = Math.abs(drag.dy) >= Math.abs(drag.dx);
     if (B.classList.contains("details")) { B.style.setProperty("--dy", (vertical ? Math.max(0, drag.dy) : 0) + "px"); return; }
     sh.style.height = (drag.height + (vertical ? Math.max(0, -drag.dy) : 0)) + "px";
@@ -402,17 +405,20 @@
     if (!drag || drag.id !== e.pointerId) return;
     const d = drag; drag = null; sh.classList.remove("drag");
     const intentional = e.type === "pointerup" && Math.abs(d.dy) > Math.abs(d.dx) * 1.2;
+    // Apple-style momentum: decide on where the flick would carry the sheet, not only on how far the finger went
+    const h = d.hist, dt = h.length > 1 ? h[h.length - 1][0] - h[0][0] : 0, vy = dt > 0 && e.timeStamp - h[h.length - 1][0] < 60 ? (h[h.length - 1][1] - h[0][1]) / dt : 0;
+    const proj = d.dy + vy * 99, flick = Math.abs(d.dy) > 12;
     if (B.classList.contains("details")) {
       sh.style.height = "";
-      if (intentional && d.dy > 90) closeDetails();
+      if (intentional && (d.dy > 90 || (flick && proj > 150))) closeDetails();
       else B.style.setProperty("--dy", "0px");
       return;
     }
     B.style.setProperty("--dy", "0px");
-    if (intentional && d.dy < -64) {
+    if (intentional && (d.dy < -64 || (flick && proj < -110))) {
       $("sMore").click();
     } else {
-      if (intentional && d.dy > 110) closeAll();
+      if (intentional && (d.dy > 110 || (flick && proj > 160))) closeAll();
       resizeSheet(d.height, () => { sh.style.height = ""; });
     }
   }
@@ -448,9 +454,8 @@
 </script>
 <script>
 (() => {
-  // The camera move is played as a hardware-decoded VIDEO (forward + reversed copy), not as hundreds of images:
-  // iPhone cannot keep ~285 big decoded images in memory, so it re-decoded them on the fly -> stutter and blank flashes.
-  // At every stop a full-quality still sits on top of the video, so a parked car is pixel-sharp.
+  // The camera move is played as hardware-decoded VIDEO, one short clip per transition (see "videos" below),
+  // not as hundreds of images: iPhone cannot keep ~700 big decoded images in memory.
   const CARS = [
     { name: "Kia Sportage",       year: 2022, km: "38 000 km", fuel: "Gasolina MHEV", gear: "Automático", price: "27 900 €", stop: 716, still: 284 },
     { name: "BMW Serie 3",        year: 2023, km: "24 000 km", fuel: "Diésel",        gear: "Automático", price: "36 500 €", stop: 537, still: 213 },
@@ -466,12 +471,11 @@
   const pre = small ? "m" : "d";
   const $ = id => document.getElementById(id);
   const cv = $("c"), ctx = cv.getContext("2d", { alpha: false });
-  let vf = $("vf"), vr = $("vr");                                  // vf: frame n at (n+.5)/FPS ; vr: frame n at (N-1-n+.5)/FPS
   const stills = {}; let view = { s: 1, ox: 0, oy: 0, dpr: 1, portrait: false };
   const hashIdx = (() => { const m = /^#(\d)$/.exec(location.hash); return m ? Math.max(0, Math.min(CARS.length - 1, +m[1] - 1)) : 0; })();
   let pos = CARS[hashIdx].stop, idx = hashIdx, mode = "idle", hopTarget = null, shown = "still", follow = pos, lastT = 0, seq = 0;
   let noPlay = false;
-  let ready = false, readyP;
+  let ready = false;
 
   // ---------- layout ----------
   function positionHint() {
@@ -494,7 +498,7 @@
       oy = (H0 - IH * s) / 2;
     }
     view = { s, ox, oy, dpr, portrait };
-    for (const v of [vf, vr]) Object.assign(v.style, { left: (ox + CROPX * s) + "px", top: oy + "px", width: (CW * s) + "px", height: (IH * s) + "px" });
+    for (const v of loadedEls()) placeEl(v);
     const fa = $("fadeA"), fb = $("fadeB"), h = IH * s, f = Math.min(90, h * 0.16);
     if (portrait) {
       Object.assign(fa.style, { display: "block", top: "0px", height: (oy + f) + "px" });
@@ -513,34 +517,70 @@
     positionHint();
     drawStill();
   }
+  // ---------- videos: one short clip per transition (car -> neighbouring car), forward + reversed copy ----------
+  // Segment s covers frames 179s..179s+179. Fs plays them upward (towards the Kia), Rs downward (towards the Golf).
+  // Clips are downloaded one at a time, nearest transitions first, kept in the phone's Cache Storage for the next
+  // visit, and played from memory (blob) -> no network during a move. H.264 for all browsers: HEVC was measured
+  // and is only ~11 % smaller once the parked frames are as sharp, not worth an untested Safari decode path.
+  const SEG = 179, NSEG = 4, VER = "s1";
+  const clipUrl = (dir, s) => `v/s/${pre}_${dir}${s}.mp4?v=${VER}`;
+  const clips = {};                                              // "f0".."r3" -> { dir, s, el, ready, promise, resolve }
+  for (let s = 0; s < NSEG; s++) for (const dir of ["f", "r"]) {
+    const c = { dir, s, el: null, ready: false, key: dir + s }; c.promise = new Promise(r => c.resolve = r); clips[c.key] = c;
+  }
+  const elClip = new WeakMap();
+  const localOf = (c, n) => c.dir === "f" ? n - SEG * c.s : SEG * c.s + SEG - n;      // 0..179 inside the clip
+  const nOfLocal = (c, k) => c.dir === "f" ? SEG * c.s + k : SEG * c.s + SEG - k;
+  const clipFor = (n, dir) => {                                  // the clip that moves away from frame n in this direction
+    const s = dir === "f" ? Math.min(NSEG - 1, Math.floor((n + 1e-6) / SEG)) : Math.max(0, Math.ceil((n - 1e-6) / SEG) - 1);
+    return clips[dir + s];
+  };
+  const tOfLocal = k => (k + 0.5) / FPS;
+  const kOfTime = t => Math.min(SEG, Math.max(0, Math.floor(t * FPS + 1e-3)));
+  const cOf = v => elClip.get(v);
+  const nOf = (v, t) => nOfLocal(cOf(v), kOfTime(t));
+  const posOf = v => { const c = cOf(v), k = Math.max(0, Math.min(SEG, v.currentTime * FPS - 0.5)); return Math.max(0, Math.min(N - 1, nOfLocal(c, k))); };
+  const loadedEls = () => Object.values(clips).filter(c => c.el).map(c => c.el);
+  const onFrame = (v, cb) => v.requestVideoFrameCallback ? v.requestVideoFrameCallback((now, m) => cb(m.mediaTime)) : requestAnimationFrame(() => cb(v.currentTime));
+  function seekLocal(v, k) {                                     // resolves when local frame k is decoded and on screen in v
+    return new Promise(res => {
+      if (Math.abs(kOfTime(v.currentTime) - k) < 0.5 && !v.seeking && v.readyState >= 2) return res();
+      const done = () => { v.removeEventListener("seeked", done); let fin = false; const f = () => { if (!fin) { fin = true; res(); } }; onFrame(v, f); setTimeout(f, 60); };
+      v.addEventListener("seeked", done); v.currentTime = tOfLocal(k);
+    });
+  }
+  const seekTo = (v, n) => seekLocal(v, Math.max(0, Math.min(SEG, Math.round(localOf(cOf(v), n)))));
+  // the two clips that leave the parked car: both are kept on their first frame so a move starts instantly
+  const restClips = p => [p < N - 1 ? clipFor(p, "f") : null, p > 0 ? clipFor(p, "r") : null].filter(Boolean);
+  async function parkVideos(p) {
+    const parks = restClips(p).filter(c => c.ready).map(c => seekTo(c.el, p));
+    for (const c of Object.values(clips)) if (c.ready && c.el !== shownEl && !restClips(p).includes(c) && c.el.currentTime > 0.1) seekLocal(c.el, 0);
+    try { await Promise.all(parks); } catch (e) {}
+  }
+  function placeEl(v) {
+    const s = view.s; Object.assign(v.style, { left: (view.ox + CROPX * s) + "px", top: view.oy + "px", width: (CW * s) + "px", height: (IH * s) + "px" });
+  }
+
+  // ---------- which layer is visible: the still canvas or one video ----------
+  let shownEl = null;
   function drawStill() {
-    const im = stills[nearestStopFrame()]; if (!im || !im.complete) return;
+    let im = stills[nearestStopFrame()];
+    if (!im) im = loadStill(CARS[idx]);
+    if (!im.complete) return;
     const W = cv.width, H = cv.height, d = view.dpr;
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(im, (view.ox + CROPX * view.s) * d, view.oy * d, im.naturalWidth * view.s * d, IH * view.s * d);
   }
-  const nearestStopFrame = () => CARS[idx].stop;
-  function show(which) {                         // which layer is visible: "still" | "vf" | "vr"
-    if (shown === which) return; shown = which;
-    cv.style.opacity = which === "still" ? 1 : 0;
-    vf.style.opacity = which === "vf" ? 1 : 0;
-    vr.style.opacity = which === "vr" ? 1 : 0;
+  const nearestStopFrame = () => stills[Math.round(pos)] ? Math.round(pos) : CARS[idx].stop;   // where the camera IS, not where it is going
+  function show(v) {                                             // v: a video element, or null for the still
+    const which = v ? v : "still";
+    if (shown === which) return; shown = which; shownEl = v;
+    cv.style.opacity = v ? 0 : 1;
+    for (const e of loadedEls()) e.style.opacity = e === v ? 1 : 0;
   }
-
-  // ---------- video helpers ----------
-  const isF = v => v.dataset.dir === "f";
-  const tOf = (v, n) => ((isF(v) ? n : N - 1 - n) + 0.5) / FPS;
-  const nOf = (v, t) => { const k = Math.min(N - 1, Math.max(0, Math.floor(t * FPS + 1e-3))); return isF(v) ? k : N - 1 - k; };
-  const onFrame = (v, cb) => v.requestVideoFrameCallback ? v.requestVideoFrameCallback((now, m) => cb(m.mediaTime)) : requestAnimationFrame(() => cb(v.currentTime));
-  function seekTo(v, n) {                        // resolves when frame n is decoded and on screen in v
-    return new Promise(res => {
-      if (Math.abs(nOf(v, v.currentTime) - n) < 0.5 && !v.seeking && v.readyState >= 2) return res();
-      const done = () => { v.removeEventListener("seeked", done); let fin = false; const f = () => { if (!fin) { fin = true; res(); } }; onFrame(v, f); setTimeout(f, 60); };
-      v.addEventListener("seeked", done); v.currentTime = tOf(v, n);
-    });
-  }
-  async function parkVideos(n) { try { await Promise.all([seekTo(vf, n), seekTo(vr, n)]); } catch (e) {} }
+  const active = () => shownEl;
+  const pauseAll = () => { for (const e of loadedEls()) if (!e.paused) e.pause(); };
 
   // ---------- UI ----------
   const atStop = () => mode === "idle" && pos === CARS[idx].stop;
@@ -555,100 +595,115 @@
   function setAway(a) { $("info").classList.toggle("away", a); $("more").classList.toggle("away", a); }
   const nearestCar = p => { let b = 0; CARS.forEach((c, k) => { if (Math.abs(c.stop - p) < Math.abs(CARS[b].stop - p)) b = k; }); return b; };
 
-  // ---------- hop: play the rendered move at its own 24 fps, stop exactly on the car ----------
+  // ---------- rubber band: at the end of the row the hall gives a little and springs back ----------
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  function rubber(sign) {
+    if (reduceMotion.matches || mode !== "idle") return;
+    const els = [cv, ...loadedEls()], dx = sign * Math.min(26, innerWidth * 0.035);
+    for (const e of els) e.animate([{ transform: "translateX(0)" }, { transform: `translateX(${dx}px)`, offset: 0.32 }, { transform: "translateX(0)" }],
+                                   { duration: 520, easing: "cubic-bezier(.3,1.35,.45,1)" });
+  }
+
+  // ---------- hop: play the clips of the transition(s) at their own 60 fps, stop exactly on the car ----------
   async function go(i) {
-    i = Math.max(0, Math.min(CARS.length - 1, i));
+    if (i < 0 || i > CARS.length - 1) { rubber(i < 0 ? 1 : -1); i = Math.max(0, Math.min(CARS.length - 1, i)); }
     const to = CARS[i].stop, my = ++seq;
     idx = i; ui(); hideHint(); setAway(true);
     if (to === pos && mode !== "follow") { mode = "idle"; arrive(my); return; }
-    if (!ready) { await readyP; if (my !== seq) return; }
     { const cur = active(); if (cur) pos = posOf(cur); }
-    const from = Math.round(pos), v = to > from ? vf : vr, other = v === vf ? vr : vf;
-    if (to === from) { vf.pause(); vr.pause(); switching = false; pos = to; mode = "idle"; arrive(my); return; }
-    mode = "hop"; hopTarget = to;
-    if (shown !== "still" && shown !== (v === vf ? "vf" : "vr")) {   // scrubbing showed the other video: hold it, line this one up
-      other.pause();
+    const from = Math.round(pos), dir = to > from ? "f" : "r";
+    if (to === from) { pauseAll(); switching = false; pos = to; mode = "idle"; arrive(my); return; }
+    if (reduceMotion.matches) {                          // "Reduce Motion" on: no camera travel, a short cross-fade to the car
+      pauseAll(); const im = stills[to] || loadStill(CARS[i]);
+      if (!im.complete) await new Promise(r => { im.onload = im.onerror = r; }); if (my !== seq) return;
+      pos = to; drawStill(); cv.style.transition = "opacity .25s"; show(null); setTimeout(() => { cv.style.transition = ""; }, 300);
+      mode = "idle"; arrive(my); return;
     }
-    other.pause(); switching = false;
-    await seekTo(v, from); if (my !== seq) return;
-    show(v === vf ? "vf" : "vr");
-    v.playbackRate = Math.min(3, Math.max(1, Math.abs(to - from) / (CARS[0].stop / (CARS.length - 1)) * 0.85));
-    let playing = !noPlay;
-    if (playing) { try { await v.play(); } catch (e) { playing = false; noPlay = true; } }
-    if (my !== seq) return;
-    if (!playing) { seekHop(v, from, to, my); return; }
-    // stop exactly on the car: per presented video frame (rVFC) AND per screen frame (rAF) as a safety net,
-    // so a missed callback can never let the video run past the car
-    let fin = false;
-    const check = (mt) => {
-      if (fin) return true;
-      if (my !== seq) { fin = true; return true; }
-      const n = nOf(v, mt); pos = to > from ? Math.max(pos, n) : Math.min(pos, n);   // two clocks (rVFC, rAF) may differ by a frame
-      if (v.ended) { fin = true; v.pause(); mode = "idle"; idx = nearestCar(pos); ui(); go(idx); return true; }
-      if ((to > from && n >= to) || (to < from && n <= to)) { fin = true; v.pause(); pos = to; mode = "idle"; arrive(my); return true; }
-      return false;
-    };
-    const step = mt => { if (!check(mt)) onFrame(v, step); };
-    const poll = () => { if (!check(v.currentTime)) requestAnimationFrame(poll); };
-    onFrame(v, step); requestAnimationFrame(poll);
+    mode = "hop"; hopTarget = to; switching = false; pauseAll();
+    const rate = Math.min(3, Math.max(1, Math.abs(to - from) / SEG * 0.85));
+    let n = from;
+    while (true) {
+      const c = clipFor(n, dir);
+      if (!c.ready) { want(c); $("load").style.opacity = 1; await c.promise; if (my !== seq) return; }
+      const v = c.el, stopHere = dir === "f" ? Math.min(to, SEG * c.s + SEG) : Math.max(to, SEG * c.s);
+      await seekTo(v, n); if (my !== seq) return;
+      show(v); v.playbackRate = rate;
+      const reached = await playClip(v, c, stopHere, my);
+      if (my !== seq || reached === null) return;
+      n = stopHere;
+      if (n === to) break;
+    }
+    pos = to; mode = "idle"; arrive(my);
   }
-  // fallback when the phone refuses to play video (iOS Low Power Mode): step the frames by seeking, eased, ~same duration
-  function seekHop(v, from, to, my) {
-    const dur = Math.abs(to - from) / FPS / Math.max(1, v.playbackRate) * 1000, t0 = performance.now();
+  // play clip v until logical frame `stop`; resolves the frame reached, or null if superseded
+  function playClip(v, c, stop, my) {
+    return new Promise(async res => {
+      let playing = !noPlay;
+      if (playing) { try { await v.play(); } catch (e) { playing = false; noPlay = true; } }
+      if (my !== seq) return res(null);
+      if (!playing) return seekRun(v, c, stop, my, res);
+      // stop exactly on the frame: per presented video frame (rVFC) AND per screen frame (rAF) as a safety net
+      let fin = false, last = Math.round(pos);
+      const check = mt => {
+        if (fin) return true;
+        if (my !== seq) { fin = true; res(null); return true; }
+        const n = nOf(v, mt); pos = c.dir === "f" ? Math.max(pos, n) : Math.min(pos, n);
+        const atEnd = v.ended || mt >= v.duration - 0.6 / FPS;
+        if ((c.dir === "f" && n >= stop) || (c.dir === "r" && n <= stop) || atEnd) { fin = true; v.pause(); pos = stop; res(stop); return true; }
+        return false;
+      };
+      const step = mt => { if (!check(mt)) onFrame(v, step); };
+      const poll = () => { if (!check(v.currentTime)) requestAnimationFrame(poll); };
+      onFrame(v, step); requestAnimationFrame(poll);
+    });
+  }
+  // fallback when the phone refuses to play video (iOS Low Power Mode): step the frames by seeking, eased
+  function seekRun(v, c, stop, my, res) {
+    const from = Math.round(pos), dur = Math.abs(stop - from) / FPS / Math.max(1, v.playbackRate) * 1000, t0 = performance.now();
     const step = () => {
-      if (my !== seq) return;
-      const u = Math.min(1, (performance.now() - t0) / dur), e = u * u * (3 - 2 * u), n = Math.round(from + (to - from) * e);
-      if (!v.seeking && nOf(v, v.currentTime) !== n) v.currentTime = tOf(v, n);
+      if (my !== seq) return res(null);
+      const u = Math.min(1, (performance.now() - t0) / dur), e = u * u * (3 - 2 * u), n = Math.round(from + (stop - from) * e);
+      if (!v.seeking && nOf(v, v.currentTime) !== n) v.currentTime = tOfLocal(Math.round(localOf(c, n)));
       pos = n;
-      if (u >= 1) { pos = to; mode = "idle"; arrive(my); return; }
+      if (u >= 1) { pos = stop; return res(stop); }
       requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
   }
-  // at rest the picture IS the parked video frame (the still image is only used before the video is ready):
-  // the same pixels at rest and in motion -> exactly the same brightness, and no big image decode at arrival
-  const restLayer = () => pos > N / 2 ? "vr" : "vf";          // the copy that is not sitting on its last frame
-  function showRest() { if (ready) { shown = ""; show(restLayer()); } else { drawStill(); show("still"); } }
+  // at rest the picture IS a parked video frame (the still is only used until the first clip is ready):
+  // the same pixels at rest and in motion -> exactly the same brightness, no big image decode at arrival
+  function restEl() { const c = restClips(pos).find(c => c.ready); return c ? c.el : null; }
+  function showRest() { const v = restEl(); if (v) { shown = ""; seekTo(v, pos).then(() => { if (mode === "idle" && Math.round(pos) === CARS[idx].stop) show(v); }); } else { drawStill(); show(null); } }
   function arrive(my) {
     setAway(false);
     try { history.replaceState(history.state, "", "#" + (idx + 1)); } catch (e) {}
+    prioritize();
     parkVideos(pos).then(() => { if (my === seq && mode === "idle") showRest(); });
   }
 
-  // ---------- scrub (wheel / finger): DRIVE the playing video instead of seeking it ----------
-  // Seeking a video frame by frame is slow on phones (each seek decodes from a keyframe) -> jerky.
-  // Instead the finger sets a target and the video PLAYS toward it (forward copy or reversed copy),
-  // with a speed proportional to the distance: hardware playback = smooth at any speed.
+  // ---------- scrub (dots track): DRIVE the playing clip towards the finger instead of seeking frame by frame ----------
   let settleT = null, switching = false;
-  function scrub(df) {
-    if (!ready) return;
-    if (mode !== "follow") { seq++; follow = pos; mode = "follow"; }
-    follow = Math.max(0, Math.min(N - 1, follow + df));
-    setAway(true); hideHint();
-    clearTimeout(settleT); settleT = setTimeout(() => { if (!trackDrag) go(nearestCar(follow)); }, 220);
-  }
-  const active = () => shown === "vf" ? vf : shown === "vr" ? vr : null;
-  const posOf = v => { const k = v.currentTime * FPS - 0.5; return Math.max(0, Math.min(N - 1, isF(v) ? k : N - 1 - k)); };
   function drive() {
     if (switching) return;
     const cur = active();
     if (cur) pos = posOf(cur);
     const diff = follow - pos;
     if (Math.abs(diff) < 1.2) { if (cur && !cur.paused) cur.pause(); return; }
-    const want = diff > 0 ? vf : vr;
-    if (cur !== want) {                                   // direction change: line the other copy up on this frame, then swap
+    const dir = diff > 0 ? "f" : "r", c = clipFor(pos, dir);
+    if (!c.ready) { want(c); if (cur && !cur.paused) cur.pause(); return; }
+    if (cur !== c.el) {                                  // other direction or next segment: line that clip up on this frame, then swap
       switching = true; if (cur) cur.pause(); const tok = seq;
-      seekTo(want, Math.round(pos)).then(() => { switching = false; if (tok === seq && mode === "follow") show(want === vf ? "vf" : "vr"); });
+      seekTo(c.el, Math.round(pos)).then(() => { switching = false; if (tok === seq && mode === "follow") show(c.el); });
       return;
     }
     const rate = Math.max(0.35, Math.min(3, Math.abs(diff) / (FPS * 0.28)));
-    if (Math.abs(want.playbackRate - rate) > 0.15) want.playbackRate = Math.round(rate * 8) / 8;
-    if (noPlay) {                                          // no playback allowed: walk the frames by seeking
+    if (Math.abs(cur.playbackRate - rate) > 0.15) cur.playbackRate = Math.round(rate * 8) / 8;
+    if (noPlay) {
       const n = Math.round(pos + Math.sign(diff) * Math.min(Math.abs(diff), 4));
-      if (!want.seeking) want.currentTime = tOf(want, n);
+      if (!cur.seeking) cur.currentTime = tOfLocal(Math.max(0, Math.min(SEG, Math.round(localOf(c, n)))));
       return;
     }
-    if (want.paused && want.currentTime < want.duration - 1 / FPS) want.play().catch(() => { noPlay = true; });
+    if (cur.paused && cur.currentTime < cur.duration - 1 / FPS) cur.play().catch(() => { noPlay = true; });
   }
   // ---------- dots track: thumb shows where the camera is; press + slide drives the camera ----------
   const LAST = CARS[0].stop, PER_CAR_PX = 64;                 // finger travel for one car
@@ -754,21 +809,19 @@
     lctx.putImageData(out, 0, 0);
   }
   window.__lensBench = renderLens;
-  // first touch anywhere: start+stop both videos inside the gesture, so iOS lets us play them later from code
+  // first touch anywhere: start+stop the videos inside the gesture, so iOS lets us play them later from code
   const unlockedEls = new WeakSet();
   function unlock() {
-    if (!ready) return;
-    for (const v of [vf, vr]) {
+    for (const v of loadedEls()) {
       if (unlockedEls.has(v)) continue; unlockedEls.add(v);
-      if (!v.paused) continue;
-      const visible = shown === (v === vf ? "vf" : "vr");
-      // a video parked on its last frame would restart from 0 on play(): step it back first (only ever the hidden copy)
-      if (!visible && v.duration && v.currentTime > v.duration - 2 / FPS) v.currentTime = Math.max(0, v.duration - 4 / FPS);
-      if (visible && v.duration && v.currentTime > v.duration - 2 / FPS) continue;
+      if (!v.paused || v === shownEl && mode !== "idle") continue;
+      // a clip parked on its last frame would restart from 0 on play(): step a hidden one back first
+      if (v !== shownEl && v.duration && v.currentTime > v.duration - 2 / FPS) v.currentTime = Math.max(0, v.duration - 4 / FPS);
+      if (v === shownEl && v.duration && v.currentTime > v.duration - 2 / FPS) continue;
       const p = v.play(); v.pause();
       if (p && p.catch) p.catch(e => { if (e && e.name === "NotAllowedError") noPlay = true; });
-      if (mode === "idle") seekTo(v, Math.round(pos));
     }
+    if (mode === "idle") parkVideos(Math.round(pos));
   }
   addEventListener("pointerdown", unlock, true); addEventListener("touchstart", unlock, { capture: true, passive: true }); addEventListener("keydown", unlock, true);
 
@@ -777,10 +830,10 @@
     if (mode === "idle") { showRest(); return; }
     const cur = active(); if (cur) pos = posOf(cur);
     trackDrag = null; $("track").classList.remove("drag"); lensShow(false); clearTimeout(settleT); switching = false;
-    vf.pause(); vr.pause();
+    pauseAll();
     go(mode === "hop" ? idx : nearestCar(pos));
   }
-  document.addEventListener("visibilitychange", () => { if (document.hidden) { vf.pause(); vr.pause(); } else recover(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) pauseAll(); else recover(); });
   addEventListener("pageshow", e => { if (e.persisted) recover(); });
   function lensShow(on) { lensOn = on; $("track").classList.toggle("lens", on); }
 
@@ -839,60 +892,72 @@
   let hinted = false; function hideHint() { if (!hinted) { hinted = true; $("hint").style.opacity = 0; } }
   setTimeout(hideHint, 4000);
 
-  // ---------- loading: 5 sharp stills first, then both videos fully into memory (no network during a move) ----------
+  // ---------- loading: the still of the car on screen, then the clips one by one, nearest transitions first ----------
   CARS.forEach((c, k) => { const d = document.createElement("i"); d.style.left = (k / (CARS.length - 1) * 100) + "%"; $("rail").insertBefore(d, $("thumb")); });
-  CARS.forEach(c => { const im = new Image(); im.onload = () => { if (c.stop === CARS[idx].stop) drawStill(); }; im.src = `${small ? "m" : "f"}/${String(c.still).padStart(3, "0")}.webp`; stills[c.stop] = im; });
-  const URLS = [`v/${pre}_fwd.mp4`, `v/${pre}_rev.mp4`];
-  // 1) streaming: the browser fetches only the part it needs -> the first move is possible almost at once
-  function streamVideo(v, url) {
-    return new Promise(res => { v.preload = "metadata"; v.src = url; v.addEventListener("loadedmetadata", res, { once: true }); v.load(); });
+  function loadStill(c) {
+    const im = new Image(); im.decoding = "async"; if ("fetchPriority" in im) im.fetchPriority = c === CARS[idx] ? "high" : "low";
+    im.onload = () => { if ((c.stop === Math.round(pos) || c.stop === CARS[idx].stop) && shown === "still") drawStill(); };
+    im.src = `${small ? "m" : "f"}/${String(c.still).padStart(3, "0")}.webp`; stills[c.stop] = im; return im;
   }
-  readyP = Promise.all([streamVideo(vf, URLS[0]), streamVideo(vr, URLS[1])])
-    .then(() => parkVideos(pos)).then(() => { ready = true; if (mode === "idle") showRest(); });
-  // 2) the browser keeps buffering ahead on its own (preload=auto); the thin bar on top shows how much is in
-  const bufTick = () => {
-    const f = [vf, vr].map(v => { try { let m = 0; for (let k = 0; k < v.buffered.length; k++) m += v.buffered.end(k) - v.buffered.start(k); return v.duration ? m / v.duration : 0; } catch (e) { return 0; } });
-    const done = (f[0] + f[1]) / 2; $("load").style.width = (done * 100) + "%";
-    if (done > 0.995 || prog[0] + prog[1] > 0) return;
-    setTimeout(bufTick, 500);
-  };
-  // 3) meanwhile the whole files are downloaded into memory and loaded into two NEW video elements;
-  //    while parked (the still covers everything) they replace the streaming ones -> no network during moves
-  async function fetchBlob(url, onp) {
-    const r = await fetch(url); const total = +r.headers.get("content-length") || 0;
-    if (!r.body || !total) return URL.createObjectURL(await r.blob());
-    const rd = r.body.getReader(), parts = []; let got = 0;
-    for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; onp(got / total); }
-    return URL.createObjectURL(new Blob(parts, { type: "video/mp4" }));
+  loadStill(CARS[idx]);                                          // the other stills are never needed once their clips are in
+  const CACHE = "karats-clips-" + VER;                           // technical storage: the site's own video files, no personal data
+  try { caches.keys().then(ks => ks.filter(k => k.startsWith("karats-clips-") && k !== CACHE).forEach(k => caches.delete(k))).catch(() => {}); } catch (e) {}
+  async function getClip(url, onp) {
+    let cache = null;
+    try { cache = await caches.open(CACHE); const hit = await cache.match(url); if (hit) { onp(1); return URL.createObjectURL(await hit.blob()); } } catch (e) { cache = null; }
+    const r = await fetch(url); if (!r.ok) throw new Error("HTTP " + r.status);
+    const total = +r.headers.get("content-length") || 0; let blob;
+    if (r.body && total) {
+      const rd = r.body.getReader(), parts = []; let got = 0;
+      for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; onp(got / total); }
+      blob = new Blob(parts, { type: "video/mp4" });
+    } else blob = await r.blob();
+    if (cache) cache.put(url, new Response(blob, { headers: { "content-type": "video/mp4" } })).catch(() => {});
+    return URL.createObjectURL(blob);
   }
-  const prog = [0, 0];
-  function makeVideo(src, id) {
+  function makeVideo(src, c) {
     const v = document.createElement("video");
     v.muted = true; v.playsInline = true; v.setAttribute("playsinline", ""); v.setAttribute("muted", ""); v.disablePictureInPicture = true;
-    v.preload = "auto"; v.id = id; v.dataset.dir = id[1]; v.style.opacity = 0;
+    v.preload = "auto"; v.dataset.dir = c.dir; v.dataset.clip = c.key; v.style.opacity = 0; elClip.set(v, c); placeEl(v);
     $("stage").insertBefore(v, cv);
-    return new Promise(res => { v.addEventListener("loadeddata", () => res(v), { once: true }); v.src = src; v.load(); });
+    return new Promise((res, rej) => {
+      v.addEventListener("loadeddata", () => res(v), { once: true });
+      v.addEventListener("error", () => { v.remove(); rej(new Error("decode")); }, { once: true });
+      v.src = src; v.load();
+    });
   }
-  readyP.then(() => {
-    bufTick();
-    Promise.all(URLS.map((u, k) => fetchBlob(u, p => { prog[k] = p; $("load").style.width = ((prog[0] + prog[1]) / 2 * 100) + "%"; })))
-      .then(blobs => Promise.all([makeVideo(blobs[0], "vf2"), makeVideo(blobs[1], "vr2")]))
-      .then(([nf, nr]) => {
-        const trySwap = async () => {
-          if (mode !== "idle" || trackDrag) return setTimeout(trySwap, 250);
-          const n = Math.round(pos);
-          await Promise.all([seekTo(nf, n), seekTo(nr, n)]);
-          if (mode !== "idle" || trackDrag || Math.round(pos) !== n) return setTimeout(trySwap, 250);
-          const of = vf, orr = vr; vf = nf; vr = nr; resize(); showRest();
-          of.pause(); orr.pause(); of.remove(); orr.remove(); nf.id = "vf"; nr.id = "vr";
-          $("load").style.opacity = 0;
-        };
-        trySwap();
-      }).catch(() => {});
-  });
+  let busy = false, wantedClip = null, loadedN = 0, retryT = null;
+  const want = c => { if (!c.ready && !c.loading) { wantedClip = c; pump(); } };
+  function order() {
+    const p = CARS[idx].stop;
+    const dist = c => (c.dir === "f" ? Math.abs(SEG * c.s - p) : Math.abs(SEG * c.s + SEG - p)) + (c.dir === "r" ? 0 : 0.5);   // ties: "next car" first
+    return Object.values(clips).filter(c => !c.ready && !c.loading).sort((a, b) => dist(a) - dist(b));
+  }
+  const prioritize = () => pump();
+  const bar = f => { $("load").style.width = (f / (NSEG * 2) * 100) + "%"; };
+  async function pump() {
+    if (busy) return;
+    const c = wantedClip && !wantedClip.ready && !wantedClip.loading ? wantedClip : order()[0]; wantedClip = null;
+    if (!c) { $("load").style.opacity = 0; return; }
+    busy = true; c.loading = true;
+    try {
+      const url = await getClip(clipUrl(c.dir, c.s), f => bar(loadedN + f));
+      c.el = await makeVideo(url, c); c.ready = true; c.loading = false; loadedN++; bar(loadedN); c.resolve(); clipReady(c);
+    } catch (e) {
+      c.loading = false; busy = false; clearTimeout(retryT); retryT = setTimeout(pump, 3000); return;
+    }
+    busy = false; pump();
+  }
+  function clipReady(c) {
+    if (unlockedOnce) { const p = c.el.play(); c.el.pause(); if (p && p.catch) p.catch(() => {}); }
+    if (restClips(pos).includes(c)) { ready = true; if (mode === "idle") seekTo(c.el, pos).then(() => { if (mode === "idle" && shown === "still") showRest(); }); }
+  }
+  let unlockedOnce = false; addEventListener("pointerdown", () => { unlockedOnce = true; }, true);
+  pump();
   addEventListener("resize", () => { if (isPortrait() !== small) location.reload(); else resize(); });
   resize(); ui(); requestAnimationFrame(tick);
-  window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown, vf: vf.currentTime, vr: vr.currentTime });
+  window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown: shownEl ? (cOf(shownEl).dir === "f" ? "vf" : "vr") : "still",
+                            disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN });
 })();
 </script>
 <script src="i18n.js?v=r31"></script>
