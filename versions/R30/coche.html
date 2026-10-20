@@ -107,6 +107,18 @@
 </style>
 <link rel="stylesheet" href="nav.css?v=r33">
 <style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
+<style>
+.others { margin-top:34px; }
+.ocars { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; scroll-padding:0 12px; margin:12px -12px 0; padding:2px 12px 10px; scrollbar-width:none; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; }
+.ocars::-webkit-scrollbar { display:none; }
+.ocar { flex:none; width:min(62%, 240px); scroll-snap-align:start; display:flex; flex-direction:column; text-decoration:none; color:inherit; border-radius:22px; overflow:hidden; background:var(--paper); box-shadow:inset 0 0 0 .6px var(--line); transition:transform .45s var(--spring); }
+.ocar:active { transform:scale(.97); }
+.ocar .oimg { display:block; aspect-ratio:3/2; background:#e6e2da; } .ocar img { width:100%; height:100%; object-fit:cover; display:block; }
+.ocar b { font-family:Jost,sans-serif; font-weight:500; font-size:17px; margin:10px 14px 0; } .ocar small { color:var(--soft); font-size:13px; margin:2px 14px 0; }
+.ocar .op { font-weight:700; font-size:15px; margin:6px 14px 13px; }
+@media (min-width:760px) { .ocars { margin:12px 0 0; padding:2px 0 10px; display:grid; grid-template-columns:repeat(4,1fr); overflow:visible; } .ocar { width:auto; } }
+[aria-label="Guardar"].saved svg path, .sfav.saved svg path { fill:#c8463b; stroke:#c8463b; }
+</style>
 </head>
 <body>
 <div class="topbar">
@@ -123,7 +135,7 @@
   <div class="head lg">
     <span class="demo-tag">Datos de ejemplo</span>
     <h1 id="title"></h1><div class="trim" id="trim"></div>
-    <div class="price"><b id="price"></b><span id="monthly"></span></div>
+    <div class="price"><b id="price"></b></div>
     <div class="chips" id="chips"></div>
   </div>
   <div class="photo-tools"><button class="count-pill lg" id="allPhotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg><span id="nPhotos"></span></button></div>
@@ -137,6 +149,7 @@
     <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><b>Transferencia incluida</b><small>Gestión DGT por nuestra cuenta</small></div>
     <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><b>Entrega en toda España</b><small>O recógelo en Barcelona</small></div>
   </div></section>
+  <section class="others" translate="no"><h2 id="oTitle">Otros coches</h2><div class="ocars" id="ocars"></div></section>
   <p class="note">Maqueta: fotos y datos de ejemplo. Las fotos reales se añaden después.</p>
 </main>
 <footer data-footer style="padding-bottom:calc(110px + env(safe-area-inset-bottom))"></footer>
@@ -168,7 +181,7 @@
   $("heroImg").src = `f/${C.still}.webp`;   // hero = the car as it stands in the showroom
   $("nPhotos").textContent = SH.length + " fotos";
   $("title").textContent = `${C.brand} ${C.model}`; $("trim").textContent = C.trim;
-  $("price").textContent = fmtEUR(C.price); $("monthly").textContent = `o desde ${C.monthly} €/mes`;
+  $("price").textContent = fmtEUR(C.price);
   $("bbPrice").textContent = fmtEUR(C.price); $("bbName").textContent = `${C.brand} ${C.model} · ${C.year}`;
   $("chips").innerHTML = [C.year, fmtKM(C.km), C.fuel, C.gear.split(" ")[0], C.power].map(t => `<span class="chip">${t}</span>`).join("");
   $("strip").innerHTML = SH.map(([s, n], k) => `<button data-k="${k}" aria-label="${n}" style="background-image:url(${src(s, "t")})"></button>`).join("");
@@ -304,11 +317,27 @@
   const toast = document.createElement("div"); toast.className = "toast lg"; toast.innerHTML = "<span></span>"; document.body.appendChild(toast);
   const say = t => { toast.firstChild.textContent = t; toast.classList.add("on"); clearTimeout(say.t); say.t = setTimeout(() => toast.classList.remove("on"), 1800); };
   document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
-  document.querySelector('[aria-label="Guardar"]').onclick = e => { const on = e.currentTarget.classList.toggle("saved"); say(on ? "Guardado" : "Quitado de guardados"); };
+  const FAVT = { es: ["Guardado en favoritos", "Quitado de favoritos"], en: ["Saved to favourites", "Removed from favourites"], ru: ["Добавлено в избранное", "Убрано из избранного"], ca: ["Desat a preferits", "Tret de preferits"] };
+  const LG = () => (window.KLang && KLang.language) || "es";
+  const favBtn = document.querySelector('[aria-label="Guardar"]');
+  const favSync = () => { if (!window.KFav) return; const on = KFav.has(C.id); favBtn.classList.toggle("saved", on); favBtn.setAttribute("aria-pressed", on); };
+  favBtn.onclick = () => { if (!window.KFav) return; const on = KFav.toggle(C.id); favSync(); const tt = FAVT[LG()] || FAVT.es; say(on ? tt[0] : tt[1]); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
+  addEventListener("karats:fav", favSync); favSync();
+  // other cars (no dead end at the bottom of the page)
+  const OT = { es: "Otros coches", en: "Other cars", ru: "Другие машины", ca: "Altres cotxes" };
+  const others = () => {
+    const nf = n => n.toLocaleString("es-ES").replace(/\u00a0/g, " ");
+    $("oTitle").textContent = OT[LG()] || OT.es;
+    $("ocars").innerHTML = KARATS_CARS.filter(o => o.id !== C.id).map(o => {
+      const href = window.KLang ? KLang.url("coche.html?id=" + o.id) : "coche.html?id=" + o.id;
+      return `<a class="ocar" href="${href}"><span class="oimg"><img src="c/${o.id}_s.webp" alt="${o.brand} ${o.model}" loading="lazy" decoding="async"></span><b>${o.brand} ${o.model}</b><small>${o.year} · ${nf(o.km)} km</small><span class="op">${nf(o.price)} €</span></a>`; }).join("");
+  };
+  others(); addEventListener("karats:language", others);
 })();
 </script>
 <script src="i18n.js?v=r35"></script>
-<script src="site.js?v=r31"></script>
+<script src="site.js?v=r36"></script>
 <script src="nav.js?v=r35"></script>
+<script src="kx.js?v=r36"></script>
 </body>
 </html>

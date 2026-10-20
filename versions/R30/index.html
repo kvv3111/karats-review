@@ -201,6 +201,13 @@
   body.menu .side, body.sheet .side, body.menu #track, body.sheet #track, body.menu .hint, body.sheet .hint { opacity:0 !important; pointer-events:none; }
 
 </style>
+<style>
+.sh-btns { display:flex; gap:8px; flex:none; }
+#sheet .sh-head .sfav { width:34px; height:34px; border-radius:17px; } #sheet .sh-head .sfav svg { width:16px; height:16px; }
+.sfav svg path { transition:fill .25s, stroke .25s; } .sfav.saved svg path { fill:#c8463b; stroke:#c8463b; }
+@media (prefers-reduced-motion:no-preference) { .sfav.saved svg { animation:cfpop .45s cubic-bezier(.3,1.35,.45,1); } }
+@keyframes cfpop { 0% { transform:scale(.6) } 60% { transform:scale(1.2) } 100% { transform:none } }
+</style>
 </head>
 <body>
 <div id="stage" aria-label="Showroom KARATS AUTO">
@@ -246,8 +253,9 @@
 <div id="sheet" class="lg" role="dialog" aria-label="Ficha">
   <div class="grab"></div>
   <div class="sh-head"><div><span class="demo-tag">Datos de ejemplo</span><h3 id="sName"></h3><div class="trim" id="sTrim"></div></div>
-    <button class="gbtn lg x" id="sClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-  <div class="price"><b id="sPrice"></b><span id="sMonthly"></span></div>
+    <div class="sh-btns"><button class="gbtn lg sfav" id="sFav" type="button" aria-pressed="false" aria-label="Favorito"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg></button>
+    <button class="gbtn lg x" id="sClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
+  <div class="price"><b id="sPrice"></b></div>
   <div class="chips" id="sChips"></div>
   <div class="thumbs" id="sThumbs"></div>
   <ul class="hl" id="sHl"></ul>
@@ -279,10 +287,13 @@
                 fuel:'<path d="M4 20V5a1 1 0 011-1h8a1 1 0 011 1v15M3 20h12M14 9h2a2 2 0 012 2v5a1.5 1.5 0 003 0V8l-3-3M7 8h4"/>', gear:'<circle cx="6" cy="6" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="12" cy="18" r="2"/><path d="M6 8v8M12 8v8M18 8v4H6"/>',
                 ok:'<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.6 2.5L16 9.5"/>' };
   const svg = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  const FAVT = { es: ["Guardado en favoritos", "Quitado de favoritos"], en: ["Saved to favourites", "Removed from favourites"], ru: ["Добавлено в избранное", "Убрано из избранного"], ca: ["Desat a preferits", "Tret de preferits"] };
+  const favSync = () => { const b = $("sFav"); if (!b || !C || !window.KFav) return; const on = KFav.has(C.id); b.classList.toggle("saved", on); b.setAttribute("aria-pressed", on); };
   function fill(i) {
     C = KARATS_CARS[i];
+    favSync();
     $("sName").textContent = C.brand + " " + C.model; $("sTrim").textContent = C.trim;
-    $("sPrice").textContent = fmtEUR(C.price); $("sMonthly").textContent = `o desde ${C.monthly} €/mes`;
+    $("sPrice").textContent = fmtEUR(C.price);
     $("sChips").innerHTML = [[ico.cal, C.year], [ico.road, fmtKM(C.km)], [ico.fuel, C.fuel], [ico.gear, C.gear.split(" ")[0]]].map(([i, t]) => `<span class="chip">${svg(i)}${t}</span>`).join("");
     $("sHl").innerHTML = C.highlights.map(t => `<li>${svg(ico.ok)}${t}</li>`).join("");
     const pick = ["01_front34", "04_rear34", "08_wheel", "03_side"];
@@ -440,6 +451,8 @@
   // menu items are real links; drop the menu step so Back from the page returns to the hall, not to an open menu
   document.querySelectorAll("#menu .it").forEach(b => b.addEventListener("click", e => { if (!(e.metaKey || e.ctrlKey || e.shiftKey) && history.state && history.state.layer) history.replaceState(null, "", location.href); }));
   document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
+  $("sFav").addEventListener("click", () => { if (!window.KFav || !C) return; const on = KFav.toggle(C.id); favSync(); const tt = FAVT[(window.KLang && KLang.language) || "es"] || FAVT.es; say(on ? tt[0] : tt[1]); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} });
+  addEventListener("karats:fav", favSync);
   window.KUI = { openSheet(i) { fill(i); openLayer("sheet"); }, openDetails, isOpen: () => B.classList.contains("menu") || B.classList.contains("sheet") };
   if (B.classList.contains("sheet")) fill(+((/^#(\d)$/.exec(location.hash) || [0, 1])[1]) - 1);
   {
@@ -1069,7 +1082,8 @@
 })();
 </script>
 <script src="i18n.js?v=r35"></script>
-<script src="site.js?v=r31"></script>
+<script src="site.js?v=r36"></script>
+<script src="kx.js?v=r36"></script>
 <script src="showroom-gallery.js?v=3"></script>
 </body>
 </html>

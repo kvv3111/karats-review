@@ -179,18 +179,62 @@
     ['aviso-legal.html', 'Aviso legal', 'Legal notice', 'Правовая информация', 'Avís legal'], ['privacidad.html', 'Privacidad', 'Privacy', 'Конфиденциальность', 'Privadesa'],
     ['cookies.html', 'Política de cookies', 'Cookie policy', 'Политика cookies', 'Política de cookies']
   ];
+  const FT = {
+    es: { note: 'Precio final con IVA y cambio de titular incluidos. Fotos y datos de ejemplo hasta que publiquemos el stock real.', buy: 'Comprar', co: 'KARATS AUTO', visit: 'Visítanos', legal: 'Legal',
+          route: 'Cómo llegar', wa: 'WhatsApp', soonW: 'WhatsApp · número pendiente', copy: 'Todos los derechos reservados.', fav: 'Favoritos' },
+    en: { note: 'Final price with VAT and ownership transfer included. Sample photos and data until we publish the real stock.', buy: 'Buy', co: 'KARATS AUTO', visit: 'Visit us', legal: 'Legal',
+          route: 'Get directions', wa: 'WhatsApp', soonW: 'WhatsApp · number coming soon', copy: 'All rights reserved.', fav: 'Favourites' },
+    ru: { note: 'Итоговая цена с НДС и переоформлением. Фото и данные примерные, пока не опубликуем реальный сток.', buy: 'Покупка', co: 'KARATS AUTO', visit: 'Где мы', legal: 'Правовая информация',
+          route: 'Как добраться', wa: 'WhatsApp', soonW: 'WhatsApp · номер скоро появится', copy: 'Все права защищены.', fav: 'Избранное' },
+    ca: { note: 'Preu final amb IVA i canvi de titular inclosos. Fotos i dades d’exemple fins que publiquem l’estoc real.', buy: 'Comprar', co: 'KARATS AUTO', visit: 'Visita’ns', legal: 'Legal',
+          route: 'Com arribar-hi', wa: 'WhatsApp', soonW: 'WhatsApp · número pendent', copy: 'Tots els drets reservats.', fav: 'Preferits' },
+  };
+  const MAPS = 'https://www.google.com/maps/search/?api=1&query=Carrer+de+Floridablanca+68,+08015+Barcelona';
   function footer() {
-    const i = { es: 1, en: 2, ru: 3, ca: 4 }[lang()] || 1, q = lang() !== 'es' ? '?lang=' + lang() : '';
+    const L = lang(), i = { es: 1, en: 2, ru: 3, ca: 4 }[L] || 1, q = L !== 'es' ? '?lang=' + L : '', f0 = FT[L] || FT.es;
+    const a = n => `<a href="${n[0]}${q}">${n[i]}</a>`;
+    const col = (id, h, body) => `<div class="kf-col"><button type="button" class="kf-h" aria-expanded="false" aria-controls="kf-${id}">${h}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><div class="kf-list" id="kf-${id}"><div>${body}</div></div></div>`;
+    const here = location.pathname.split('/').pop() || 'index.html';
+    const langs = [['es', 'ES'], ['ca', 'CA'], ['en', 'EN'], ['ru', 'RU']].map(([c, n]) => `<a href="${here}${c === 'es' ? '?lang=es' : '?lang=' + c}" hreflang="${c}"${c === L ? ' aria-current="true"' : ''}>${n}</a>`).join('');
     document.querySelectorAll('[data-footer]').forEach(f => {
       f.setAttribute('translate', 'no'); f.classList.add('kfoot');
-      f.innerHTML = `<nav class="kf-nav">${NAV.map(n => `<a href="${n[0]}${q}">${n[i]}</a>`).join('')}</nav>
-        <nav class="kf-legal">${LEGAL.map(n => `<a href="${n[0]}${q}">${n[i]}</a>`).join('')}<button type="button" data-cookies>${t('prefs')}</button></nav>
-        <p>KARATS AUTO, S.L. · NIF B05735238 · C/ Floridablanca 68, 08015 Barcelona</p>`;
+      f.innerHTML = `<div class="kf-in"><p class="kf-note">${f0.note}</p>
+        <div class="kf-cols">
+          ${col('buy', f0.buy, [NAV[0], NAV[1], NAV[4]].map(a).join(''))}
+          ${col('co', f0.co, [NAV[2], NAV[3], NAV[5]].map(a).join(''))}
+          ${col('visit', f0.visit, `<span>C/ Floridablanca 68</span><span>08015 Barcelona</span><a href="${MAPS}" target="_blank" rel="noopener noreferrer">${f0.route} ↗</a><button type="button" data-soon-msg="${f0.soonW}">${f0.wa}</button>`)}
+          ${col('legal', f0.legal, LEGAL.map(a).join('') + `<button type="button" data-cookies>${t('prefs')}</button>`)}
+        </div>
+        <div class="kf-bottom"><p>Copyright © ${new Date().getFullYear()} KARATS AUTO, S.L. ${f0.copy} · NIF B05735238</p><nav class="kf-lang" aria-label="Idioma">${langs}</nav></div></div>`;
+      f.querySelectorAll('.kf-h').forEach(b => b.addEventListener('click', () => { const o = b.getAttribute('aria-expanded') !== 'true'; b.setAttribute('aria-expanded', o); b.parentElement.classList.toggle('open', o); }));
+      f.querySelectorAll('[data-soon-msg]').forEach(b => b.addEventListener('click', () => toast(b.dataset.soonMsg)));
     });
   }
-  const footCss = `.kfoot{max-width:1080px;margin:40px auto 0;padding:22px 16px calc(28px + env(safe-area-inset-bottom));border-top:1px solid var(--line,rgba(29,33,30,.1));font-size:13.5px;color:var(--soft,#6b716c)}
-    .kfoot nav{display:flex;flex-wrap:wrap;gap:6px 18px;margin-bottom:10px}.kfoot a,.kfoot button{color:inherit;text-decoration:none;background:none;border:0;padding:4px 0;cursor:pointer;font:inherit}
-    .kfoot .kf-nav a{color:var(--ink,#1d211e);font-weight:600}.kfoot a:hover,.kfoot button:hover{text-decoration:underline}.kfoot p{font-size:12.5px;color:var(--faint,#9aa09a);margin-top:6px}`;
+  const footCss = `.kfoot{margin-top:48px;background:#e8e4dc;color:#6e716c;font-size:12px;line-height:1.35}
+    .kf-in{max-width:980px;margin:0 auto;padding:18px 22px calc(22px + env(safe-area-inset-bottom))}
+    .kf-note{padding-bottom:14px;border-bottom:.6px solid rgba(29,33,30,.14);font-size:12px;color:#7a7e78}
+    .kf-cols{display:grid;grid-template-columns:1fr}
+    .kf-col{border-bottom:.6px solid rgba(29,33,30,.14)}
+    .kf-h{all:unset;box-sizing:border-box;display:flex;width:100%;justify-content:space-between;align-items:center;padding:12px 0;font-weight:600;font-size:12.5px;color:#1d211e;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .kf-h svg{width:15px;height:15px;color:#7a7e78;transition:transform .45s cubic-bezier(.3,1.35,.45,1)}
+    .kf-col.open .kf-h svg{transform:rotate(180deg)}
+    .kf-list{display:grid;grid-template-rows:0fr;overflow:hidden;transition:grid-template-rows .45s cubic-bezier(.22,.8,.25,1)}
+    .kf-col.open .kf-list{grid-template-rows:1fr}
+    .kf-list>div{min-height:0;overflow:hidden}
+    .kf-list a,.kf-list button,.kf-list span{display:block;color:#5e625d;text-decoration:none;background:none;border:0;padding:6px 0 6px 12px;font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
+    .kf-col.open .kf-list>div{padding-bottom:10px}
+    .kf-list span{cursor:default}
+    .kf-list a:hover,.kf-list button:hover{color:#1d211e;text-decoration:underline}
+    .kf-bottom{display:flex;flex-direction:column;gap:10px;padding-top:14px}
+    .kf-bottom p{font-size:12px;color:#7a7e78}
+    .kf-lang{display:flex;gap:4px}
+    .kf-lang a{color:#5e625d;text-decoration:none;font-weight:600;font-size:12px;padding:6px 9px;border-radius:12px}
+    .kf-lang a[aria-current]{background:rgba(29,33,30,.08);color:#1d211e}
+    @media (min-width:760px){.kf-cols{grid-template-columns:repeat(4,1fr);gap:24px;padding:20px 0 6px;border-bottom:.6px solid rgba(29,33,30,.14)}
+      .kf-col{border:0}.kf-h{padding:0 0 8px;cursor:default;pointer-events:none}.kf-h svg{display:none}
+      .kf-list{display:block;overflow:visible}.kf-list>div{overflow:visible}.kf-list a,.kf-list button,.kf-list span{padding:4px 0}.kf-col.open .kf-list>div{padding-bottom:0}
+      .kf-bottom{flex-direction:row;justify-content:space-between;align-items:center}}
+    @media (prefers-reduced-motion:reduce){.kf-list,.kf-h svg{transition:none}}`;
 
   document.addEventListener('click', e => { const b = e.target.closest('[data-cookies]'); if (b) { e.preventDefault(); openPrefs(); } });
   function tableLabels() {                                 // phones show tables as cards: each cell carries its column name
