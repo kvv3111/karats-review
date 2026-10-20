@@ -597,16 +597,50 @@
 
   // ---------- rubber band: at the end of the row the hall gives a little and springs back ----------
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  // The room beside the car is shown, never an empty edge: the phone video is cropped to the car, so for the
+  // stretch the canvas draws the FULL-width frame of this car (f/ still) and slides the camera over it. Where the
+  // frame has no more room (desktop: it already fills the screen) a minimal zoom keeps every edge covered.
+  const wide = {};                                               // stop frame -> full-width still (phone only)
+  function loadWide(c) {
+    if (!small || wide[c.stop]) return;
+    const im = new Image(); im.decoding = "async"; if ("fetchPriority" in im) im.fetchPriority = "low";
+    im.src = `f/${String(c.still).padStart(3, "0")}.webp`; wide[c.stop] = im;
+  }
+  let rubberOn = 0;
   function rubber(sign) {
-    if (reduceMotion.matches || mode !== "idle") return;
-    const els = [cv, ...loadedEls()], dx = sign * Math.min(26, innerWidth * 0.035);
-    for (const e of els) e.animate([{ transform: "translateX(0)" }, { transform: `translateX(${dx}px)`, offset: 0.32 }, { transform: "translateX(0)" }],
-                                   { duration: 520, easing: "cubic-bezier(.3,1.35,.45,1)" });
+    if (reduceMotion.matches || mode !== "idle" || rubberOn) return;
+    const c = CARS[idx], ok = im => im && im.complete && im.naturalWidth;
+    const im = ok(wide[c.stop]) ? wide[c.stop] : stills[c.stop];
+    if (!ok(im)) return;
+    const r = document.documentElement, W = r.clientWidth, H = r.clientHeight, d = view.dpr, cx = W / 2, cy = H / 2;
+    const x0 = view.ox + (im.naturalWidth >= IW ? 0 : CROPX) * view.s, w = im.naturalWidth * view.s, h = IH * view.s;
+    const amp = sign * Math.min(34, W * 0.06), my = ++rubberOn, t0 = performance.now(), OUT = 150, BACK = 520;
+    show(null);                                                  // the canvas (same frame) takes over from the parked video
+    const frame = now => {
+      if (my !== rubberOn) return;
+      if (mode !== "idle") { rubberOn = 0; return; }             // a move started: the hop owns the screen now
+      const t = now - t0;
+      // out: ease-out to the stretch; back: critically damped spring (no wobble), like iOS scroll views
+      const e = t < OUT ? 1 - Math.pow(1 - t / OUT, 3) : (q => (1 + 7 * q) * Math.exp(-7 * q))((t - OUT) / BACK);
+      const dx = amp * e;
+      let z = 1;
+      if (cx - x0 > 0) z = Math.max(z, (cx + dx) / (cx - x0));               // left edge stays covered
+      if (x0 + w - cx > 0) z = Math.max(z, (W - cx - dx) / (x0 + w - cx));   // right edge stays covered
+      ctx.fillStyle = BG; ctx.fillRect(0, 0, cv.width, cv.height); ctx.imageSmoothingQuality = "high";
+      const oy = view.portrait ? view.oy : cy + (view.oy - cy) * z;
+      ctx.drawImage(im, (cx + (x0 - cx) * z + dx) * d, oy * d, w * z * d, h * z * d);
+      if (t < OUT + BACK) return requestAnimationFrame(frame);
+      rubberOn = 0; drawStill(); showRest();
+    };
+    requestAnimationFrame(frame);
   }
 
   // ---------- hop: play the clips of the transition(s) at their own 60 fps, stop exactly on the car ----------
   async function go(i) {
-    if (i < 0 || i > CARS.length - 1) { rubber(i < 0 ? 1 : -1); i = Math.max(0, Math.min(CARS.length - 1, i)); }
+    if (i < 0 || i > CARS.length - 1) {                  // past the end of the row: stretch and spring back, stay on this car
+      if (mode === "idle") { rubber(i < 0 ? 1 : -1); return; }
+      i = Math.max(0, Math.min(CARS.length - 1, i));
+    }
     const to = CARS[i].stop, my = ++seq;
     idx = i; ui(); hideHint(); setAway(true);
     if (to === pos && mode !== "follow") { mode = "idle"; arrive(my); return; }
@@ -938,7 +972,7 @@
   async function pump() {
     if (busy) return;
     const c = wantedClip && !wantedClip.ready && !wantedClip.loading ? wantedClip : order()[0]; wantedClip = null;
-    if (!c) { $("load").style.opacity = 0; return; }
+    if (!c) { $("load").style.opacity = 0; loadWide(CARS[0]); loadWide(CARS[CARS.length - 1]); return; }
     busy = true; c.loading = true;
     try {
       const url = await getClip(clipUrl(c.dir, c.s), f => bar(loadedN + f));
