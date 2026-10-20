@@ -6,6 +6,7 @@
 <meta name="color-scheme" content="only light">
 <meta name="robots" content="noindex">
 <title>KARATS AUTO · Showroom</title>
+<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="theme-color" content="#efece6">
 <link rel="stylesheet" href="fonts/jost.css">
 <link rel="stylesheet" href="ui.css?v=r32">
 <style>
@@ -16,7 +17,7 @@
   #stage { position:fixed; inset:0; overflow:hidden; background:#efece6; touch-action:none; }
   #stage.hot { cursor:pointer; }
   #stage video { position:absolute; opacity:0; pointer-events:none; object-fit:fill; background:#efece6; }
-  #c { position:absolute; left:0; top:0; width:100%; height:100%; display:block; pointer-events:none; }
+  #c { position:absolute; left:0; top:0; width:100%; height:100%; display:block; pointer-events:none; z-index:3; }
   .fade { position:absolute; left:0; right:0; display:none; pointer-events:none; }
   .top { position:fixed; top:0; left:0; right:0; padding:calc(16px + env(safe-area-inset-top)) 26px 26px; display:flex; justify-content:space-between; align-items:center; pointer-events:none;
          background:linear-gradient(rgba(239,236,230,.82),rgba(239,236,230,0)); }
@@ -557,7 +558,7 @@
   const restClips = p => [p < N - 1 ? clipFor(p, "f") : null, p > 0 ? clipFor(p, "r") : null].filter(Boolean);
   async function parkVideos(p) {
     const parks = restClips(p).filter(c => c.ready).map(c => seekTo(c.el, p));
-    for (const c of Object.values(clips)) if (c.ready && c.el !== shownEl && !restClips(p).includes(c) && c.el.currentTime > 0.1) seekLocal(c.el, 0);
+    for (const c of Object.values(clips)) if (c.ready && c.el !== shownEl && c.el !== restSrc && !restClips(p).includes(c) && c.el.currentTime > 0.1) seekLocal(c.el, 0);
     try { await Promise.all(parks); } catch (e) {}
   }
   function placeEl(v) {
@@ -566,7 +567,16 @@
 
   // ---------- which layer is visible: the still canvas or one video ----------
   let shownEl = null;
+  // paint a video's current frame on the canvas, exactly where the video element sits (same pixels as the video)
+  function paint(v) {
+    const d = view.dpr, sc = view.s;
+    ctx.fillStyle = BG; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.drawImage(v, (view.ox + CROPX * sc) * d, view.oy * d, CW * sc * d, IH * sc * d);
+  }
+  let restSrc = null;                                            // the parked video whose frame the canvas shows at rest
+  const frameAt = (v, n) => v && v.readyState >= 2 && !v.seeking && Math.abs(nOf(v, v.currentTime) - n) < 0.5;
   function drawStill() {
+    if (mode === "idle" && frameAt(restSrc, Math.round(pos))) { paint(restSrc); return; }   // keep the video's pixels
     let im = stills[nearestStopFrame()];
     if (!im) im = loadStill(CARS[idx]);
     if (!im.complete) return;
@@ -576,11 +586,37 @@
     ctx.drawImage(im, (view.ox + CROPX * view.s) * d, view.oy * d, im.naturalWidth * view.s * d, IH * view.s * d);
   }
   const nearestStopFrame = () => stills[Math.round(pos)] ? Math.round(pos) : CARS[idx].stop;   // where the camera IS, not where it is going
+  // A video that was invisible needs a frame or two before the browser actually paints it: switching layers by
+  // opacity alone showed an empty room for 1-3 frames at the start and end of every move. So the canvas holds the
+  // exact picture on top (a copy of the outgoing video frame, or the still) until the new video has painted.
+  // 0.995, not 1: a layer that is 100 % covered is not painted by the browser and shows up EMPTY for a frame when
+  // uncovered; at 0.995 the videos under the canvas stay painted (the 0.5 % that shines through is the same picture)
+  const COVER = 0.995;
+  let bridgeTok = 0;
+  // The clips a move can start with (the two leaving the parked car) stay "on" UNDER the canvas, so the browser
+  // keeps them painted; the shown clip is on top of them. Every other clip is fully off (no GPU cost).
+  function warm(v) {
+    const on = new Set(restClips(Math.round(pos)).filter(c => c.ready).map(c => c.el)); if (v) on.add(v);
+    for (const e of loadedEls()) { e.style.opacity = on.has(e) ? 1 : 0; e.style.zIndex = e === v ? 2 : 1; }
+  }
   function show(v) {                                             // v: a video element, or null for the still
     const which = v ? v : "still";
-    if (shown === which) return; shown = which; shownEl = v;
-    cv.style.opacity = v ? 0 : 1;
-    for (const e of loadedEls()) e.style.opacity = e === v ? 1 : 0;
+    if (shown === which) return;
+    const prev = shownEl; shown = which; shownEl = v;
+    if (!v) { cv.style.opacity = COVER; warm(null); return; }
+    if (prev && prev !== v && prev.readyState >= 2) paint(prev);  // else the canvas already holds the rest frame / still
+    restSrc = null;
+    cv.style.opacity = COVER;                                    // the bridge stays on top...
+    warm(v);
+    // ...and follows v's frames itself (a "live" bridge: no freeze, no jump) until v has been on screen for a while
+    const tok = ++bridgeTok, t0 = performance.now(); let done = false, nf = 0;
+    const step = () => {
+      if (done || tok !== bridgeTok || shownEl !== v) return;
+      if (v.readyState >= 2 && !v.seeking) paint(v);
+      if (++nf >= 8 && performance.now() - t0 > 110) { done = true; cv.style.opacity = 0; return; }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   }
   const active = () => shownEl;
   const pauseAll = () => { for (const e of loadedEls()) if (!e.paused) e.pause(); };
@@ -719,7 +755,14 @@
   // at rest the picture IS a parked video frame (the still is only used until the first clip is ready):
   // the same pixels at rest and in motion -> exactly the same brightness, no big image decode at arrival
   function restEl() { const c = restClips(pos).find(c => c.ready); return c ? c.el : null; }
-  function showRest() { const v = restEl(); if (v) { shown = ""; seekTo(v, pos).then(() => { if (mode === "idle" && Math.round(pos) === CARS[idx].stop) show(v); }); } else { drawStill(); show(null); } }
+  // at rest the canvas shows an exact copy of the parked video frame (same pixels as in motion); videos stay hidden,
+  // so no invisible video ever has to "appear" while the camera stands still
+  function showRest() {
+    const n = Math.round(pos), v = frameAt(shownEl, n) ? shownEl : restEl();
+    const fin = () => { if (mode !== "idle" || Math.round(pos) !== n || n !== CARS[idx].stop || !frameAt(v, n)) return; paint(v); show(null); warm(null); restSrc = v; };
+    if (!v) { drawStill(); show(null); return; }
+    if (v === shownEl) fin(); else seekTo(v, pos).then(fin);
+  }
   function arrive(my) {
     setAway(false);
     try { history.replaceState(history.state, "", "#" + (idx + 1)); } catch (e) {}
@@ -996,18 +1039,18 @@
   }
   function clipReady(c) {
     if (unlockedOnce) { const p = c.el.play(); c.el.pause(); if (p && p.catch) p.catch(() => {}); }
-    if (restClips(pos).includes(c)) { ready = true; if (mode === "idle") seekTo(c.el, pos).then(() => { if (mode === "idle" && shown === "still") showRest(); }); }
+    if (restClips(pos).includes(c)) { ready = true; if (shown === "still") warm(null); if (mode === "idle") seekTo(c.el, pos).then(() => { if (mode === "idle" && shown === "still") showRest(); }); }
   }
   let unlockedOnce = false; addEventListener("pointerdown", () => { unlockedOnce = true; }, true);
   pump();
   addEventListener("resize", () => { if (isPortrait() !== small) location.reload(); else resize(); });
   resize(); ui(); requestAnimationFrame(tick);
   window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown: shownEl ? (cOf(shownEl).dir === "f" ? "vf" : "vr") : "still",
-                            disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, rubberZ: Math.round(rubberZ * 1000) / 1000 });
+                            disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, rubberZ: Math.round(rubberZ * 1000) / 1000, rubber: !!rubberOn });
 })();
 </script>
 <script src="i18n.js?v=r31"></script>
 <script src="site.js?v=r31"></script>
-<script src="showroom-gallery.js?v=2"></script>
+<script src="showroom-gallery.js?v=3"></script>
 </body>
 </html>

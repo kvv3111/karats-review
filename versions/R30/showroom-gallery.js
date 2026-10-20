@@ -26,7 +26,9 @@
     exit.style.cssText='position:absolute;right:12px;top:calc(10px + env(safe-area-inset-top));z-index:2;width:44px;height:44px;border:0;border-radius:50%;background:#333;color:white;font-size:28px;cursor:pointer;';
     exit.onclick=close;
     frame = document.createElement('iframe'); frame.title = tr('Galería');
-    frame.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;background:#0d0e0d;';
+    // the photo page paints its light background before the viewer is up: keep it invisible until it says "ready"
+    frame.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;background:#0d0e0d;opacity:0;transition:opacity .18s ease-out;';
+    const reveal = () => { if (frame) frame.style.opacity = 1; }; setTimeout(reveal, 2500);
     const url = new URL('coche.html',location.href);
     url.searchParams.set('id',g.car); url.searchParams.set('lang',g.lang);
     url.searchParams.set('galleryOverlay','1'); url.hash='foto-'+g.shot;
@@ -53,6 +55,7 @@
     if (!frame || e.origin!==location.origin || e.source!==frame.contentWindow) return;
     if (e.data?.type==='karats:gallery-close') close();
     if (e.data?.type==='karats:gallery-ready') {
+      requestAnimationFrame(() => requestAnimationFrame(() => { if (frame) frame.style.opacity = 1; }));
       dialog.querySelector('button').hidden=true; frame.focus();
     }
     if (e.data?.type==='karats:gallery-shot' && history.state?.showroomGallery && KARATS_SHOTS.some(s=>s[0]===e.data.shot)) {
