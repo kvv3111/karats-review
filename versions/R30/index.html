@@ -22,7 +22,7 @@
   .fade { position:absolute; left:0; right:0; display:none; pointer-events:none; }
   .top { position:fixed; top:0; left:0; right:0; padding:calc(16px + env(safe-area-inset-top)) 26px 26px; display:flex; justify-content:space-between; align-items:center; pointer-events:none;
          background:linear-gradient(rgba(239,236,230,.82),rgba(239,236,230,0)); }
-  .brand { font-family:Jost,sans-serif; font-weight:400; letter-spacing:.34em; font-size:clamp(17px, 1.55vw, 30px); line-height:1.1; }
+  .brand { font-family:Jost,sans-serif; font-weight:400; letter-spacing:.34em; font-size:clamp(20px, 1.75vw, 32px); line-height:1.1; }
   .brand { display:inline-block; text-align:center; }
   .brand span { margin-right:-.34em; }                         /* letter-spacing adds space after the last letter: cancel it so both lines centre */
   .brand small { display:block; font-size:.38em; letter-spacing:.9em; margin-right:-.9em; color:var(--soft); margin-top:.5em; }
@@ -536,7 +536,16 @@
     const r = document.documentElement, W0 = r.clientWidth, H0 = r.clientHeight, dpr = Math.min(3, devicePixelRatio || 1);
     cv.width = Math.round(W0 * dpr); cv.height = Math.round(H0 * dpr);
     const portrait = H0 > W0 * 1.05; let s, ox, oy;                  // s in CSS px per frame px
-    if (portrait) { s = W0 / 1093; ox = W0 / 2 - FOCUS_X * IW * s; oy = H0 * 0.44 - IH * s * 0.55; }
+    if (portrait) {
+      // tall phones: grow the car into the free height between the logo and the dots (up to a 1000 px wide crop, the car's
+      // own width stays inside), and centre it there, so no empty band is left above the caption
+      const topY = document.querySelector(".brand").getBoundingClientRect().bottom + 6;
+      const barTop = $("info").getBoundingClientRect().top || H0 * 0.86;
+      const avail = barTop - 64 - topY;                                  // 64 = dots + breathing room
+      s = Math.max(W0 / 1093, Math.min(W0 / 1000, avail / (IH * 0.86)));
+      ox = W0 / 2 - FOCUS_X * IW * s;
+      oy = Math.max(H0 * 0.44 - IH * s * 0.55, topY + avail / 2 - IH * s * 0.55);
+    }
     else {
       // the frame is drawn 4 % larger than the screen, so a strip of the real room always waits beyond each edge
       // (the rubber band at the ends of the row slides it in, no zoom needed)
