@@ -202,7 +202,7 @@
         <div class="kf-cols">
           ${col('buy', f0.buy, [NAV[0], NAV[1], NAV[4]].map(a).join(''))}
           ${col('co', f0.co, [NAV[2], NAV[3], NAV[5]].map(a).join(''))}
-          ${col('visit', f0.visit, `<span>C/ Floridablanca 68</span><span>08015 Barcelona</span><a href="${MAPS}" target="_blank" rel="noopener noreferrer">${f0.route} ↗</a><button type="button" data-soon-msg="${f0.soonW}">${f0.wa}</button>`)}
+          ${col('visit', f0.visit, `<span>C/ Floridablanca 68</span><span>08015 Barcelona</span><a href="${MAPS}" target="_blank" rel="noopener noreferrer">${f0.route} ↗</a><a href="tel:+34602520978">+34 602 520 978</a><a href="https://wa.me/34602520978" target="_blank" rel="noopener">${f0.wa} ↗</a><a href="mailto:info@karatsauto.es">info@karatsauto.es</a>`)}
           ${col('legal', f0.legal, LEGAL.map(a).join('') + `<button type="button" data-cookies>${t('prefs')}</button>`)}
         </div>
         <div class="kf-bottom"><p>Copyright © ${new Date().getFullYear()} KARATS AUTO, S.L. ${f0.copy} · NIF B05735238</p><nav class="kf-lang" aria-label="Idioma">${langs}</nav></div></div>`;
@@ -224,7 +224,7 @@
     .kf-list a,.kf-list button,.kf-list span{display:block;color:#5e625d;text-decoration:none;background:none;border:0;padding:6px 0 6px 12px;font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
     .kf-col.open .kf-list>div{padding-bottom:10px}
     .kf-list span{cursor:default}
-    .kf-list a:hover,.kf-list button:hover{color:#1d211e;text-decoration:underline}
+    @media (hover:hover){.kf-list a:hover,.kf-list button:hover{color:#1d211e;text-decoration:underline}}
     .kf-bottom{display:flex;flex-direction:column;gap:10px;padding-top:14px}
     .kf-bottom p{font-size:12px;color:#7a7e78}
     .kf-lang{display:flex;gap:4px}

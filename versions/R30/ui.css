@@ -30,6 +30,7 @@ button:focus-visible, a:focus-visible { outline:2px solid var(--acc); outline-of
 .gbtn:active { transform:scale(.92); }
 .gbtn svg { width:20px; height:20px; position:relative; z-index:1; }
 
+a.gbtn, a.btn { color:var(--ink); text-decoration:none; -webkit-tap-highlight-color:transparent; }
 /* pill buttons */
 .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:52px; padding:0 22px; border-radius:26px; border:0; cursor:pointer;
        font-weight:600; letter-spacing:.01em; text-decoration:none; transition:transform .35s var(--spring), background .2s; white-space:nowrap; }

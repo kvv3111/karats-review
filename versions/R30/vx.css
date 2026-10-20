@@ -123,3 +123,7 @@
 .px-rb svg { width:27px; height:27px; } .px-rb.g { background:#1f8f55; color:#fff; box-shadow:0 10px 24px rgba(31,143,85,.28); }
 .px-round:active .px-rb { transform:scale(.92); }
 @media (min-width:760px) { .px-hero { margin:22px 0 0; border-radius:var(--r-xl); } .px-steps { display:grid; grid-template-columns:repeat(4,1fr); overflow:visible; margin:0; padding:4px 0 10px; } .px-st { width:auto; } .px-dots { display:none; } .px-go { width:auto; } }
+
+a.px-round { text-decoration:none; }
+.px-reach { display:flex; flex-direction:column; align-items:center; gap:6px; margin:18px 0 0; font-size:15px; }
+.px-reach a { color:var(--ink); font-weight:600; text-decoration:none; font-variant-numeric:tabular-nums; }
