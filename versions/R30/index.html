@@ -590,12 +590,16 @@
   function ui() {
     const c = CARS[idx];
     $("count").innerHTML = `${String(idx + 1).padStart(2, "0")} <span>/ ${String(CARS.length).padStart(2, "0")}</span>`;
-    $("name").textContent = c.name;
-    const nb = t => String(t).replace(/ /g, "\u00a0");
-    $("meta").innerHTML = `${c.year} · ${nb(c.km)} · <span class="price">${nb(c.price)}</span>`;
+    // the caption keeps the car it describes while it fades out; the next car's name is written only on arrival
+    if (!$("info").classList.contains("away")) uiText();
     $("prev").disabled = idx === 0; $("next").disabled = idx === CARS.length - 1;
   }
-  function setAway(a) { $("info").classList.toggle("away", a); $("more").classList.toggle("away", a); }
+  function uiText() {
+    const c = CARS[idx], nb = t => String(t).replace(/ /g, "\u00a0");
+    $("name").textContent = c.name;
+    $("meta").innerHTML = `${c.year} · ${nb(c.km)} · <span class="price">${nb(c.price)}</span>`;
+  }
+  function setAway(a) { if (!a) uiText(); $("info").classList.toggle("away", a); $("more").classList.toggle("away", a); }
   const nearestCar = p => { let b = 0; CARS.forEach((c, k) => { if (Math.abs(c.stop - p) < Math.abs(CARS[b].stop - p)) b = k; }); return b; };
 
   // ---------- rubber band: at the end of the row the hall gives a little and springs back ----------
@@ -650,7 +654,7 @@
       i = Math.max(0, Math.min(CARS.length - 1, i));
     }
     const to = CARS[i].stop, my = ++seq;
-    idx = i; ui(); hideHint(); setAway(true);
+    idx = i; setAway(true); ui(); hideHint();
     if (to === pos && mode !== "follow") { mode = "idle"; arrive(my); return; }
     { const cur = active(); if (cur) pos = posOf(cur); }
     const from = Math.round(pos), dir = to > from ? "f" : "r";
