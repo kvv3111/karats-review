@@ -83,6 +83,9 @@
   .slide.zoom { touch-action:none; }
   .slide img { max-width:100%; max-height:100%; transform-origin:0 0; will-change:transform; user-select:none; -webkit-user-drag:none; transition:transform .38s var(--spring); }
   .slide img.live { transition:none; }
+  @media (prefers-reduced-motion: reduce) {
+    #viewer, .slide img, .vcap, .vthumbs, .vthumbs button, .strip button, .ocar, .topbar::before { transition:none !important; }
+  }
   .vtop { position:absolute; z-index:3; top:0; left:0; right:0; padding:calc(10px + env(safe-area-inset-top)) 12px; display:flex; justify-content:space-between; align-items:center; pointer-events:none; }
   .vtop > * { pointer-events:auto; }
   .vcount { height:36px; padding:0 14px; border-radius:18px; display:flex; align-items:center; font-weight:600; font-size:13.5px; font-variant-numeric:tabular-nums; }
@@ -241,7 +244,7 @@
     cur = k; $("vcount").textContent = `${k + 1} / ${SH.length}`; $("vcap").textContent = SH[k][1];
     thumbs.forEach((b, i) => b.classList.toggle("on", i === k));
     if (embeddedGallery) parent.postMessage({type:"karats:gallery-shot",shot:SH[k][0]},location.origin);
-    if (!embeddedGallery && history.state && history.state.viewer) history.replaceState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]); thumbs[k].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    if (!embeddedGallery && history.state && history.state.viewer) history.replaceState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]); thumbs[k].scrollIntoView({ block: "nearest", inline: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
     [k - 1, k, k + 1].forEach(load);
   }
   let base = location.pathname + location.search;
@@ -275,7 +278,7 @@
       open(Math.max(0, k));
     } else hide();
   });
-  const go = k => { k = Math.max(0, Math.min(SH.length - 1, k)); resetZoom(); T.scrollTo({ left: k * T.clientWidth, behavior: "smooth" }); };
+  const go = k => { k = Math.max(0, Math.min(SH.length - 1, k)); resetZoom(); T.scrollTo({ left: k * T.clientWidth, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" }); };
   T.addEventListener("scroll", () => { const k = Math.round(T.scrollLeft / T.clientWidth); if (k !== cur) setCur(k); }, { passive: true });
   $("strip").addEventListener("wheel", e => {
     const s = $("strip"), d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : 0; if (!d) return;
