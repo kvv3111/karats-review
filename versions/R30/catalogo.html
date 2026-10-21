@@ -25,6 +25,7 @@
 @media (prefers-reduced-motion:no-preference) { .cfav.on svg { animation:cfpop .45s var(--spring); } }
 @keyframes cfpop { 0% { transform:scale(.6) } 60% { transform:scale(1.2) } 100% { transform:none } }
 </style>
+<style>[data-demo-notice]{font-size:13px;line-height:1.4;color:#253e32;background:#f1f4ed;border:1px solid #b7c6b8;border-radius:12px;padding:10px 14px;margin:14px 0;}</style>
 </head>
 <body class="page">
 <div class="ptop">
@@ -36,7 +37,7 @@
   <header class="phead">
     <span class="kick">KARATS AUTO</span>
     <h1 data-t-es="Coches" data-t-en="Cars" data-t-ru="Автомобили" data-t-ca="Cotxes">Coches</h1>
-    <p class="lead" data-t-es="Todos los coches que tenemos ahora. Precio final, IVA y transferencia incluidos." data-t-en="Every car we have right now. Final price, VAT and ownership transfer included." data-t-ru="Все машины, которые есть сейчас. Цена окончательная, НДС и переоформление включены." data-t-ca="Tots els cotxes que tenim ara. Preu final, IVA i transferència inclosos.">Todos los coches que tenemos ahora. Precio final, IVA y transferencia incluidos.</p>
+    <p data-demo-notice translate="no" data-t-es="Catálogo de demostración. Coches, imágenes y precios de ejemplo; no están a la venta." data-t-ca="Catàleg de demostració. Cotxes, imatges i preus d’exemple; no estan a la venda." data-t-en="Demo catalogue. The cars, images and prices are examples, not vehicles offered for sale." data-t-ru="Демонстрационный каталог. Автомобили, изображения и цены приведены для примера. Эти машины не продаются.">Catálogo de demostración. Coches, imágenes y precios de ejemplo; no están a la venta.</p>
   </header>
 
   <div class="cbar lg" id="cbar">
@@ -60,9 +61,9 @@
   <p class="cnote" id="note"></p>
 </div>
 <footer data-footer></footer>
-<script src="cars.js?v=r31"></script>
-<script src="i18n.js?v=r35"></script>
-<script src="site.js?v=r38"></script>
+<script src="cars.js?v=legal-20261021"></script>
+<script src="i18n.js?v=legal-20261021"></script>
+<script src="site.js?v=legal-20261021"></script>
 <script src="nav.js?v=r38"></script>
 <script src="kx.js?v=r37"></script>
 <script>
@@ -73,23 +74,23 @@
   const T = {
     es: { search:'Buscar marca o modelo', filters:'Filtros', brand:'Marca', fuel:'Combustible', gear:'Cambio', price:'Precio hasta', km:'Kilómetros hasta',
           reset:'Quitar filtros', any:'Sin límite', sort:'Ordenar', s0:'Recomendados', s1:'Precio: de menor a mayor', s2:'Precio: de mayor a menor', s3:'Menos kilómetros', s4:'Más nuevos',
-          n:k => k === 1 ? '1 coche' : `${k} coches`, empty:'No hay coches con estos filtros.', fav:'Favoritos', favA:'Guardar en favoritos', favEmpty:'Aún no tienes favoritos. Toca ♥ en un coche para guardarlo.', vat:'IVA incl.',
+          n:k => k === 1 ? '1 coche' : `${k} coches`, empty:'No hay coches con estos filtros.', fav:'Favoritos', favA:'Guardar en favoritos', favEmpty:'Aún no tienes favoritos. Toca ♥ en un coche para guardarlo.', vat:'Ejemplo',
           fuels:{ gas:'Gasolina', die:'Diésel', hyb:'Híbrido', ele:'Eléctrico' }, gears:{ a:'Automático', m:'Manual' },
           note:'Datos y fotos de ejemplo mientras preparamos la web. No es una oferta de venta.' },
     en: { search:'Search make or model', filters:'Filters', brand:'Make', fuel:'Fuel', gear:'Transmission', price:'Max price', km:'Max mileage',
           reset:'Clear filters', any:'Any', sort:'Sort', s0:'Recommended', s1:'Price: low to high', s2:'Price: high to low', s3:'Lowest mileage', s4:'Newest',
-          n:k => k === 1 ? '1 car' : `${k} cars`, empty:'No cars match these filters.', fav:'Favourites', favA:'Save to favourites', favEmpty:'No favourites yet. Tap ♥ on a car to save it.', vat:'VAT incl.',
+          n:k => k === 1 ? '1 car' : `${k} cars`, empty:'No cars match these filters.', fav:'Favourites', favA:'Save to favourites', favEmpty:'No favourites yet. Tap ♥ on a car to save it.', vat:'Example',
           fuels:{ gas:'Petrol', die:'Diesel', hyb:'Hybrid', ele:'Electric' }, gears:{ a:'Automatic', m:'Manual' },
           note:'Sample data and photos while we prepare the site. Not an offer for sale.' },
     ca: { search:'Cerca marca o model', filters:'Filtres', brand:'Marca', fuel:'Combustible', gear:'Canvi', price:'Preu fins a', km:'Quilòmetres fins a',
           reset:'Treure els filtres', any:'Sense límit', sort:'Ordenar', s0:'Recomanats', s1:'Preu: de més baix a més alt', s2:'Preu: de més alt a més baix', s3:'Menys quilòmetres', s4:'Més nous',
-          n:k => k === 1 ? '1 cotxe' : `${k} cotxes`, empty:'No hi ha cotxes amb aquests filtres.', fav:'Preferits', favA:'Desar a preferits', favEmpty:'Encara no tens preferits. Toca ♥ en un cotxe per desar-lo.', vat:'IVA incl.',
+          n:k => k === 1 ? '1 cotxe' : `${k} cotxes`, empty:'No hi ha cotxes amb aquests filtres.', fav:'Preferits', favA:'Desar a preferits', favEmpty:'Encara no tens preferits. Toca ♥ en un cotxe per desar-lo.', vat:'Exemple',
           fuels:{ gas:'Gasolina', die:'Dièsel', hyb:'Híbrid', ele:'Elèctric' }, gears:{ a:'Automàtic', m:'Manual' },
           note:'Dades i fotos d’exemple mentre preparem el web. No és una oferta de venda.' },
     ru: { search:'Марка или модель', filters:'Фильтры', brand:'Марка', fuel:'Топливо', gear:'Коробка', price:'Цена до', km:'Пробег до',
           reset:'Сбросить фильтры', any:'Без ограничений', sort:'Сортировка', s0:'Рекомендуемые', s1:'Сначала дешевле', s2:'Сначала дороже', s3:'Меньше пробег', s4:'Новее',
           n:k => { const m10 = k % 10, m100 = k % 100; return `${k} ` + (m10 === 1 && m100 !== 11 ? 'автомобиль' : m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14) ? 'автомобиля' : 'автомобилей'); },
-          empty:'Нет машин с такими фильтрами.', fav:'Избранное', favA:'В избранное', favEmpty:'В избранном пока пусто. Нажмите ♥ на машине, чтобы сохранить.', vat:'НДС вкл.',
+          empty:'Нет машин с такими фильтрами.', fav:'Избранное', favA:'В избранное', favEmpty:'В избранном пока пусто. Нажмите ♥ на машине, чтобы сохранить.', vat:'Пример',
           fuels:{ gas:'Бензин', die:'Дизель', hyb:'Гибрид', ele:'Электро' }, gears:{ a:'Автомат', m:'Механика' },
           note:'Пока сайт готовится, данные и фото демонстрационные. Это не предложение о продаже.' }
   };

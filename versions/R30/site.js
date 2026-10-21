@@ -4,34 +4,36 @@
    <script type="text/plain" data-consent="analytics|marketing" data-src="..."> and run only after "accept". */
 (() => {
   'use strict';
-  const KEY = 'karats.consent', VERSION = 1, MAX_AGE = 365 * 864e5;   // ask again after 12 months
+  const KEY = 'karats.consent', VERSION = 2, MAX_AGE = 365 * 864e5;   // ask again after 12 months
+  // No optional vendors are active. Adding one requires new disclosures and a new consent version.
+  const AVAILABLE = Object.freeze({ analytics: false, marketing: false });
   const lang = () => (window.KLang && KLang.language) || 'es';
   const T = {
-    es: { title: 'Cookies', text: 'Usamos solo lo necesario para que la web funcione y recuerde tu idioma. Las cookies de análisis o publicidad solo se activan si las aceptas. Puedes cambiar tu elección cuando quieras en «Configurar cookies», en el menú o al pie de cada página.',
+    es: { title: 'Cookies', text: 'Solo guardamos el idioma que eliges, tus favoritos y la decisión de este panel. No hay cookies de análisis ni de publicidad. Aceptar no autoriza nuevos usos. Puedes cambiar tu elección en «Configurar cookies».',
           more: 'Política de cookies', accept: 'Aceptar', reject: 'Rechazar', config: 'Configurar',
           prefs: 'Configurar cookies', save: 'Guardar selección', acceptAll: 'Aceptar todas', rejectAll: 'Rechazar todas', close: 'Cerrar',
-          nec: 'Necesarias', necD: 'Idioma elegido y tu decisión sobre cookies. Sin ellas la web no recuerda tus ajustes. Siempre activas.',
+          nec: 'Necesarias', necD: 'Idioma, favoritos que guardas con ♥ y tu elección en este panel. No se usan para seguirte ni mostrar publicidad.',
           ana: 'Análisis', anaD: 'Estadísticas de visitas para mejorar la web. Ahora mismo no usamos ninguna herramienta de este tipo.',
           mkt: 'Publicidad', mktD: 'Medir anuncios y mostrar publicidad relevante. Ahora mismo no usamos ninguna.',
           always: 'Siempre activas', saved: 'Preferencias guardadas' },
-    en: { title: 'Cookies', text: 'We only use what the site needs to work and to remember your language. Analytics or advertising cookies are switched on only if you accept them. You can change your choice at any time under “Cookie settings”, in the menu or at the bottom of every page.',
+    en: { title: 'Cookies', text: 'We only store your chosen language, saved favourites and the choice in this panel. There are no analytics or advertising cookies. Accepting does not permit new uses. You can change your choice in “Cookie settings”.',
           more: 'Cookie policy', accept: 'Accept', reject: 'Reject', config: 'Settings',
           prefs: 'Cookie settings', save: 'Save choice', acceptAll: 'Accept all', rejectAll: 'Reject all', close: 'Close',
-          nec: 'Necessary', necD: 'Your chosen language and your cookie decision. Without them the site cannot remember your settings. Always on.',
+          nec: 'Necessary', necD: 'Your language, cars saved with ♥ and your choice in this panel. Not used to track you or show ads.',
           ana: 'Analytics', anaD: 'Visit statistics to improve the site. We do not use any such tool at the moment.',
           mkt: 'Advertising', mktD: 'Ad measurement and relevant ads. We do not use any at the moment.',
           always: 'Always on', saved: 'Preferences saved' },
-    ca: { title: 'Cookies', text: 'Només fem servir el que cal perquè el web funcioni i recordi el teu idioma. Les cookies d’anàlisi o de publicitat només s’activen si les acceptes. Pots canviar la teva decisió quan vulguis a «Configurar les cookies», al menú o al peu de cada pàgina.',
+    ca: { title: 'Cookies', text: 'Només desem l’idioma que tries, els preferits i la decisió d’aquest panell. No hi ha cookies d’anàlisi ni de publicitat. Acceptar no autoritza usos nous. Pots canviar l’elecció a «Configurar les cookies».',
           more: 'Política de cookies', accept: 'Acceptar', reject: 'Rebutjar', config: 'Configurar',
           prefs: 'Configurar les cookies', save: 'Desar la selecció', acceptAll: 'Acceptar-les totes', rejectAll: 'Rebutjar-les totes', close: 'Tancar',
-          nec: 'Necessàries', necD: 'L’idioma triat i la teva decisió sobre les cookies. Sense aquestes dades, el web no recorda la configuració. Sempre actives.',
+          nec: 'Necessàries', necD: 'Idioma, preferits que deses amb ♥ i la teva elecció en aquest panell. No es fan servir per seguir-te ni mostrar publicitat.',
           ana: 'Anàlisi', anaD: 'Estadístiques de visites per millorar el web. Ara mateix no fem servir cap eina d’aquest tipus.',
           mkt: 'Publicitat', mktD: 'Mesurar anuncis i mostrar publicitat rellevant. Ara mateix no en fem servir cap.',
           always: 'Sempre actives', saved: 'Preferències desades' },
-    ru: { title: 'Cookies', text: 'Мы используем только то, без чего сайт не работает и не помнит выбранный язык. Аналитика и реклама включаются, только если вы согласитесь. Изменить решение можно в любой момент: «Настройки cookies» в меню или внизу каждой страницы.',
+    ru: { title: 'Cookies', text: 'Сохраняем выбранный язык, избранное и решение в этой панели. Аналитических и рекламных cookies нет. Нажатие «Принять» не разрешает новые способы использования. Изменить выбор можно в «Настройках cookies».',
           more: 'Политика cookies', accept: 'Принять', reject: 'Отклонить', config: 'Настроить',
           prefs: 'Настройки cookies', save: 'Сохранить выбор', acceptAll: 'Принять все', rejectAll: 'Отклонить все', close: 'Закрыть',
-          nec: 'Необходимые', necD: 'Выбранный язык и ваше решение по cookies. Без них сайт не запомнит настройки. Включены всегда.',
+          nec: 'Необходимые', necD: 'Язык, машины, сохранённые через ♥, и выбор в этой панели. Не используются для отслеживания или рекламы.',
           ana: 'Аналитика', anaD: 'Статистика посещений, чтобы улучшать сайт. Сейчас таких инструментов у нас нет.',
           mkt: 'Реклама', mktD: 'Измерение рекламы и показ релевантных объявлений. Сейчас не используем.',
           always: 'Всегда включены', saved: 'Настройки сохранены' }
@@ -47,7 +49,7 @@
   }
   let state = read();
   function write(analytics, marketing) {
-    state = { v: VERSION, ts: Date.now(), necessary: true, analytics: !!analytics, marketing: !!marketing };
+    state = { v: VERSION, ts: Date.now(), necessary: true, analytics: !!analytics && AVAILABLE.analytics, marketing: !!marketing && AVAILABLE.marketing };
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (_) {}
     activate(); dispatchEvent(new CustomEvent('karats:consent', { detail: state }));
   }
@@ -55,7 +57,7 @@
   function activate() {
     if (!state) return;
     document.querySelectorAll('script[type="text/plain"][data-consent]').forEach(s => {
-      if (!state[s.dataset.consent] || s.dataset.done) return;
+      if (!AVAILABLE[s.dataset.consent] || !state[s.dataset.consent] || s.dataset.done) return;
       s.dataset.done = '1'; const n = document.createElement('script');
       if (s.dataset.src) n.src = s.dataset.src; else n.textContent = s.textContent;
       document.head.appendChild(n);
@@ -119,8 +121,8 @@
       <h2 id="kc-h">${t('prefs')}</h2><p style="color:var(--soft,#6b716c)">${t('text')} <a href="${policy()}" style="color:var(--acc,#304c40)">${t('more')}</a></p>
       <div style="margin-top:12px">
         <div class="kc-cat"><div><b>${t('nec')}</b><small>${t('necD')}</small></div>${sw('necessary', true, true)}</div>
-        <div class="kc-cat"><div><b>${t('ana')}</b><small>${t('anaD')}</small></div>${sw('analytics', draft.analytics)}</div>
-        <div class="kc-cat"><div><b>${t('mkt')}</b><small>${t('mktD')}</small></div>${sw('marketing', draft.marketing)}</div>
+        <div class="kc-cat"><div><b>${t('ana')}</b><small>${t('anaD')}</small></div>${sw('analytics', draft.analytics, !AVAILABLE.analytics)}</div>
+        <div class="kc-cat"><div><b>${t('mkt')}</b><small>${t('mktD')}</small></div>${sw('marketing', draft.marketing, !AVAILABLE.marketing)}</div>
       </div>
       <div class="kc-row"><button type="button" class="btn kc-eq" data-a="rejectAll">${t('rejectAll')}</button><button type="button" class="btn kc-eq" data-a="acceptAll">${t('acceptAll')}</button></div>
       <div class="kc-row" style="margin-top:8px"><button type="button" class="btn kc-sec" data-a="save">${t('save')}</button></div></div>`;
@@ -141,7 +143,7 @@
     build(); lastFocus = document.activeElement;
     draft = { analytics: !!(state && state.analytics), marketing: !!(state && state.marketing) };
     renderPrefs(); dlg.classList.add('on');
-    setTimeout(() => { const f = dlg.querySelector('.kc-sw:not(:disabled)'); f && f.focus({ preventScroll: true }); }, 30);
+    setTimeout(() => { const f = dlg.querySelector('.kc-sw:not(:disabled),.kc-x'); f && f.focus({ preventScroll: true }); }, 30);
   }
   function closePrefs() {
     if (!dlg || !dlg.classList.contains('on')) return;
@@ -180,13 +182,13 @@
     ['cookies.html', 'Política de cookies', 'Cookie policy', 'Политика cookies', 'Política de cookies']
   ];
   const FT = {
-    es: { note: 'Precio final con IVA y cambio de titular incluidos. Fotos y datos de ejemplo hasta que publiquemos el stock real.', buy: 'Comprar', co: 'KARATS AUTO', visit: 'Visítanos', legal: 'Legal',
+    es: { note: 'Catálogo de demostración. Coches, imágenes y precios de ejemplo; no están a la venta.', buy: 'Comprar', co: 'KARATS AUTO', visit: 'Domicilio social', legal: 'Legal',
           route: 'Cómo llegar', wa: 'WhatsApp', soonW: 'WhatsApp · número pendiente', copy: 'Todos los derechos reservados.', fav: 'Favoritos' },
-    en: { note: 'Final price with VAT and ownership transfer included. Sample photos and data until we publish the real stock.', buy: 'Buy', co: 'KARATS AUTO', visit: 'Visit us', legal: 'Legal',
+    en: { note: 'Demo catalogue. The cars, images and prices are examples, not vehicles offered for sale.', buy: 'Buy', co: 'KARATS AUTO', visit: 'Registered office', legal: 'Legal',
           route: 'Get directions', wa: 'WhatsApp', soonW: 'WhatsApp · number coming soon', copy: 'All rights reserved.', fav: 'Favourites' },
-    ru: { note: 'Итоговая цена с НДС и переоформлением. Фото и данные примерные, пока не опубликуем реальный сток.', buy: 'Покупка', co: 'KARATS AUTO', visit: 'Где мы', legal: 'Правовая информация',
+    ru: { note: 'Демонстрационный каталог. Автомобили, изображения и цены приведены для примера. Эти машины не продаются.', buy: 'Покупка', co: 'KARATS AUTO', visit: 'Юридический адрес', legal: 'Правовая информация',
           route: 'Как добраться', wa: 'WhatsApp', soonW: 'WhatsApp · номер скоро появится', copy: 'Все права защищены.', fav: 'Избранное' },
-    ca: { note: 'Preu final amb IVA i canvi de titular inclosos. Fotos i dades d’exemple fins que publiquem l’estoc real.', buy: 'Comprar', co: 'KARATS AUTO', visit: 'Visita’ns', legal: 'Legal',
+    ca: { note: 'Catàleg de demostració. Cotxes, imatges i preus d’exemple; no estan a la venda.', buy: 'Comprar', co: 'KARATS AUTO', visit: 'Domicili social', legal: 'Legal',
           route: 'Com arribar-hi', wa: 'WhatsApp', soonW: 'WhatsApp · número pendent', copy: 'Tots els drets reservats.', fav: 'Preferits' },
   };
   const MAPS = 'https://www.google.com/maps/search/?api=1&query=Carrer+de+Floridablanca+68,+08015+Barcelona';

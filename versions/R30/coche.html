@@ -120,6 +120,7 @@
 @media (min-width:760px) { .ocars { margin:12px 0 0; padding:2px 0 10px; display:grid; grid-template-columns:repeat(4,1fr); overflow:visible; } .ocar { width:auto; } }
 [aria-label="Guardar"].saved svg path, .sfav.saved svg path { fill:#c8463b; stroke:#c8463b; }
 </style>
+<style>[data-demo-notice]{font-size:13px;line-height:1.4;color:#253e32;background:#f1f4ed;border:1px solid #b7c6b8;border-radius:12px;padding:10px 14px;margin:14px 0;}</style>
 </head>
 <body>
 <div class="topbar">
@@ -133,6 +134,7 @@
 </div>
 <div class="hero" id="hero"><img id="heroImg" alt=""></div>
 <main>
+<p data-demo-notice translate="no" data-t-es="Catálogo de demostración. Coches, imágenes y precios de ejemplo; no están a la venta." data-t-ca="Catàleg de demostració. Cotxes, imatges i preus d’exemple; no estan a la venda." data-t-en="Demo catalogue. The cars, images and prices are examples, not vehicles offered for sale." data-t-ru="Демонстрационный каталог. Автомобили, изображения и цены приведены для примера. Эти машины не продаются.">Catálogo de demostración. Coches, imágenes y precios de ejemplo; no están a la venta.</p>
   <div class="head lg">
     <span class="demo-tag">Datos de ejemplo</span>
     <h1 id="title"></h1><div class="trim" id="trim"></div>
@@ -144,11 +146,11 @@
 
   <section><h2>Datos principales</h2><div class="specs" id="specs"></div></section>
   <section><h2>Equipamiento destacado</h2><div class="equip" id="equip"></div></section>
-  <section><h2>Incluido con KARATS AUTO</h2><div class="perks">
-    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><b>Garantía 12 meses</b><small>Ampliable a 36</small></div>
-    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11l2 2 4-4"/></svg><b>Revisión 150 puntos</b><small>Informe en la entrega</small></div>
-    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><b>Transferencia incluida</b><small>Gestión DGT por nuestra cuenta</small></div>
-    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><b>Entrega en toda España</b><small>O recógelo en Barcelona</small></div>
+  <section><h2>Antes de comprar</h2><div class="perks">
+    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><b>Garantía legal</b><small>Consulta tus derechos</small></div>
+    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11l2 2 4-4"/></svg><b>Estado del coche</b><small>Consulta la documentación</small></div>
+    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><b>Cambio de titular</b><small>Condiciones antes de firmar</small></div>
+    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><b>Entrega del vehículo</b><small>Lugar, plazo y coste acordados</small></div>
   </div></section>
   <section class="others" translate="no"><h2 id="oTitle">Otros coches</h2><div class="ocars" id="ocars"></div></section>
   <p class="note">Maqueta: fotos y datos de ejemplo. Las fotos reales se añaden después.</p>
@@ -336,8 +338,8 @@
   others(); addEventListener("karats:language", others);
 })();
 </script>
-<script src="i18n.js?v=r35"></script>
-<script src="site.js?v=r38"></script>
+<script src="i18n.js?v=legal-20261021"></script>
+<script src="site.js?v=legal-20261021"></script>
 <script src="nav.js?v=r38"></script>
 <script src="kx.js?v=r37"></script>
 </body>
