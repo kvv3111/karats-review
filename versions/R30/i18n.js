@@ -67,7 +67,7 @@
   const stored = () => { try { return localStorage.getItem(KEY); } catch (_) { return null; } };
   const requested = new URL(location.href).searchParams.get('lang');
   const back = performance.getEntriesByType('navigation')[0]?.type === 'back_forward';
-  let lang = (back && LANGS.includes(stored()) ? stored() : LANGS.includes(requested) ? requested : stored()) || 'es';
+  let lang = window.KInitialLanguage || (back && LANGS.includes(stored()) ? stored() : LANGS.includes(requested) ? requested : stored()) || 'es';
   if (!LANGS.includes(lang)) lang = 'es';
   const memory = new WeakMap();
   function translate(raw) {

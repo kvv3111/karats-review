@@ -1,6 +1,18 @@
 <!doctype html>
 <html lang="es">
 <head>
+<script>
+(() => {
+  const root = document.documentElement;
+  root.classList.add('room-boot');
+  const release = () => root.classList.remove('room-boot');
+  // Never leave the scene hidden if a later startup script fails.
+  const timer = setTimeout(release, 2000);
+  addEventListener('DOMContentLoaded', () => { clearTimeout(timer); release(); }, {once:true});
+})();
+</script>
+<style>html.room-boot #stage,html.room-boot .bar,html.room-boot .side,html.room-boot .track,html.room-boot .hint{visibility:hidden}</style>
+<script src="locale-init.js?v=precision-1"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="only light">
@@ -732,7 +744,7 @@
     if (mode === "idle" && frameAt(restSrc, Math.round(pos))) { paint(restSrc); return; }   // keep the video's pixels
     let im = stills[nearestStopFrame()];
     if (!im) im = loadStill(CARS[idx]);
-    if (!im.complete || !im.naturalWidth) return;
+    if (!im.complete || !im.naturalWidth) { ctx.fillStyle = BG; ctx.fillRect(0, 0, cv.width, cv.height); return; }
     const W = cv.width, H = cv.height, d = view.dpr;
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
     ctx.imageSmoothingQuality = "high";
@@ -1289,13 +1301,15 @@
   pump();
   addEventListener("resize", () => { if (isPortrait() !== small) location.reload(); else resize(); });
   if (document.fonts) document.fonts.ready.then(() => resize());           // the wordmark is centred by its width in Jost
-  resize(); ui(); requestAnimationFrame(tick);
+  ui(); resize();
+  addEventListener("karats:language", () => { resize(); document.documentElement.classList.remove("room-boot"); });
+  requestAnimationFrame(tick);
   window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown: shownEl ? (cOf(shownEl).dir === "f" ? "vf" : "vr") : "still",
                             disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, rubberZ: Math.round(rubberZ * 1000) / 1000, rubber: !!rubberOn,
                             vis: +cv.style.opacity > 0.9 || !shownEl ? cvFrame : nOf(shownEl, shownEl.currentTime) });
 })();
 </script>
-<script src="i18n.js?v=seo-20261021"></script>
+<script src="i18n.js?v=precision-1"></script>
 <script src="site.js?v=legal-20261021"></script>
 <script src="kx.js?v=r37"></script>
 <script src="showroom-gallery.js?v=3"></script>
