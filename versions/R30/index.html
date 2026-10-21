@@ -29,8 +29,9 @@
   .top { position:fixed; top:0; left:0; right:0; padding:calc(var(--tp, 16px) + env(safe-area-inset-top)) 26px 26px; display:flex; justify-content:space-between; align-items:center; pointer-events:none; }
   .brand { font-family:Jost,sans-serif; font-weight:400; letter-spacing:.34em; font-size:var(--bf, 20px); transform:translateX(var(--bx, 0px)); line-height:1.1; }
   .brand { display:inline-block; text-align:center; }
+  html.wall .brand { line-height:1; }
   .brand span { margin-right:-.34em; }                         /* letter-spacing adds space after the last letter: cancel it so both lines centre */
-  .brand small { display:block; font-size:.38em; letter-spacing:.9em; margin-right:-.9em; color:var(--soft); margin-top:.5em; }
+  .brand small { display:block; font-size:.42em; font-weight:500; letter-spacing:.9em; margin-right:-.9em; color:#4f544e; margin-top:.35em; line-height:1; }
   .count { font-family:Jost,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:.12em; color:var(--ink); font-size:14px; }
   .count span { color:var(--soft); }
   .side { position:fixed; top:50%; transform:translateY(-50%); width:56px; height:56px; border-radius:50%; border:1px solid rgba(29,33,30,.14);
@@ -567,22 +568,27 @@
     }
     view = { s, ox, oy, dpr, portrait };
     const R = document.documentElement.style;
-    document.documentElement.classList.remove("haze");
+    document.documentElement.classList.remove("haze", "wall");
     if (portrait) { R.removeProperty("--tp"); R.removeProperty("--bf"); R.removeProperty("--bx"); R.removeProperty("--rs"); }
     else {
       // Frame geometry, the same at every stop: the wood panels start at y 251, the plaster above them is free up to y 178
       // (higher up the room's own KARATS AUTO lettering passes by at cars 3-4). The bar sits in that free band, the
       // wordmark centred on the left pillar (x 0-300), so nothing covers the wood or the lettering.
-      const top = Math.max(0, oy + 178 * s), bot = oy + 241 * s, av = bot - top, pl = Math.max(0, ox), pr = ox + 300 * s;   // 241: above the glow
-      if (s < 0.6 || av < 30 || pr - pl < 150) { document.documentElement.classList.add("haze"); R.removeProperty("--tp"); R.removeProperty("--bx"); R.removeProperty("--rs"); R.setProperty("--bf", Math.max(17, Math.min(30, W0 * 0.0155)) + "px"); }
+      const top = Math.max(0, oy + 178 * s), bot = oy + 243 * s, av = bot - top;   // 243: just above the cornice glow
+      const pl = Math.max(0, ox), pr = ox + 288 * s, ww = pr - pl;                   // visible wood slats
+      const br = document.querySelector(".brand"), f0 = parseFloat(getComputedStyle(br).fontSize) || 20;
+      const kh = br.offsetHeight / f0, kw = br.offsetWidth / f0;         // wordmark box per 1 px of font size (Jost)
+      if (av < 34 || ww < 120) { document.documentElement.classList.add("haze"); R.removeProperty("--tp"); R.removeProperty("--bx"); R.removeProperty("--rs"); R.setProperty("--bf", Math.max(17, Math.min(30, W0 * 0.0155)) + "px"); }
       else {
-        const bf = Math.max(15, Math.min(30, W0 * 0.0155, (pr - pl) * 0.1, (av - 10) / 1.75));
+        // as large as the plaster allows (the line box already carries the letters' own air), at most 80 % of the wood's width
+        document.documentElement.classList.add("wall");
+        const kh1 = br.offsetHeight / (parseFloat(getComputedStyle(br).fontSize) || 20);
+        const bf = Math.max(14, Math.min(40, (av - 10) / kh1, ww * 0.8 / kw));
         R.setProperty("--bf", bf.toFixed(1) + "px");
-        const mid = Math.max(top + av / 2, bf * 0.875 + 5);              // wordmark at least 5 px below the top edge
+        const mid = top + av / 2;
         R.setProperty("--tp", Math.round(mid - 22) + "px");
-        R.setProperty("--rs", Math.min(1, (av - 6) / 44).toFixed(3));
-        const bw = document.querySelector(".brand").offsetWidth;          // layout width: the transform does not change it
-        R.setProperty("--bx", Math.round(Math.max(0, (pl + pr) / 2 - bw / 2 - 26)) + "px");
+        R.setProperty("--rs", Math.min(1, (av - 8) / 44).toFixed(3));
+        R.setProperty("--bx", Math.round((pl + pr) / 2 - kw * bf / 2 - 26) + "px");   // may be negative: centre wins over the bar padding
       }
     }
     for (const v of loadedEls()) placeEl(v);
