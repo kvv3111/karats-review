@@ -17,6 +17,8 @@
   html,body { width:100%; max-width:100%; height:100%; background:#efece6; color:var(--ink); font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; overflow:hidden; overscroll-behavior:none; }
   #stage { position:fixed; inset:0; overflow:hidden; background:#efece6; touch-action:none; }
   #stage.hot { cursor:pointer; }
+  #sceneStatus { position:absolute; z-index:5; left:50%; top:45%; transform:translate(-50%,-50%); max-width:85%; padding:14px 20px; border:1px solid rgba(29,33,30,.14); border-radius:22px; background:#fbfaf7; color:#304c40; font:inherit; text-align:center; cursor:pointer; }
+  #sceneStatus[hidden] { display:none; }
   #stage video { position:absolute; opacity:0; pointer-events:none; object-fit:fill; background:#efece6; }
   #c { position:absolute; left:0; top:0; width:100%; height:100%; display:block; pointer-events:none; z-index:3; }
   .fade { position:absolute; left:0; right:0; display:none; pointer-events:none; z-index:4; }
@@ -569,7 +571,7 @@
   const pre = small ? "m" : "d";
   const $ = id => document.getElementById(id);
   const cv = $("c"), ctx = cv.getContext("2d", { alpha: false });
-  const stills = {}; let view = { s: 1, ox: 0, oy: 0, dpr: 1, portrait: false };
+  const stills = {}, stillJobs = {}; let view = { s: 1, ox: 0, oy: 0, dpr: 1, portrait: false };
   const hashIdx = (() => { const m = /^#(\d)$/.exec(location.hash); return m ? Math.max(0, Math.min(CARS.length - 1, +m[1] - 1)) : 0; })();
   let pos = CARS[hashIdx].stop, idx = hashIdx, mode = "idle", hopTarget = null, shown = "still", follow = pos, lastT = 0, seq = 0;
   let noPlay = false;
@@ -683,11 +685,22 @@
   const posOf = v => { const c = cOf(v), k = Math.max(0, Math.min(SEG, v.currentTime * FPS - 0.5)); return Math.max(0, Math.min(N - 1, nOfLocal(c, k))); };
   const loadedEls = () => Object.values(clips).filter(c => c.el).map(c => c.el);
   const onFrame = (v, cb) => v.requestVideoFrameCallback ? v.requestVideoFrameCallback((now, m) => cb(m.mediaTime)) : requestAnimationFrame(() => cb(v.currentTime));
-  function seekLocal(v, k) {                                     // resolves when local frame k is decoded and on screen in v
+  function seekLocal(v, k) {                                     // decoded frame, with recovery when media events are lost
     return new Promise(res => {
-      if (Math.abs(kOfTime(v.currentTime) - k) < 0.5 && !v.seeking && v.readyState >= 2) return res();
-      const done = () => { v.removeEventListener("seeked", done); let fin = false; const f = () => { if (!fin) { fin = true; res(); } }; onFrame(v, f); setTimeout(f, 60); };
-      v.addEventListener("seeked", done); v.currentTime = tOfLocal(k);
+      const atFrame = () => Math.abs(kOfTime(v.currentTime) - k) < 0.5 && !v.seeking && v.readyState >= 2;
+      if (atFrame()) return res(true);
+      let finished = false, decoding = false, frameTimer;
+      const finish = ok => {
+        if (finished) return; finished = true; clearInterval(poll); clearTimeout(deadline); clearTimeout(frameTimer);
+        v.removeEventListener("seeked", check); res(ok);
+      };
+      const check = () => {
+        if (finished || decoding || !atFrame()) return;
+        decoding = true; const decoded = () => finish(atFrame()); onFrame(v, decoded); frameTimer = setTimeout(decoded, 60);
+      };
+      const poll = setInterval(check, 100), deadline = setTimeout(() => finish(false), 2000);
+      v.addEventListener("seeked", check);
+      try { v.currentTime = tOfLocal(k); } catch (e) { finish(false); }
     });
   }
   const seekTo = (v, n) => seekLocal(v, Math.max(0, Math.min(SEG, Math.round(localOf(cOf(v), n)))));
@@ -708,6 +721,7 @@
   let cvFrame = null;                                            // which frame the canvas shows (for tests)
   function paint(v) {
     cvFrame = nOf(v, v.currentTime);
+    sceneStatus.hidden = true;
     const d = view.dpr, sc = view.s;
     ctx.fillStyle = BG; ctx.fillRect(0, 0, cv.width, cv.height);
     ctx.drawImage(v, (view.ox + CROPX * sc) * d, view.oy * d, CW * sc * d, IH * sc * d);
@@ -718,12 +732,12 @@
     if (mode === "idle" && frameAt(restSrc, Math.round(pos))) { paint(restSrc); return; }   // keep the video's pixels
     let im = stills[nearestStopFrame()];
     if (!im) im = loadStill(CARS[idx]);
-    if (!im.complete) return;
+    if (!im.complete || !im.naturalWidth) return;
     const W = cv.width, H = cv.height, d = view.dpr;
     ctx.fillStyle = BG; ctx.fillRect(0, 0, W, H);
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(im, (view.ox + CROPX * view.s) * d, view.oy * d, im.naturalWidth * view.s * d, IH * view.s * d);
-    cvFrame = nearestStopFrame();
+    cvFrame = nearestStopFrame(); sceneStatus.hidden = true;
   }
   const nearestStopFrame = () => stills[Math.round(pos)] ? Math.round(pos) : CARS[idx].stop;   // where the camera IS, not where it is going
   // A video that was invisible needs a frame or two before the browser actually paints it: switching layers by
@@ -836,19 +850,23 @@
     const from = Math.round(pos), dir = to > from ? "f" : "r";
     if (to === from) { pauseAll(); switching = false; pos = to; mode = "idle"; arrive(my); return; }
     if (reduceMotion.matches) {                          // "Reduce Motion" on: no camera travel, a short cross-fade to the car
-      pauseAll(); const im = stills[to] || loadStill(CARS[i]);
-      if (!im.complete) await new Promise(r => { im.onload = im.onerror = r; }); if (my !== seq) return;
-      pos = to; drawStill(); cv.style.transition = "opacity .25s"; show(null); setTimeout(() => { cv.style.transition = ""; }, 300);
-      mode = "idle"; arrive(my); return;
+      await settleStill(i, my); return;
     }
+    loadStill(CARS[i]); // The target remains reachable even when video is unavailable.
     mode = "hop"; hopTarget = to; switching = false; pauseAll();
     const rate = Math.min(3, Math.max(1, Math.abs(to - from) / SEG * 0.85));
     let n = from;
     while (true) {
       const c = clipFor(n, dir);
-      if (!c.ready) { want(c); $("load").style.opacity = 1; await c.promise; if (my !== seq) return; }
+      if (!c.ready) {
+        want(c); $("load").style.opacity = 1;
+        const available = await bounded(c.promise.then(() => true), 4500, false);
+        if (my !== seq) return;
+        if (!available) { await settleStill(i, my); return; }
+      }
       const v = c.el, stopHere = dir === "f" ? Math.min(to, SEG * c.s + SEG) : Math.max(to, SEG * c.s);
-      await seekTo(v, n); if (my !== seq) return;
+      const sought = await seekTo(v, n); if (my !== seq) return;
+      if (!sought) { await settleStill(i, my); return; }
       show(v); v.playbackRate = rate;
       const reached = await playClip(v, c, stopHere, my);
       if (my !== seq || reached === null) return;
@@ -922,7 +940,7 @@
     if (!c.ready) { want(c); if (cur && !cur.paused) cur.pause(); return; }
     if (cur !== c.el) {                                  // other direction or next segment: line that clip up on this frame, then swap
       switching = true; if (cur) cur.pause(); const tok = seq;
-      seekTo(c.el, Math.round(pos)).then(() => { switching = false; if (tok === seq && mode === "follow") show(c.el); });
+      seekTo(c.el, Math.round(pos)).then(ok => { switching = false; if (tok === seq && mode === "follow") { if (ok) show(c.el); else go(nearestCar(follow)); } });
       return;
     }
     const rate = Math.max(0.35, Math.min(3, Math.abs(diff) / (FPS * 0.28)));
@@ -1138,24 +1156,90 @@
 
   // ---------- loading: the still of the car on screen, then the clips one by one, nearest transitions first ----------
   CARS.forEach((c, k) => { const d = document.createElement("i"); d.style.left = (k / (CARS.length - 1) * 100) + "%"; $("rail").insertBefore(d, $("thumb")); });
-  function loadStill(c) {
-    const im = new Image(); im.decoding = "async"; if ("fetchPriority" in im) im.fetchPriority = c === CARS[idx] ? "high" : "low";
-    im.onload = () => { if ((c.stop === Math.round(pos) || c.stop === CARS[idx].stop) && shown === "still") drawStill(); };
-    im.src = `${small ? "m" : "f"}/${String(c.still).padStart(3, "0")}.webp`; stills[c.stop] = im; return im;
+  const sceneStatus = document.createElement("button");
+  sceneStatus.id = "sceneStatus"; sceneStatus.type = "button"; sceneStatus.hidden = true;
+  sceneStatus.setAttribute("aria-live", "polite"); $("stage").appendChild(sceneStatus);
+  function showSceneStatus() {
+    const labels = { es: "No se ha podido cargar el showroom. Reintentar", ca: "No s’ha pogut carregar el showroom. Torna-ho a provar", en: "The showroom could not load. Try again", ru: "Не удалось загрузить шоурум. Повторить" };
+    sceneStatus.textContent = labels[document.documentElement.lang] || labels.es; sceneStatus.hidden = false;
   }
+  new MutationObserver(() => { if (!sceneStatus.hidden) showSceneStatus(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
+  function bounded(promise, ms, fallback) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => resolve(fallback), ms);
+      promise.then(v => { clearTimeout(timer); resolve(v); }, e => { clearTimeout(timer); reject(e); });
+    });
+  }
+  function loadStill(c) {
+    if (stillJobs[c.stop]) return stillJobs[c.stop].im;
+    const im = new Image(); im.decoding = "async"; if ("fetchPriority" in im) im.fetchPriority = c === CARS[idx] ? "high" : "low";
+    const job = stillJobs[c.stop] = { im, attempts: 0, timer: null, pending: false };
+    const base = `${small ? "m" : "f"}/${String(c.still).padStart(3, "0")}.webp`;
+    stills[c.stop] = im;
+    const fail = () => {
+      if (!job.pending) return;
+      job.pending = false; clearTimeout(job.timer);
+      if (c === CARS[idx] && cvFrame === null) showSceneStatus();
+      // A failed image is complete=true but has no pixels. Retry it, never draw it.
+      if (job.attempts < 5) job.timer = setTimeout(start, Math.min(10000, 600 * 2 ** (job.attempts - 1)));
+    };
+    const start = () => {
+      clearTimeout(job.timer); job.pending = true; job.attempts++;
+      job.timer = setTimeout(fail, 6000);
+      im.src = base + (job.attempts > 1 ? `?retry=${job.attempts}` : "");
+    };
+    job.restart = () => { if (!job.pending && !im.naturalWidth) { job.attempts = 0; start(); } };
+    im.onload = () => {
+      if (!im.naturalWidth) { fail(); return; }
+      job.pending = false; clearTimeout(job.timer); ready = true;
+      if ((c.stop === Math.round(pos) || c.stop === CARS[idx].stop) && shown === "still") drawStill();
+    };
+    im.onerror = fail; start(); return im;
+  }
+  function waitStill(c) {
+    const im = loadStill(c); if (im.complete && im.naturalWidth) return Promise.resolve(true);
+    stillJobs[c.stop].restart();
+    return new Promise(resolve => {
+      const done = () => { clearTimeout(timer); im.removeEventListener("load", done); resolve(!!im.naturalWidth); };
+      const timer = setTimeout(done, 5000); im.addEventListener("load", done);
+    });
+  }
+  async function settleStill(i, my) {
+    const ok = await waitStill(CARS[i]); if (my !== seq) return;
+    pauseAll(); switching = false;
+    if (!ok) { idx = nearestCar(pos); mode = "idle"; setAway(false); ui(); showSceneStatus(); return; }
+    pos = CARS[i].stop; mode = "idle"; restSrc = null;
+    drawStill(); show(null); arrive(my);
+  }
+  function retryScene() {
+    loadStill(CARS[idx]); stillJobs[CARS[idx].stop].restart();
+    clearTimeout(retryT); pump();
+    if (mode === "idle") showRest();
+  }
+  sceneStatus.addEventListener("click", e => { e.stopPropagation(); retryScene(); });
+  addEventListener("online", retryScene);
   loadStill(CARS[idx]);                                          // the other stills are never needed once their clips are in
   // Use normal HTTP caching; do not keep a second persistent CacheStorage copy.
   // Remove the legacy showroom cache only, never other sites' or features' data.
   try { caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("karats-clips-")).map(k => caches.delete(k)))).catch(() => {}); } catch (e) {}
   async function getClip(url, onp) {
-    const r = await fetch(url); if (!r.ok) throw new Error("HTTP " + r.status);
-    const total = +r.headers.get("content-length") || 0; let blob;
-    if (r.body && total) {
-      const rd = r.body.getReader(), parts = []; let got = 0;
-      for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; onp(got / total); }
-      blob = new Blob(parts, { type: "video/mp4" });
-    } else blob = await r.blob();
-    return URL.createObjectURL(blob);
+    // Abort stalled headers/body reads, not a slow but progressing connection.
+    const controller = new AbortController(); let timer;
+    const progress = () => { clearTimeout(timer); timer = setTimeout(() => controller.abort(), 12000); };
+    progress();
+    try {
+      const r = await fetch(url, { signal: controller.signal }); if (!r.ok) throw new Error("HTTP " + r.status);
+      const total = +r.headers.get("content-length") || 0; let blob;
+      if (r.body) {
+        const rd = r.body.getReader(), parts = []; let got = 0;
+        for (;;) {
+          const { done, value } = await rd.read(); if (done) break;
+          parts.push(value); got += value.length; progress(); if (total) onp(got / total);
+        }
+        blob = new Blob(parts, { type: "video/mp4" });
+      } else blob = await r.blob();
+      return URL.createObjectURL(blob);
+    } finally { clearTimeout(timer); }
   }
   function makeVideo(src, c) {
     const v = document.createElement("video");
@@ -1163,9 +1247,16 @@
     v.preload = "auto"; v.dataset.dir = c.dir; v.dataset.clip = c.key; v.style.opacity = 0; elClip.set(v, c); placeEl(v);
     $("stage").insertBefore(v, cv);
     return new Promise((res, rej) => {
-      v.addEventListener("loadeddata", () => res(v), { once: true });
-      v.addEventListener("error", () => { v.remove(); rej(new Error("decode")); }, { once: true });
-      v.src = src; v.load();
+      let done = false;
+      const clean = () => { clearInterval(poll); clearTimeout(timer); v.removeEventListener("loadeddata", check); v.removeEventListener("error", fail); };
+      const check = () => { if (!done && v.readyState >= 2 && v.videoWidth) { done = true; clean(); res(v); } };
+      const fail = () => {
+        if (done) return; done = true; clean(); v.remove(); v.removeAttribute("src"); v.load(); URL.revokeObjectURL(src); rej(new Error("decode unavailable"));
+      };
+      // Some browser/media policies suppress loadeddata; verify decoded data as well.
+      const poll = setInterval(check, 100), timer = setTimeout(fail, 8000);
+      v.addEventListener("loadeddata", check); v.addEventListener("error", fail);
+      v.src = src; v.load(); check();
     });
   }
   let busy = false, wantedClip = null, loadedN = 0, retryT = null;

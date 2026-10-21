@@ -76,6 +76,7 @@
   #kfind label{display:block;margin:0 0 12px}
   #kfind label>span,#kfind .kf-l{display:block;font-size:13px;color:var(--soft,#6b716c);margin:0 0 5px}
   #kfind input,#kfind select,#kfind textarea{width:100%;box-sizing:border-box;font:inherit;font-size:16px;color:var(--ink,#1d211e);background:#fff;border:1px solid var(--line,rgba(29,33,30,.12));border-radius:14px;padding:12px 14px;-webkit-appearance:none;appearance:none}
+  #kfind select{padding-right:40px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b716c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center/18px 18px;cursor:pointer}
   #kfind textarea{min-height:70px;resize:vertical}
   #kfind input:focus,#kfind select:focus,#kfind textarea:focus{outline:2px solid var(--acc,#304c40);outline-offset:1px}
   #kfind .kf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
