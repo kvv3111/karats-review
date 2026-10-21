@@ -26,9 +26,8 @@
   #fadeA::before { -webkit-mask-image:linear-gradient(#000 calc(100% - var(--ff, 90px)), transparent); mask-image:linear-gradient(#000 calc(100% - var(--ff, 90px)), transparent); }
   #fadeB::before { -webkit-mask-image:linear-gradient(transparent, #000 var(--ff, 90px)); mask-image:linear-gradient(transparent, #000 var(--ff, 90px)); }
   @media (prefers-reduced-transparency:reduce) { .fade::before { display:none; } }
-  .top { position:fixed; top:0; left:0; right:0; padding:calc(16px + env(safe-area-inset-top)) 26px 26px; display:flex; justify-content:space-between; align-items:center; pointer-events:none;
-         background:linear-gradient(rgba(239,236,230,.82),rgba(239,236,230,0)); }
-  .brand { font-family:Jost,sans-serif; font-weight:400; letter-spacing:.34em; font-size:clamp(20px, 1.75vw, 32px); line-height:1.1; }
+  .top { position:fixed; top:0; left:0; right:0; padding:calc(var(--tp, 16px) + env(safe-area-inset-top)) 26px 26px; display:flex; justify-content:space-between; align-items:center; pointer-events:none; }
+  .brand { font-family:Jost,sans-serif; font-weight:400; letter-spacing:.34em; font-size:var(--bf, 20px); transform:translateX(var(--bx, 0px)); line-height:1.1; }
   .brand { display:inline-block; text-align:center; }
   .brand span { margin-right:-.34em; }                         /* letter-spacing adds space after the last letter: cancel it so both lines centre */
   .brand small { display:block; font-size:.38em; letter-spacing:.9em; margin-right:-.9em; color:var(--soft); margin-top:.5em; }
@@ -80,7 +79,6 @@
   #load { position:fixed; left:0; top:0; height:2px; background:var(--acc); width:0; z-index:4; transition:width .2s, opacity .6s; }
   .credits { position:fixed; right:26px; bottom:calc(6px + env(safe-area-inset-bottom)); font-size:10px; color:var(--soft); }
   .credits a { color:inherit; }
-  @media (orientation:portrait) { .top { background:none; } }
   /* big system text (Android/iOS text size = narrower page): stack the bar, no hint over the arrows */
   @media (max-width:340px) {
     .hint { display:none; }
@@ -101,7 +99,7 @@
   #veil { position:fixed; inset:0; z-index:7; background:rgba(239,236,230,.18); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); opacity:0; pointer-events:none;
           transition:opacity .4s var(--ease), backdrop-filter .5s var(--ease), -webkit-backdrop-filter .5s var(--ease); }
   body.menu #veil, body.sheet #veil { opacity:1; pointer-events:auto; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
-  #menu { --lg-tint:.60; position:fixed; z-index:8; top:calc(10px + env(safe-area-inset-top)); left:10px; right:10px; max-width:440px; margin-left:auto; border-radius:var(--r-xl);
+  #menu { --lg-tint:.60; position:fixed; z-index:8; top:calc(var(--tp, 16px) - 6px + env(safe-area-inset-top)); left:10px; right:10px; max-width:440px; margin-left:auto; border-radius:var(--r-xl);
           padding:72px 10px 14px; transform-origin:calc(100% - 32px) 22px; transform:scale(.18, .08); opacity:0; pointer-events:none;
           transition:transform .55s var(--spring), opacity .25s var(--ease); }
   body.menu #menu { transform:none; opacity:1; pointer-events:auto; }
@@ -204,7 +202,9 @@
   @media (min-width:900px) { body.details #sheet { left:auto; right:24px; top:24px; bottom:24px; width:min(700px, calc(100vw - 48px)); } }
   @media (orientation:landscape) and (max-height:520px) { body.details #sheet { left:auto; right:12px; top:8px; bottom:8px; width:min(620px, 72vw); } #sheet .s-hero { aspect-ratio:16/7; } }
   @media (min-width:900px) { #sheet { left:auto; right:24px; bottom:24px; width:420px; } }
-  .top { z-index:9; } .top .r { display:flex; align-items:center; gap:14px; }
+  html.haze .top { background:linear-gradient(rgba(239,236,230,.82),rgba(239,236,230,0)); }   /* no free wall for the bar: keep it readable */
+  .top { z-index:9; } .top .r { display:flex; align-items:center; gap:14px; transform:scale(var(--rs, 1)); transform-origin:100% 50%; }
+  body.menu .top .r { transform:none; }
   body.sheet .bar, body.menu .bar, body.sheet .credits, body.menu .credits { visibility:hidden; pointer-events:none; }
   body.menu .side, body.sheet .side, body.menu #track, body.sheet #track, body.menu .hint, body.sheet .hint { opacity:0 !important; pointer-events:none; }
 
@@ -558,10 +558,33 @@
       // (the rubber band at the ends of the row slides it in, no zoom needed)
       const m = W0 * ROOM;
       s = Math.max(W0 / IW, H0 / IH) * (1 + 2 * ROOM);
+      // the room's own KARATS AUTO lettering (frame y < 178, passes by at cars 3-4) stays above the screen, so it never
+      // doubles the wordmark: zoom in a little if the screen is tall enough to show it (at most +12 %)
+      const sNo = H0 / (IH - 178);
+      if (sNo > s && sNo <= s * 1.12) s = sNo;
       ox = W0 / 2 - FOCUS_X * IW * s; ox = Math.min(-m, Math.max(W0 - IW * s + m, ox));
-      oy = (H0 - IH * s) / 2;
+      oy = Math.max(H0 - IH * s, Math.min((H0 - IH * s) / 2, -178 * s));
     }
     view = { s, ox, oy, dpr, portrait };
+    const R = document.documentElement.style;
+    document.documentElement.classList.remove("haze");
+    if (portrait) { R.removeProperty("--tp"); R.removeProperty("--bf"); R.removeProperty("--bx"); R.removeProperty("--rs"); }
+    else {
+      // Frame geometry, the same at every stop: the wood panels start at y 251, the plaster above them is free up to y 178
+      // (higher up the room's own KARATS AUTO lettering passes by at cars 3-4). The bar sits in that free band, the
+      // wordmark centred on the left pillar (x 0-300), so nothing covers the wood or the lettering.
+      const top = Math.max(0, oy + 178 * s), bot = oy + 241 * s, av = bot - top, pl = Math.max(0, ox), pr = ox + 300 * s;   // 241: above the glow
+      if (s < 0.6 || av < 30 || pr - pl < 150) { document.documentElement.classList.add("haze"); R.removeProperty("--tp"); R.removeProperty("--bx"); R.removeProperty("--rs"); R.setProperty("--bf", Math.max(17, Math.min(30, W0 * 0.0155)) + "px"); }
+      else {
+        const bf = Math.max(15, Math.min(30, W0 * 0.0155, (pr - pl) * 0.1, (av - 10) / 1.75));
+        R.setProperty("--bf", bf.toFixed(1) + "px");
+        const mid = Math.max(top + av / 2, bf * 0.875 + 5);              // wordmark at least 5 px below the top edge
+        R.setProperty("--tp", Math.round(mid - 22) + "px");
+        R.setProperty("--rs", Math.min(1, (av - 6) / 44).toFixed(3));
+        const bw = document.querySelector(".brand").offsetWidth;          // layout width: the transform does not change it
+        R.setProperty("--bx", Math.round(Math.max(0, (pl + pr) / 2 - bw / 2 - 26)) + "px");
+      }
+    }
     for (const v of loadedEls()) placeEl(v);
     const fa = $("fadeA"), fb = $("fadeB"), h = IH * s, f = Math.min(110, h * 0.2); view.f = f;
     if (portrait) {
@@ -1124,6 +1147,7 @@
   let unlockedOnce = false; addEventListener("pointerdown", () => { unlockedOnce = true; }, true);
   pump();
   addEventListener("resize", () => { if (isPortrait() !== small) location.reload(); else resize(); });
+  if (document.fonts) document.fonts.ready.then(() => resize());           // the wordmark is centred by its width in Jost
   resize(); ui(); requestAnimationFrame(tick);
   window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown: shownEl ? (cOf(shownEl).dir === "f" ? "vf" : "vr") : "still",
                             disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, rubberZ: Math.round(rubberZ * 1000) / 1000, rubber: !!rubberOn,
