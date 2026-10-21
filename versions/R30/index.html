@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="only light">
 <meta name="robots" content="noindex">
-<title>KARATS AUTO · Showroom</title>
+<title>KARATS AUTO · Coches de segunda mano en Barcelona</title>
 <link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="theme-color" content="#efece6">
 <script>addEventListener('pagereveal',e=>{const v=e.viewTransition;v&&['ready','finished','updateCallbackDone'].forEach(k=>v[k]&&v[k].catch(()=>{}))})</script>
 <link rel="stylesheet" href="fonts/jost.css">
@@ -228,6 +228,24 @@
 @keyframes cfpop { 0% { transform:scale(.6) } 60% { transform:scale(1.2) } 100% { transform:none } }
 </style>
 <style>#menu [data-demo-notice]{font-size:12px;line-height:1.45;color:#626860;margin:12px 0 0;padding:12px 0 0;border-top:1px solid rgba(29,33,30,.12);}</style>
+<!--seo-->
+<meta name="description" content="Compraventa de coches de segunda mano en Barcelona. Recorre el showroom, mira cada coche y escríbenos por WhatsApp.">
+<link rel="canonical" href="https://karatsauto.es/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KARATS AUTO">
+<meta property="og:title" content="KARATS AUTO · Coches de segunda mano en Barcelona">
+<meta property="og:description" content="Compraventa de coches de segunda mano en Barcelona. Recorre el showroom, mira cada coche y escríbenos por WhatsApp.">
+<meta property="og:url" content="https://karatsauto.es/">
+<meta property="og:image" content="https://karatsauto.es/og/home.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="es_ES">
+<meta property="og:locale:alternate" content="ca_ES">
+<meta property="og:locale:alternate" content="en_GB">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "AutoDealer", "name": "KARATS AUTO", "legalName": "KARATS AUTO, S.L.", "taxID": "B05735238", "url": "https://karatsauto.es/", "logo": "https://karatsauto.es/icon-192.png", "image": "https://karatsauto.es/og/home.jpg", "telephone": "+34602520978", "email": "info@karatsauto.es", "areaServed": {"@type": "City", "name": "Barcelona"}, "knowsLanguage": ["es", "ca", "en", "ru"]}</script>
+<!--/seo-->
 </head>
 <body>
 <div id="stage" aria-label="Showroom KARATS AUTO">
@@ -300,7 +318,7 @@
     <a class="btn wa round" href="https://wa.me/34602520978" target="_blank" rel="noopener" data-contact="wa" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.2 2.2 2.2 0 00.1-1.2c0-.1-.2-.2-.5-.3z"/></svg></a>
   </div>
 </div>
-<script src="cars.js"></script>
+<script src="cars.js?v=seo-20261021"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id), SH = KARATS_SHOTS; let C = KARATS_CARS[0];
@@ -319,7 +337,8 @@
     $("sHl").innerHTML = C.highlights.map(t => `<li>${svg(ico.ok)}${t}</li>`).join("");
     const pick = ["01_front34", "04_rear34", "08_wheel", "03_side"];
     $("sThumbs").innerHTML = pick.map((s, k) => `<button style="background-image:url(gal/ph/${s}_t.webp)" ${k === 3 ? `class="more" data-more="+${SH.length - 3}"` : ""} data-shot="${s}"></button>`).join("");
-    $("sMore").href = `coche.html?id=${C.id}`; $("sGal").href = `coche.html?id=${C.id}#galeria`;
+    $("sMore").href = carURL(C); $("sGal").href = carURL(C) + "#galeria";
+    document.querySelectorAll('#sheet [data-contact="wa"]').forEach(a => { a.href = carWA(C, window.KLang ? KLang.language : "es"); });
     // details: the car exactly as it stands in the showroom (full frame, no portrait crop) + full data + gallery
     const hero = $("sHero"); hero.alt = C.brand + " " + C.model;
     hero.srcset = `c/${C.id}_s.webp 600w, c/${C.id}.webp 900w`; hero.sizes = "(min-width:900px) 700px, 100vw"; hero.src = `c/${C.id}.webp`;
@@ -330,7 +349,8 @@
     $("sGalGrid").innerHTML = SH.map(([s, n]) => `<button type="button" data-shot="${s}" aria-label="${n}" style="background-image:url(gal/ph/${s}_t.webp)"></button>`).join("");
     $("sheet").scrollTop = 0;
   }
-  $("sThumbs").onclick = e => { const b = e.target.closest("button"); if (b) location.href = KLang.url(`coche.html?id=${C.id}#foto-${b.dataset.shot}`); };
+  addEventListener("karats:language", () => { if (C) document.querySelectorAll('#sheet [data-contact="wa"]').forEach(a => { a.href = carWA(C, KLang.language); }); });
+  $("sThumbs").onclick = e => { const b = e.target.closest("button"); if (b) location.href = KLang.url(`${carURL(C)}#foto-${b.dataset.shot}`); };
   const B = document.body;
   // an open menu or sheet is its own history step: Android's Back button / iOS edge swipe closes it instead of leaving the site
   const layer = () => history.state && history.state.layer;
@@ -1184,7 +1204,7 @@
                             vis: +cv.style.opacity > 0.9 || !shownEl ? cvFrame : nOf(shownEl, shownEl.currentTime) });
 })();
 </script>
-<script src="i18n.js?v=legal-20261021"></script>
+<script src="i18n.js?v=seo-20261021"></script>
 <script src="site.js?v=legal-20261021"></script>
 <script src="kx.js?v=r37"></script>
 <script src="showroom-gallery.js?v=3"></script>

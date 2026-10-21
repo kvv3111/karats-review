@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="only light">
+<meta name="robots" content="noindex">
+<title>Hyundai Ioniq 6 · KARATS AUTO</title>
+<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="theme-color" content="#efece6">
+<script>addEventListener('pagereveal',e=>{const v=e.viewTransition;v&&['ready','finished','updateCallbackDone'].forEach(k=>v[k]&&v[k].catch(()=>{}))})</script>
+<link rel="stylesheet" href="fonts/jost.css">
+<link rel="stylesheet" href="ui.css?v=r38">
+<style>
+  body { overflow-x:hidden; }
+  body.viewer { overflow:hidden; }
+  body.gallery-embedded > :not(#viewer):not(script) { display:none !important; }
+  /* ---------- hero ---------- */
+  .hero { position:relative; height:min(68vh, 760px); min-height:380px; background:#ddd; overflow:hidden; }
+  .hero img { width:100%; height:100%; object-fit:cover; object-position:50% 58%; display:block; cursor:zoom-in; }
+  .hero::after { content:""; position:absolute; left:0; right:0; bottom:0; height:38%; background:linear-gradient(rgba(239,236,230,0), var(--bg)); pointer-events:none; }
+  .topbar { position:fixed; z-index:20; top:0; left:0; right:0; padding:calc(10px + env(safe-area-inset-top)) 12px 10px; display:flex; justify-content:space-between; align-items:center; pointer-events:none; }
+  .topbar > * { pointer-events:auto; }
+  .topbar::before { content:""; position:absolute; z-index:-1; inset:0 0 -18px; opacity:0; transition:opacity .3s;
+                    background:linear-gradient(rgba(239,236,230,.78), rgba(239,236,230,.45) 70%, rgba(239,236,230,0));
+                    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+                    -webkit-mask-image:linear-gradient(#000 55%, transparent); mask-image:linear-gradient(#000 55%, transparent); }
+  body.scrolled .topbar::before { opacity:1; }
+  .back { width:44px; height:44px; flex:none; padding:0; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
+  .back span { position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  .back svg { width:20px; height:20px; position:relative; z-index:1; } .back span { position:relative; z-index:1; }
+  .topbar .r { display:flex; gap:8px; }
+  .gbtn.saved svg { fill:#c8463c; stroke:#c8463c; }
+  .photo-tools { display:flex; justify-content:flex-end; margin-top:14px; }
+  .count-pill { position:relative; height:40px; padding:0 14px; border-radius:20px; display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; border:0; cursor:pointer; }
+  .count-pill svg { width:15px; height:15px; position:relative; z-index:1; } .count-pill span { position:relative; z-index:1; }
+
+  main { position:relative; z-index:2; max-width:760px; margin:-120px auto 0; padding:0 12px calc(120px + env(safe-area-inset-bottom)); }
+  .head { border-radius:var(--r-xl); padding:18px 20px 18px; --lg-tint:.62; }
+  .head > * { position:relative; z-index:1; }
+  .head h1 { font-family:Jost,sans-serif; font-weight:500; font-size:32px; line-height:1.08; letter-spacing:.005em; }
+  .head .trim { color:var(--soft); margin-top:4px; }
+  .head .price { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 12px; margin:14px 0 14px; }
+  .head .price b { white-space:nowrap; font-family:Jost,sans-serif; font-weight:500; font-size:34px; } .head .price span { color:var(--soft); }
+  .chips { display:flex; flex-wrap:wrap; gap:7px; }
+
+  .strip { display:flex; gap:8px; overflow-x:auto; scroll-snap-type:x proximity; margin:14px -12px 0; padding:2px 12px 6px; scrollbar-width:none; }
+  .strip::-webkit-scrollbar { display:none; }
+  .strip button { flex:none; width:148px; aspect-ratio:3/2; border:0; border-radius:14px; background:#ddd center/cover; cursor:zoom-in; scroll-snap-align:start; transition:transform .35s var(--spring); box-shadow:0 4px 14px rgba(20,22,20,.10); }
+  .strip button:active { transform:scale(.95); }
+
+  section { margin-top:26px; }
+  section h2 { font-family:Jost,sans-serif; font-weight:400; font-size:22px; letter-spacing:.01em; margin:0 8px 12px; }
+  .specs { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; }
+  .spec { border-radius:var(--r-m); padding:12px 14px; background:var(--paper); box-shadow:inset 0 0 0 .6px var(--line); }
+  .spec small { display:block; color:var(--soft); font-size:12.5px; } .spec b { display:block; font-weight:600; margin-top:2px; font-size:15.5px; }
+  .equip { display:flex; flex-wrap:wrap; gap:7px; } .equip .chip { background:var(--paper); height:34px; }
+  .perks { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; }
+  .perk { border-radius:var(--r-m); padding:14px; background:var(--paper); box-shadow:inset 0 0 0 .6px var(--line); }
+  .perk svg { width:24px; height:24px; color:var(--acc); } .perk b { display:block; margin-top:8px; font-weight:600; } .perk small { color:var(--soft); font-size:13px; }
+  .note { color:var(--faint); font-size:12px; text-align:center; margin-top:26px; }
+
+  /* sticky glass bar */
+  .buybar { position:fixed; z-index:15; left:10px; right:10px; bottom:calc(10px + env(safe-area-inset-bottom)); max-width:740px; margin:0 auto; border-radius:28px; padding:8px 8px 8px 20px;
+            display:flex; align-items:center; gap:8px; }
+  .buybar > * { position:relative; z-index:1; }
+  .buybar .p { flex:1; min-width:0; } .buybar .p b { font-family:Jost,sans-serif; font-weight:500; font-size:21px; display:block; line-height:1.1; } .buybar .p small { color:var(--soft); font-size:12.5px; }
+  .buybar .btn { height:48px; flex:none; } .buybar .round { width:48px; padding:0; }
+  .buybar .p b { white-space:nowrap; }
+  .buybar .p small { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  @media (max-width:380px) {
+    .buybar { padding-left:14px; gap:6px; }
+    .buybar .p b { font-size:18px; }
+    .buybar .btn.wa { padding:0 12px; font-size:14px; gap:6px; }
+  }
+
+  /* ---------- fullscreen gallery viewer ---------- */
+  #viewer { position:fixed; inset:0; z-index:40; background:#0d0e0d; opacity:0; pointer-events:none; transition:opacity .35s var(--ease); }
+  body.viewer #viewer { opacity:1; pointer-events:auto; }
+  #track { position:absolute; inset:0; display:flex; overflow-x:auto; overflow-y:hidden; scroll-snap-type:x mandatory; scrollbar-width:none; overscroll-behavior:contain; }
+  #track::-webkit-scrollbar { display:none; }
+  #track.zoomed { overflow:hidden; }
+  .slide { flex:none; width:100vw; height:100%; scroll-snap-align:center; scroll-snap-stop:always; display:flex; align-items:center; justify-content:center; overflow:hidden; touch-action:pan-x; }
+  .slide.zoom { touch-action:none; }
+  .slide img { max-width:100%; max-height:100%; transform-origin:0 0; will-change:transform; user-select:none; -webkit-user-drag:none; transition:transform .38s var(--spring); }
+  .slide img.live { transition:none; }
+  .vtop { position:absolute; z-index:3; top:0; left:0; right:0; padding:calc(10px + env(safe-area-inset-top)) 12px; display:flex; justify-content:space-between; align-items:center; pointer-events:none; }
+  .vtop > * { pointer-events:auto; }
+  .vcount { height:36px; padding:0 14px; border-radius:18px; display:flex; align-items:center; font-weight:600; font-size:13.5px; font-variant-numeric:tabular-nums; }
+  .vcount span { position:relative; z-index:1; }
+  .vcap { position:absolute; z-index:3; left:0; right:0; bottom:calc(92px + env(safe-area-inset-bottom)); text-align:center; color:rgba(255,255,255,.75); font-size:13px; pointer-events:none; transition:opacity .3s; }
+  .vthumbs { position:absolute; z-index:3; left:50%; transform:translateX(-50%); bottom:calc(14px + env(safe-area-inset-bottom)); max-width:calc(100% - 20px); border-radius:22px; padding:7px; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; transition:opacity .3s; }
+  .vthumbs::-webkit-scrollbar { display:none; }
+  .vthumbs button { position:relative; z-index:1; flex:none; width:58px; height:40px; border:0; border-radius:10px; background:#333 center/cover; cursor:pointer; opacity:.55; transition:opacity .2s, transform .35s var(--spring); }
+  .vthumbs button.on { opacity:1; transform:scale(1.06); box-shadow:0 0 0 1.5px #fff; }
+  #viewer.zoomed .vthumbs, #viewer.zoomed .vcap { opacity:0; pointer-events:none; }
+  .varrow { position:absolute; z-index:3; top:50%; margin-top:-24px; width:48px; height:48px; }
+  .varrow.l { left:16px; } .varrow.r { right:16px; }
+  @media (hover:none) { .varrow { display:none; } }
+  @media (min-width:900px) {
+    .hero { height:78vh; } main { margin-top:-160px; max-width:1080px; padding-left:24px; padding-right:24px; }
+    .head { display:grid; grid-template-columns:1fr auto; column-gap:30px; align-items:end; }
+    .head .demo-tag, .head h1, .head .trim { grid-column:1; } .head .price { grid-column:2; grid-row:1 / span 3; flex-direction:column; align-items:flex-end; margin:0; }
+    .head .chips { grid-column:1 / span 2; margin-top:14px; }
+    .buybar { max-width:1060px; }
+    .specs { grid-template-columns:repeat(3, 1fr); } .perks { grid-template-columns:repeat(4, 1fr); }
+    .strip button { width:200px; }
+  }
+</style>
+<link rel="stylesheet" href="nav.css?v=r33">
+<style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
+<style>
+.others { margin-top:34px; }
+.ocars { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; scroll-padding:0 12px; margin:12px -12px 0; padding:2px 12px 10px; scrollbar-width:none; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; }
+.ocars::-webkit-scrollbar { display:none; }
+.ocar { flex:none; width:min(62%, 240px); scroll-snap-align:start; display:flex; flex-direction:column; text-decoration:none; color:inherit; border-radius:22px; overflow:hidden; background:var(--paper); box-shadow:inset 0 0 0 .6px var(--line); transition:transform .45s var(--spring); }
+.ocar:active { transform:scale(.97); }
+.ocar .oimg { display:block; aspect-ratio:3/2; background:#e6e2da; } .ocar img { width:100%; height:100%; object-fit:cover; display:block; }
+.ocar b { font-family:Jost,sans-serif; font-weight:500; font-size:17px; margin:10px 14px 0; } .ocar small { color:var(--soft); font-size:13px; margin:2px 14px 0; }
+.ocar .op { font-weight:700; font-size:15px; margin:6px 14px 13px; }
+@media (min-width:760px) { .ocars { margin:12px 0 0; padding:2px 0 10px; display:grid; grid-template-columns:repeat(4,1fr); overflow:visible; } .ocar { width:auto; } }
+[aria-label="Guardar"].saved svg path, .sfav.saved svg path { fill:#c8463b; stroke:#c8463b; }
+</style>
+<style>[data-demo-notice]{font-size:13px;line-height:1.4;color:#253e32;background:#f1f4ed;border:1px solid #b7c6b8;border-radius:12px;padding:10px 14px;margin:14px 0;}</style>
+<!--seo-->
+<meta name="description" content="Hyundai Ioniq 6 77 kWh Energy: 2023 · 19 000 km · Eléctrico · Automático · 229 CV. Ficha de ejemplo del showroom de KARATS AUTO, no es una oferta de venta.">
+<link rel="canonical" href="https://karatsauto.es/hyundai-ioniq-6-2023">
+<meta name="robots" content="noindex, follow">
+<meta property="og:type" content="product">
+<meta property="og:site_name" content="KARATS AUTO">
+<meta property="og:title" content="Hyundai Ioniq 6 77 kWh Energy 2023 · 34 900 € · KARATS AUTO">
+<meta property="og:description" content="Hyundai Ioniq 6 77 kWh Energy: 2023 · 19 000 km · Eléctrico · Automático · 229 CV. Ficha de ejemplo del showroom de KARATS AUTO, no es una oferta de venta.">
+<meta property="og:url" content="https://karatsauto.es/hyundai-ioniq-6-2023">
+<meta property="og:image" content="https://karatsauto.es/og/hyundai-ioniq-6-2023.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="es_ES">
+<meta property="og:locale:alternate" content="ca_ES">
+<meta property="og:locale:alternate" content="en_GB">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
+<script>window.KARATS_CAR_ID = "hyundai-ioniq-6";</script>
+<!--/seo-->
+</head>
+<body>
+<div class="topbar">
+  <a class="gbtn lg pback" id="back" href="index.html" aria-label="Showroom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span class="sr">Showroom</span></a>
+  <span class="ptitle" aria-hidden="true"></span>
+  <div class="r">
+    <button class="gbtn lg" aria-label="Guardar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg></button>
+  
+    <button class="gbtn lg" id="menuBtn" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menu"><i></i><i></i></button>
+  </div>
+</div>
+<div class="hero" id="hero"><img id="heroImg" alt=""></div>
+<main>
+<p data-demo-notice translate="no" data-t-es="Catálogo de demostración. Coches, imágenes y precios de ejemplo; no están a la venta." data-t-ca="Catàleg de demostració. Cotxes, imatges i preus d’exemple; no estan a la venda." data-t-en="Demo catalogue. The cars, images and prices are examples, not vehicles offered for sale." data-t-ru="Демонстрационный каталог. Автомобили, изображения и цены приведены для примера. Эти машины не продаются.">Catálogo de demostración. Coches, imágenes y precios de ejemplo; no están a la venta.</p>
+  <div class="head lg">
+    <span class="demo-tag">Datos de ejemplo</span>
+    <h1 id="title"></h1><div class="trim" id="trim"></div>
+    <div class="price"><b id="price"></b></div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="photo-tools"><button class="count-pill lg" id="allPhotos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/></svg><span id="nPhotos"></span></button></div>
+  <div class="strip" id="strip"></div>
+
+  <section><h2>Datos principales</h2><div class="specs" id="specs"></div></section>
+  <section><h2>Equipamiento destacado</h2><div class="equip" id="equip"></div></section>
+  <section><h2>Antes de comprar</h2><div class="perks">
+    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><b>Garantía legal</b><small>Consulta tus derechos</small></div>
+    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11l2 2 4-4"/></svg><b>Estado del coche</b><small>Consulta la documentación</small></div>
+    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><b>Cambio de titular</b><small>Condiciones antes de firmar</small></div>
+    <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><b>Entrega del vehículo</b><small>Lugar, plazo y coste acordados</small></div>
+  </div></section>
+  <section class="others" translate="no"><h2 id="oTitle">Otros coches</h2><div class="ocars" id="ocars"></div></section>
+  <p class="note">Maqueta: fotos y datos de ejemplo. Las fotos reales se añaden después.</p>
+</main>
+<footer data-footer style="padding-bottom:calc(110px + env(safe-area-inset-bottom))"></footer>
+<div class="buybar lg" id="buybar">
+  <div class="p"><b id="bbPrice"></b><small id="bbName"></small></div>
+  <a class="btn lg round" href="tel:+34602520978" data-contact="call" aria-label="Llamar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2"/></svg></a>
+  <a class="btn wa" href="https://wa.me/34602520978" target="_blank" rel="noopener" data-contact="wa"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.2 2.2 2.2 0 00.1-1.2c0-.1-.2-.2-.5-.3z"/></svg><span>Escribir</span></a>
+</div>
+
+<div id="viewer" role="dialog" aria-label="Galería">
+  <div id="track"></div>
+  <div class="vtop"><div class="vcount lg dark"><span id="vcount"></span></div>
+    <button class="gbtn lg dark" id="vclose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <button class="gbtn lg dark varrow l" id="vprev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button class="gbtn lg dark varrow r" id="vnext" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+  <div class="vcap" id="vcap"></div>
+  <div class="vthumbs lg dark" id="vthumbs"></div>
+</div>
+<script src="cars.js?v=seo-20261021"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const q = new URLSearchParams(location.search), CID = window.KARATS_CAR_ID || q.get("id"), C = KARATS_CARS.find(c => c.id === CID) || KARATS_CARS[1];
+  // old links coche.html?id=… move to the car's own address (embedded overlays keep using coche.html)
+  if (!window.KARATS_CAR_ID && q.get("id") && !q.get("galleryOverlay") && !q.get("detailOverlay") && window.carURL && parent === window) {
+    const u = new URL(carURL(C), location.href); q.forEach((v, k) => { if (k !== "id") u.searchParams.set(k, v); }); u.hash = location.hash; location.replace(u.href); return;
+  }
+  const SH = KARATS_SHOTS, src = (s, v) => `gal/ph/${s}_${v}.webp`;
+  const embeddedGallery = q.get("galleryOverlay") === "1" && parent !== window;
+  if (embeddedGallery) document.body.classList.add("gallery-embedded");
+  const svg = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  document.title = `${C.brand} ${C.model} · KARATS AUTO`;
+  $("heroImg").src = `f/${C.still}.webp`;   // hero = the car as it stands in the showroom
+  $("nPhotos").textContent = SH.length + " fotos";
+  $("title").textContent = `${C.brand} ${C.model}`; $("trim").textContent = C.trim;
+  $("price").textContent = fmtEUR(C.price);
+  $("bbPrice").textContent = fmtEUR(C.price); $("bbName").textContent = `${C.brand} ${C.model} · ${C.year}`;
+  $("chips").innerHTML = [C.year, fmtKM(C.km), C.fuel, C.gear.split(" ")[0], C.power].map(t => `<span class="chip">${t}</span>`).join("");
+  $("strip").innerHTML = SH.map(([s, n], k) => `<button data-k="${k}" aria-label="${n}" style="background-image:url(${src(s, "t")})"></button>`).join("");
+  $("specs").innerHTML = [["Año", C.year], ["Kilómetros", fmtKM(C.km)], ["Combustible", C.fuel], ["Cambio", C.gear], ["Potencia", C.power], ["Consumo", C.cons],
+    ["Etiqueta DGT", C.label], ["Color", C.color], ["Puertas / plazas", `${C.doors} / ${C.seats}`], ["Propietarios", C.owners]]
+    .map(([k, v]) => `<div class="spec"><small>${k}</small><b>${v}</b></div>`).join("");
+  $("equip").innerHTML = C.equip.map(t => `<span class="chip">${t}</span>`).join("");
+  $("back").href = "index.html#" + (KARATS_CARS.indexOf(C) + 1);
+  let fromCat = false; try { const r = new URL(document.referrer); fromCat = r.origin === location.origin && /\/catalogo(\.html)?$/.test(r.pathname); } catch (_) {}
+  if (fromCat) { $("back").href = document.referrer; $("back").querySelector("span").textContent = "Coches"; }
+  $("back").onclick = e => {
+    let fromHall = false;
+    try { const r = new URL(document.referrer); fromHall = r.origin === location.origin && /\/(index\.html)?$/.test(r.pathname) && r.pathname.replace(/[^/]*$/, "") === location.pathname.replace(/[^/]*$/, ""); } catch (_) {}
+    if ((fromHall || fromCat) && history.length > 1) { e.preventDefault(); history.back(); }
+  };
+  const waSync = () => document.querySelectorAll('[data-contact="wa"]').forEach(a => { a.href = carWA(C, window.KLang ? KLang.language : "es"); });
+  waSync(); addEventListener("karats:language", waSync);
+  addEventListener("scroll", () => document.body.classList.toggle("scrolled", scrollY > innerHeight * .45), { passive: true });
+  // Contact actions remain fixed and available from the first screen.
+
+  /* ---------------- viewer: swipe between photos, pinch / double-tap / wheel zoom, pan when zoomed ---------------- */
+  const V = $("viewer"), T = $("track");
+  V.inert = true;
+  let viewerOpener = null;
+  const viewerBackground = [...document.querySelectorAll(".topbar,.hero,main,.buybar")];
+  T.innerHTML = SH.map(([s, n]) => `<div class="slide"><img alt="${n}" decoding="async" data-src="${src(s, "m")}" data-full="${src(s, "f")}"></div>`).join("");
+  $("vthumbs").innerHTML = SH.map(([s, n], k) => `<button data-k="${k}" aria-label="${n}" style="background-image:url(${src(s, "t")})"></button>`).join("");
+  const slides = [...T.children], thumbs = [...$("vthumbs").children];
+  let cur = 0;
+  const load = k => { const im = slides[k] && slides[k].firstChild; if (im && !im.src) im.src = im.dataset.src; };
+  function setCur(k) {
+    cur = k; $("vcount").textContent = `${k + 1} / ${SH.length}`; $("vcap").textContent = SH[k][1];
+    thumbs.forEach((b, i) => b.classList.toggle("on", i === k));
+    if (embeddedGallery) parent.postMessage({type:"karats:gallery-shot",shot:SH[k][0]},location.origin);
+    if (!embeddedGallery && history.state && history.state.viewer) history.replaceState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]); thumbs[k].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    [k - 1, k, k + 1].forEach(load);
+  }
+  let base = location.pathname + location.search;
+  addEventListener("karats:language", () => { base = location.pathname + location.search; });
+  // the open gallery is its own history step: the phone's Back closes the photo first, not the page
+  function open(k) {
+    if (!document.body.classList.contains("viewer")) viewerOpener = document.activeElement;
+    V.inert = false; V.setAttribute("aria-modal", "true");
+    viewerBackground.forEach(el => { el.inert = true; });
+    $("vclose").focus({ preventScroll: true });
+    document.body.classList.add("viewer"); [k - 1, k, k + 1].forEach(load); T.scrollLeft = k * T.clientWidth; setCur(k);
+    if (!embeddedGallery && !(history.state && history.state.viewer)) history.pushState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]);
+    if (embeddedGallery) parent.postMessage({type:"karats:gallery-ready"},location.origin);
+  }
+  function hide() {
+    resetZoom(); document.body.classList.remove("viewer"); V.inert = true; V.removeAttribute("aria-modal");
+    viewerBackground.forEach(el => { el.inert = false; });
+    if (viewerOpener && viewerOpener.isConnected) viewerOpener.focus({ preventScroll: true });
+    viewerOpener = null;
+  }
+  let closing = false;
+  function close() {
+    if (closing || !document.body.classList.contains("viewer")) return;
+    if (embeddedGallery) { parent.postMessage({type:"karats:gallery-close"},location.origin); return; }
+    if (history.state && history.state.viewer) { closing = true; history.back(); } else { hide(); history.replaceState(null, "", base); }
+  }
+  addEventListener("popstate", () => {
+    closing = false;
+    if (history.state && history.state.viewer) {
+      const shot = location.hash.replace(/^#foto-/, ""), k = SH.findIndex(s => s[0] === shot);
+      open(Math.max(0, k));
+    } else hide();
+  });
+  const go = k => { k = Math.max(0, Math.min(SH.length - 1, k)); resetZoom(); T.scrollTo({ left: k * T.clientWidth, behavior: "smooth" }); };
+  T.addEventListener("scroll", () => { const k = Math.round(T.scrollLeft / T.clientWidth); if (k !== cur) setCur(k); }, { passive: true });
+  $("strip").addEventListener("wheel", e => {
+    const s = $("strip"), d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : 0; if (!d) return;
+    if ((d > 0 && s.scrollLeft + s.clientWidth < s.scrollWidth - 1) || (d < 0 && s.scrollLeft > 0)) { e.preventDefault(); s.scrollLeft += d; }
+  }, { passive: false });
+  $("strip").onclick = e => { const b = e.target.closest("button"); if (b) open(+b.dataset.k); };
+  $("heroImg").onclick = () => open(0); $("allPhotos").onclick = () => open(0);
+  $("vthumbs").onclick = e => { const b = e.target.closest("button"); if (b) go(+b.dataset.k); };
+  $("vclose").onclick = close; $("vprev").onclick = () => go(cur - 1); $("vnext").onclick = () => go(cur + 1);
+  addEventListener("keydown", e => {
+    if (!document.body.classList.contains("viewer")) return;
+    if (e.key === "Tab") {
+      const buttons = [...V.querySelectorAll("button")].filter(b => b.offsetParent !== null && !(V.classList.contains("zoomed") && b.closest(".vthumbs")));
+      const i = buttons.indexOf(document.activeElement), n = buttons.length;
+      e.preventDefault(); buttons[i < 0 ? 0 : (i + (e.shiftKey ? n - 1 : 1)) % n].focus({ preventScroll: true });
+    }
+    if (e.key === "Escape") { e.preventDefault(); close(); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); go(cur - 1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); go(cur + 1); }
+  });
+
+  // zoom state for the current slide: scale s, translate x,y (transform-origin 0 0, in image-element pixels)
+  let z = { s: 1, x: 0, y: 0 }, img = null;
+  const MAX = 5;
+  function apply(live) { if (!img) return; img.classList.toggle("live", !!live); img.style.transform = `translate(${z.x}px,${z.y}px) scale(${z.s})`;
+    const on = z.s > 1.01; V.classList.toggle("zoomed", on); T.classList.toggle("zoomed", on); slides[cur].classList.toggle("zoom", on);
+    if (on && img.dataset.full && img.src.indexOf(img.dataset.full) < 0) { const hi = new Image(); hi.src = img.dataset.full; hi.decode().then(() => { if (img && z.s > 1.01) img.src = hi.src; }).catch(() => {}); } }
+  function clamp() { const w = img.clientWidth, h = img.clientHeight;
+    z.s = Math.max(1, Math.min(MAX, z.s)); z.x = Math.min(0, Math.max(w - w * z.s, z.x)); z.y = Math.min(0, Math.max(h - h * z.s, z.y)); }
+  function resetZoom() { if (img) { z = { s: 1, x: 0, y: 0 }; apply(); } img = null; }
+  function zoomAt(cx, cy, ns, live) { // keep the point under (cx, cy) fixed
+    const r = img.getBoundingClientRect(), px = (cx - r.left) / z.s, py = (cy - r.top) / z.s;
+    z.s = ns; z.x = cx - (r.left - z.x) - px * ns; z.y = cy - (r.top - z.y) - py * ns; clamp(); apply(live); }
+  const pts = new Map(); let pinch = null, pan = null, lastTap = 0;
+  T.addEventListener("pointerdown", e => {
+    const im = e.target.closest(".slide") && slides[cur].firstChild; if (!im) return;
+    if (img !== im) { resetZoom(); img = im; }
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: z.s }; pan = null; }
+    else if (z.s > 1.01) { pan = { x: e.clientX - z.x, y: e.clientY - z.y }; T.setPointerCapture(e.pointerId); }
+  });
+  T.addEventListener("pointermove", e => {
+    if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && pts.size === 2) { const [a, b] = [...pts.values()]; zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d, true); }
+    else if (pan) { z.x = e.clientX - pan.x; z.y = e.clientY - pan.y; clamp(); apply(true); }
+  });
+  const end = e => {
+    pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (!pts.size) { pan = null; if (img) apply(false); }
+    // double tap (touch only; mouse uses dblclick): a quick second tap close to the first one
+    if (e.type === "pointerup" && e.pointerType !== "mouse" && img && down && Math.hypot(e.clientX - down.x, e.clientY - down.y) < 12) {
+      const t = performance.now();
+      if (t - lastTap < 320) { zoomAt(e.clientX, e.clientY, z.s > 1.01 ? 1 : 2.6); lastTap = 0; } else lastTap = t; }
+  };
+  let down = null, lastType = "mouse"; T.addEventListener("pointerdown", e => { down = { x: e.clientX, y: e.clientY }; lastType = e.pointerType; }, true);
+  T.addEventListener("pointerup", end); T.addEventListener("pointercancel", end);
+  T.addEventListener("dblclick", e => { if (lastType !== "mouse") return; if (!img) img = slides[cur].firstChild; zoomAt(e.clientX, e.clientY, z.s > 1.01 ? 1 : 2.6); });
+  T.addEventListener("wheel", e => { if (!e.ctrlKey && !(z.s > 1.01) && Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; e.preventDefault(); if (!img) img = slides[cur].firstChild;
+    zoomAt(e.clientX, e.clientY, z.s * Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .0025)), true); clearTimeout(T._w); T._w = setTimeout(() => apply(false), 120); }, { passive: false });
+  // iOS Safari fires its own gesture events for pinch: block page zoom so our pinch handles it
+  document.addEventListener("gesturestart", e => { if (document.body.classList.contains("viewer")) e.preventDefault(); });
+
+  // a link straight to a photo: the plain car page goes underneath, so Back lands on it
+  const h = location.hash.match(/^#foto-(.+)$/), k0 = h ? SH.findIndex(s => s[0] === h[1]) : location.hash === "#galeria" ? 0 : -1;
+  if (!embeddedGallery && location.hash && !(history.state && history.state.viewer)) history.replaceState(null, "", base);
+  if (k0 >= 0) open(k0);
+  const toast = document.createElement("div"); toast.className = "toast lg"; toast.innerHTML = "<span></span>"; document.body.appendChild(toast);
+  const say = t => { toast.firstChild.textContent = t; toast.classList.add("on"); clearTimeout(say.t); say.t = setTimeout(() => toast.classList.remove("on"), 1800); };
+  document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
+  const FAVT = { es: ["Guardado en favoritos", "Quitado de favoritos"], en: ["Saved to favourites", "Removed from favourites"], ru: ["Добавлено в избранное", "Убрано из избранного"], ca: ["Desat a preferits", "Tret de preferits"] };
+  const LG = () => (window.KLang && KLang.language) || "es";
+  const favBtn = document.querySelector('[aria-label="Guardar"]');
+  const favSync = () => { if (!window.KFav) return; const on = KFav.has(C.id); favBtn.classList.toggle("saved", on); favBtn.setAttribute("aria-pressed", on); };
+  favBtn.onclick = () => { if (!window.KFav) return; const on = KFav.toggle(C.id); favSync(); const tt = FAVT[LG()] || FAVT.es; say(on ? tt[0] : tt[1]); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
+  addEventListener("karats:fav", favSync); favSync();
+  // other cars (no dead end at the bottom of the page)
+  const OT = { es: "Otros coches", en: "Other cars", ru: "Другие машины", ca: "Altres cotxes" };
+  const others = () => {
+    const nf = n => n.toLocaleString("es-ES").replace(/\u00a0/g, " ");
+    $("oTitle").textContent = OT[LG()] || OT.es;
+    $("ocars").innerHTML = KARATS_CARS.filter(o => o.id !== C.id).map(o => {
+      const href = window.KLang ? KLang.url(carURL(o)) : carURL(o);
+      return `<a class="ocar" href="${href}"><span class="oimg"><img src="c/${o.id}_s.webp" alt="${o.brand} ${o.model}" loading="lazy" decoding="async"></span><b>${o.brand} ${o.model}</b><small>${o.year} · ${nf(o.km)} km</small><span class="op">${nf(o.price)} €</span></a>`; }).join("");
+  };
+  others(); addEventListener("karats:language", others);
+})();
+</script>
+<script src="i18n.js?v=seo-20261021"></script>
+<script src="site.js?v=legal-20261021"></script>
+<script src="nav.js?v=r38"></script>
+<script src="kx.js?v=r37"></script>
+</body>
+</html>

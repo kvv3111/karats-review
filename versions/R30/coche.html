@@ -121,6 +121,24 @@
 [aria-label="Guardar"].saved svg path, .sfav.saved svg path { fill:#c8463b; stroke:#c8463b; }
 </style>
 <style>[data-demo-notice]{font-size:13px;line-height:1.4;color:#253e32;background:#f1f4ed;border:1px solid #b7c6b8;border-radius:12px;padding:10px 14px;margin:14px 0;}</style>
+<!--seo-->
+<meta name="description" content="Coches de segunda mano en KARATS AUTO, Barcelona. Filtra por marca, combustible, cambio, precio y kilómetros.">
+<link rel="canonical" href="https://karatsauto.es/catalogo">
+<meta name="robots" content="noindex, follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KARATS AUTO">
+<meta property="og:title" content="Coche · KARATS AUTO">
+<meta property="og:description" content="Coches de segunda mano en KARATS AUTO, Barcelona. Filtra por marca, combustible, cambio, precio y kilómetros.">
+<meta property="og:url" content="https://karatsauto.es/catalogo">
+<meta property="og:image" content="https://karatsauto.es/og/home.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="es_ES">
+<meta property="og:locale:alternate" content="ca_ES">
+<meta property="og:locale:alternate" content="en_GB">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta name="twitter:card" content="summary_large_image">
+<!--/seo-->
 </head>
 <body>
 <div class="topbar">
@@ -171,11 +189,15 @@
   <div class="vcap" id="vcap"></div>
   <div class="vthumbs lg dark" id="vthumbs"></div>
 </div>
-<script src="cars.js"></script>
+<script src="cars.js?v=seo-20261021"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
-  const q = new URLSearchParams(location.search), C = KARATS_CARS.find(c => c.id === q.get("id")) || KARATS_CARS[1];
+  const q = new URLSearchParams(location.search), CID = window.KARATS_CAR_ID || q.get("id"), C = KARATS_CARS.find(c => c.id === CID) || KARATS_CARS[1];
+  // old links coche.html?id=… move to the car's own address (embedded overlays keep using coche.html)
+  if (!window.KARATS_CAR_ID && q.get("id") && !q.get("galleryOverlay") && !q.get("detailOverlay") && window.carURL && parent === window) {
+    const u = new URL(carURL(C), location.href); q.forEach((v, k) => { if (k !== "id") u.searchParams.set(k, v); }); u.hash = location.hash; location.replace(u.href); return;
+  }
   const SH = KARATS_SHOTS, src = (s, v) => `gal/ph/${s}_${v}.webp`;
   const embeddedGallery = q.get("galleryOverlay") === "1" && parent !== window;
   if (embeddedGallery) document.body.classList.add("gallery-embedded");
@@ -193,13 +215,15 @@
     .map(([k, v]) => `<div class="spec"><small>${k}</small><b>${v}</b></div>`).join("");
   $("equip").innerHTML = C.equip.map(t => `<span class="chip">${t}</span>`).join("");
   $("back").href = "index.html#" + (KARATS_CARS.indexOf(C) + 1);
-  let fromCat = false; try { const r = new URL(document.referrer); fromCat = r.origin === location.origin && /\/catalogo\.html$/.test(r.pathname); } catch (_) {}
+  let fromCat = false; try { const r = new URL(document.referrer); fromCat = r.origin === location.origin && /\/catalogo(\.html)?$/.test(r.pathname); } catch (_) {}
   if (fromCat) { $("back").href = document.referrer; $("back").querySelector("span").textContent = "Coches"; }
   $("back").onclick = e => {
     let fromHall = false;
     try { const r = new URL(document.referrer); fromHall = r.origin === location.origin && /\/(index\.html)?$/.test(r.pathname) && r.pathname.replace(/[^/]*$/, "") === location.pathname.replace(/[^/]*$/, ""); } catch (_) {}
     if ((fromHall || fromCat) && history.length > 1) { e.preventDefault(); history.back(); }
   };
+  const waSync = () => document.querySelectorAll('[data-contact="wa"]').forEach(a => { a.href = carWA(C, window.KLang ? KLang.language : "es"); });
+  waSync(); addEventListener("karats:language", waSync);
   addEventListener("scroll", () => document.body.classList.toggle("scrolled", scrollY > innerHeight * .45), { passive: true });
   // Contact actions remain fixed and available from the first screen.
 
@@ -332,13 +356,13 @@
     const nf = n => n.toLocaleString("es-ES").replace(/\u00a0/g, " ");
     $("oTitle").textContent = OT[LG()] || OT.es;
     $("ocars").innerHTML = KARATS_CARS.filter(o => o.id !== C.id).map(o => {
-      const href = window.KLang ? KLang.url("coche.html?id=" + o.id) : "coche.html?id=" + o.id;
+      const href = window.KLang ? KLang.url(carURL(o)) : carURL(o);
       return `<a class="ocar" href="${href}"><span class="oimg"><img src="c/${o.id}_s.webp" alt="${o.brand} ${o.model}" loading="lazy" decoding="async"></span><b>${o.brand} ${o.model}</b><small>${o.year} · ${nf(o.km)} km</small><span class="op">${nf(o.price)} €</span></a>`; }).join("");
   };
   others(); addEventListener("karats:language", others);
 })();
 </script>
-<script src="i18n.js?v=legal-20261021"></script>
+<script src="i18n.js?v=seo-20261021"></script>
 <script src="site.js?v=legal-20261021"></script>
 <script src="nav.js?v=r38"></script>
 <script src="kx.js?v=r37"></script>
