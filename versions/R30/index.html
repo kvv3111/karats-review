@@ -97,12 +97,12 @@
   body.menu #menuBtn i:nth-child(1) { top:21px; transform:rotate(45deg); } body.menu #menuBtn i:nth-child(2) { top:21px; transform:rotate(-45deg); }
 
   /* ---------- menu: glass panel from the top, hall blurred beneath ---------- */
-  #veil { position:fixed; inset:0; z-index:7; background:rgba(239,236,230,.18); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); opacity:0; pointer-events:none;
-          transition:opacity .4s var(--ease), backdrop-filter .5s var(--ease), -webkit-backdrop-filter .5s var(--ease); }
+  #veil { position:fixed; inset:0; z-index:7; background:rgba(239,236,230,.18); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); opacity:0; pointer-events:none;
+          transition:opacity .28s var(--ease); }
   body.menu #veil, body.sheet #veil { opacity:1; pointer-events:auto; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
-  #menu { --lg-tint:.60; position:fixed; z-index:8; top:calc(var(--tp, 16px) - 6px + env(safe-area-inset-top)); left:10px; right:10px; max-width:440px; margin-left:auto; border-radius:var(--r-xl);
-          padding:72px 10px 14px; transform-origin:calc(100% - 32px) 22px; transform:scale(.18, .08); opacity:0; pointer-events:none;
-          transition:transform .55s var(--spring), opacity .25s var(--ease); }
+  #menu { --lg-tint:.60; position:fixed; z-index:8; top:max(10px, calc(var(--tp, 16px) - 6px + env(safe-area-inset-top))); left:10px; right:10px; max-width:440px; margin-left:auto; border-radius:var(--r-xl);
+          padding:72px 10px 14px; transform-origin:calc(100% - 32px) 22px; transform:translateY(-8px); opacity:0; pointer-events:none;
+          transition:transform .28s var(--ease), opacity .22s var(--ease); }
   body.menu #menu { transform:none; opacity:1; pointer-events:auto; }
   #menu { max-height:calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; }
   #menu::-webkit-scrollbar { display:none; }
@@ -119,7 +119,7 @@
   #menu .mlegal a, #menu .mlegal button { color:var(--soft); text-decoration:none; background:none; border:0; padding:4px 0; cursor:pointer; font:inherit; }
   #menu .mlegal a:hover, #menu .mlegal button:hover { text-decoration:underline; }
   #menu nav .it { width:100%; border:0; background:none; text-align:left; cursor:pointer; color:inherit; font:inherit; display:flex; align-items:center; gap:14px; padding:13px 16px; border-radius:18px; text-decoration:none; position:relative; z-index:1;
-                opacity:0; transform:translateY(-8px); transition:opacity .35s var(--ease), transform .45s var(--spring), background .2s; }
+                opacity:1; transform:none; transition:background .2s; }
   body.menu #menu nav .it { opacity:1; transform:none; }
   #menu nav .it:active { background:rgba(255,255,255,.45); }
   #menu nav .it .n { font-family:Jost,sans-serif; font-size:12px; color:var(--faint); letter-spacing:.1em; width:22px; }
@@ -136,9 +136,13 @@
 
   /* ---------- car sheet: glass bottom sheet, draggable ---------- */
   #sheet { --lg-tint:.66; position:fixed; z-index:8; left:8px; right:8px; bottom:calc(8px + env(safe-area-inset-bottom)); max-width:520px; margin:0 auto; border-radius:var(--r-xl);
-           padding:10px 18px 18px; transform:translateY(calc(100% + 30px)); transition:transform .6s var(--spring); touch-action:none; }
+           padding:10px 18px 18px; transform:translateY(calc(100% + 30px)); transition:transform .38s var(--ease); touch-action:none; }
   body.sheet #sheet { transform:translateY(var(--dy, 0px)); }
   #sheet.drag { transition:none; }
+  /* The veil already frosts the hall. Avoid resampling a second blur while resizing. */
+  #sheet[data-motion="expanding"], #sheet[data-motion="collapsing"], #sheet.drag {
+    -webkit-backdrop-filter:none; backdrop-filter:none; contain:layout style;
+  }
   #sheet { touch-action:pan-y; max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; }
   #sheet::-webkit-scrollbar { display:none; }
   #sheet .grab, #sheet .sh-head { touch-action:none; }
@@ -171,7 +175,13 @@
   #sheet .label { position:absolute; top:10px; right:58px; }
   /* iPhone feel: no text selection / callout on long press over the hall and controls */
   #stage, .top, .side, #track, #more, .info, #sheet .grab, #sheet .sh-head, .gbtn, .btn { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
-  @media (prefers-reduced-motion: reduce) { #sheet, #menu, #veil, .toast, #kc-bar { transition-duration:.15s !important; } }
+  @media (prefers-reduced-motion: reduce) {
+    #sheet, #menu { transform:none !important; transition:opacity .12s ease !important; }
+    #sheet { opacity:0; visibility:hidden; pointer-events:none; }
+    body.sheet #sheet { opacity:1; visibility:visible; pointer-events:auto; }
+    #menu nav .it { transform:none; transition:none; }
+    #veil, .toast, #kc-bar { transition-duration:.12s !important; }
+  }
   @media (prefers-reduced-transparency: reduce) { .lg { -webkit-backdrop-filter:none !important; backdrop-filter:none !important; background:rgba(247,245,240,.97) !important; } }
 
   /* ---------- details: the same sheet grows into a full panel over the frozen hall ---------- */
@@ -363,9 +373,9 @@
   L.forEach((b, k) => b.onclick = () => { L.forEach(x => x.classList.remove("on")); b.classList.add("on"); document.querySelector("#lang .knob").style.transform = `translateX(${k * 46}px)`; });
   // Continuous in-place presentation: shared header, expanding shell, soft content reveal.
   let detailAnimations = [], detailEpoch = 0;
-  function transitionLayer(next) {
+  function transitionLayer(next, force = false) {
     const panel = $("sheet"), wasDetails = B.classList.contains("details"), toDetails = next === "details";
-    if (wasDetails === toDetails) { applyLayer(next); return; }
+    if (wasDetails === toDetails && !force) { applyLayer(next); return; }
     const from = panel.getBoundingClientRect(), opacity = getComputedStyle(panel).opacity;
     const token = ++detailEpoch;
     detailAnimations.forEach(a => a.cancel()); detailAnimations = [];
@@ -376,7 +386,7 @@
     panel.style.top = "auto"; panel.style.height = dest.height + "px";
     panel.style.overflow = "hidden"; panel.dataset.motion = toDetails ? "expanding" : "collapsing";
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const duration = reduced ? 0 : (toDetails ? 560 : 460);
+    const duration = reduced ? 0 : (toDetails ? 420 : 340);
     const animate = (el, frames, opts={}) => {
       const a = el.animate(frames, {duration, easing:"cubic-bezier(.2,.86,.22,1)", fill:"both", ...opts});
       detailAnimations.push(a);
@@ -410,19 +420,28 @@
   }
   addEventListener("pageshow", resetDetailGesture);
   sh.addEventListener("pointerdown", e => {
-    if (drag || sheetMotion || detailAnimations.length || openingDetails || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0) || e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return;
-    drag = { id:e.pointerId, x:e.clientX, y:e.clientY, dx:0, dy:0, height:sh.getBoundingClientRect().height, hist:[[e.timeStamp, e.clientY]] };
-    if (!B.classList.contains("details")) sh.style.height = drag.height + "px";
-    sh.classList.add("drag"); sh.setPointerCapture(e.pointerId);
+    if (drag || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0) || e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return;
+    // Grab the presentation geometry, not the previous animation's destination.
+    const rect = sh.getBoundingClientRect(), matrix = new DOMMatrixReadOnly(getComputedStyle(sh).transform);
+    const interrupted = !!(detailAnimations.length || sheetMotion);
+    ++detailEpoch;
+    detailAnimations.forEach(a => a.cancel()); detailAnimations = [];
+    if (sheetMotion) sheetMotion.cancel(); sheetMotion = null; openingDetails = false;
+    sh.classList.add("drag"); sh.style.top = "auto";
+    sh.style.height = rect.height + "px"; sh.style.width = rect.width + "px";
+    B.style.setProperty("--dy", matrix.m42 + "px");
+    sh.dataset.motion = "dragging";
+    drag = { id:e.pointerId, x:e.clientX, y:e.clientY, dx:0, dy:0, baseY:matrix.m42, interrupted, height:rect.height, hist:[[e.timeStamp, e.clientY]] };
+    sh.setPointerCapture(e.pointerId);
   });
   sh.addEventListener("pointermove", e => {
     if (!drag || drag.id !== e.pointerId) return;
     drag.dx = e.clientX - drag.x; drag.dy = e.clientY - drag.y;
     drag.hist.push([e.timeStamp, e.clientY]); while (drag.hist.length > 2 && e.timeStamp - drag.hist[0][0] > 100) drag.hist.shift();
     const vertical = Math.abs(drag.dy) >= Math.abs(drag.dx);
-    if (B.classList.contains("details")) { B.style.setProperty("--dy", (vertical ? Math.max(0, drag.dy) : 0) + "px"); return; }
+    if (B.classList.contains("details")) { B.style.setProperty("--dy", (drag.baseY + (vertical ? Math.max(0, drag.dy) : 0)) + "px"); return; }
     sh.style.height = (drag.height + (vertical ? Math.max(0, -drag.dy) : 0)) + "px";
-    B.style.setProperty("--dy", (vertical ? Math.max(0, drag.dy) : 0) + "px");
+    B.style.setProperty("--dy", (drag.baseY + (vertical ? Math.max(0, drag.dy) : 0)) + "px");
   });
   function finishDrag(e) {
     if (!drag || drag.id !== e.pointerId) return;
@@ -432,9 +451,14 @@
     const h = d.hist, dt = h.length > 1 ? h[h.length - 1][0] - h[0][0] : 0, vy = dt > 0 && e.timeStamp - h[h.length - 1][0] < 60 ? (h[h.length - 1][1] - h[0][1]) / dt : 0;
     const proj = d.dy + vy * 99, flick = Math.abs(d.dy) > 12;
     if (B.classList.contains("details")) {
-      sh.style.height = "";
       if (intentional && (d.dy > 90 || (flick && proj > 150))) closeDetails();
-      else B.style.setProperty("--dy", "0px");
+      else transitionLayer("details", true);
+      return;
+    }
+    if (d.interrupted && !(intentional && (d.dy < -64 || (flick && proj < -110)))) {
+      if (intentional && (d.dy > 110 || (flick && proj > 160))) {
+        sh.style.cssText = ""; sh.dataset.motion = "idle"; closeAll();
+      } else transitionLayer("sheet", true);
       return;
     }
     B.style.setProperty("--dy", "0px");
@@ -442,7 +466,7 @@
       $("sMore").click();
     } else {
       if (intentional && (d.dy > 110 || (flick && proj > 160))) closeAll();
-      resizeSheet(d.height, () => { sh.style.height = ""; });
+      resizeSheet(d.height, () => { sh.style.cssText = ""; sh.dataset.motion = "idle"; });
     }
   }
   // iOS-style: pulling the CONTENT down while it is already scrolled to the top moves the whole sheet, instead of a rubber band

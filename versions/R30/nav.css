@@ -28,13 +28,13 @@ body.menu .ptop .ptitle, body.menu .topbar .ptitle, body.menu .ptop .pback, body
 body.menu .ptop::before, body.menu .topbar::before { opacity:0; }
 
 /* ---------- menu: glass panel from the top, page blurred beneath (same as the hall) ---------- */
-#veil { position:fixed; inset:0; z-index:19; background:rgba(239,236,230,.18); -webkit-backdrop-filter:blur(0px); backdrop-filter:blur(0px); opacity:0; pointer-events:none;
-        transition:opacity .4s var(--ease), backdrop-filter .5s var(--ease), -webkit-backdrop-filter .5s var(--ease); }
+#veil { position:fixed; inset:0; z-index:19; background:rgba(239,236,230,.18); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); opacity:0; pointer-events:none;
+        transition:opacity .28s var(--ease); }
 body.menu #veil { opacity:1; pointer-events:auto; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
 #menu { --lg-tint:.60; position:fixed; z-index:20; top:calc(10px + env(safe-area-inset-top)); left:10px; right:10px; max-width:440px; margin-left:auto; border-radius:var(--r-xl);
-        padding:72px 10px 14px; transform-origin:calc(100% - 32px) 22px; transform:scale(.18, .08); opacity:0; pointer-events:none; visibility:hidden;
-        transition:transform .55s var(--spring), opacity .25s var(--ease), visibility 0s .55s; }
-body.menu #menu { transform:none; opacity:1; pointer-events:auto; visibility:visible; transition:transform .55s var(--spring), opacity .25s var(--ease), visibility 0s; }
+        padding:72px 10px 14px; transform-origin:calc(100% - 32px) 22px; transform:translateY(-8px); opacity:0; pointer-events:none; visibility:hidden;
+        transition:transform .28s var(--ease), opacity .22s var(--ease), visibility 0s .28s; }
+body.menu #menu { transform:none; opacity:1; pointer-events:auto; visibility:visible; transition:transform .28s var(--ease), opacity .22s var(--ease), visibility 0s; }
 #menu { max-height:calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; }
 #menu::-webkit-scrollbar { display:none; }
 @media (min-width:900px) { #menu { right:22px; } }
@@ -50,7 +50,7 @@ body.menu #menu { transform:none; opacity:1; pointer-events:auto; visibility:vis
 #menu .mlegal a, #menu .mlegal button { color:var(--soft); text-decoration:none; background:none; border:0; padding:4px 0; cursor:pointer; font:inherit; }
 #menu .mlegal a:hover, #menu .mlegal button:hover { text-decoration:underline; }
 #menu nav .it { width:100%; border:0; background:none; text-align:left; cursor:pointer; color:inherit; font:inherit; display:flex; align-items:center; gap:14px; padding:13px 16px; border-radius:18px; text-decoration:none; position:relative; z-index:1;
-              opacity:0; transform:translateY(-8px); transition:opacity .35s var(--ease), transform .45s var(--spring), background .2s; }
+              opacity:1; transform:none; transition:background .2s; }
 body.menu #menu nav .it { opacity:1; transform:none; }
 #menu nav .it:active { background:rgba(255,255,255,.45); }
 #menu nav .it[aria-current="page"] { background:rgba(255,255,255,.55); box-shadow:inset 0 0 0 .6px rgba(255,255,255,.8); }
@@ -69,5 +69,9 @@ body.menu #menu nav .it { opacity:1; transform:none; }
           font-size:14px; font-weight:600; transition:transform .5s var(--spring), opacity .25s; pointer-events:none; white-space:nowrap; }
 .ntoast.on { transform:translate(-50%, 0); opacity:1; }
 .pback, #menuBtn, #menu .seg button { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; }
-@media (prefers-reduced-motion: reduce) { #menu, #veil, .ptitle, .ptop::before, .topbar::before, #menu nav .it { transition-duration:.15s !important; } }
+@media (prefers-reduced-motion: reduce) {
+  #menu, #menu nav .it { transform:none !important; transition:opacity .12s ease, visibility 0s .12s !important; }
+  body.menu #menu { transition-delay:0s !important; }
+  #veil, .ptitle, .ptop::before, .topbar::before { transition-duration:.12s !important; }
+}
 @media (prefers-reduced-transparency: reduce) { .ptop::before, .topbar::before { -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(239,236,230,.98); } }

@@ -2,11 +2,20 @@
 (() => {
   'use strict';
   let dialog = null, frame = null, opener = null, closing = false;
+  let exitMotion = null, revealTimer = null;
+  const motionDuration = () => matchMedia('(prefers-reduced-motion: reduce)').matches ? 100 : 220;
   const tr = s => window.KLang ? KLang.translate(s) : s;
   const valid = g => g && KARATS_CARS.some(c => c.id === g.car) && KARATS_SHOTS.some(s => s[0] === g.shot);
-  function hide() {
-    if (!dialog) return;
-    dialog.close(); dialog.remove(); dialog = frame = null;
+  async function hide() {
+    if (!dialog || exitMotion) return;
+    const node = dialog;
+    const animation = node.animate([{opacity:getComputedStyle(node).opacity}, {opacity:0}],
+      {duration:motionDuration(), easing:'ease-out', fill:'forwards'});
+    exitMotion = animation;
+    try { await animation.finished; } catch (_) { return; }
+    if (exitMotion !== animation || dialog !== node) return;
+    clearTimeout(revealTimer); revealTimer = null;
+    node.close(); node.remove(); dialog = frame = null; exitMotion = null;
     if (opener?.isConnected) opener.focus({ preventScroll:true });
     opener = null;
   }
@@ -16,7 +25,15 @@
     else hide();
   }
   function show(g) {
-    if (dialog || !valid(g)) return;
+    if (!valid(g)) return;
+    if (dialog) {
+      if (exitMotion) {
+        const opacity = getComputedStyle(dialog).opacity;
+        exitMotion.cancel(); exitMotion = null;
+        dialog.animate([{opacity}, {opacity:1}], {duration:motionDuration(), easing:'ease-out'});
+      }
+      return;
+    }
     opener = document.activeElement;
     dialog = document.createElement('dialog'); dialog.id = 'showroomGallery';
     dialog.setAttribute('aria-label',tr('Galería'));
@@ -28,12 +45,15 @@
     frame = document.createElement('iframe'); frame.title = tr('Galería');
     // the photo page paints its light background before the viewer is up: keep it invisible until it says "ready"
     frame.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;background:#0d0e0d;opacity:0;transition:opacity .18s ease-out;';
-    const reveal = () => { if (frame) frame.style.opacity = 1; }; setTimeout(reveal, 2500);
+    const ownFrame = frame;
+    const reveal = () => { if (frame === ownFrame) ownFrame.style.opacity = 1; };
+    clearTimeout(revealTimer); revealTimer = setTimeout(reveal, 2500);
     const url = new URL('coche.html',location.href);
     url.searchParams.set('id',g.car); url.searchParams.set('lang',g.lang);
     url.searchParams.set('galleryOverlay','1'); url.hash='foto-'+g.shot;
     frame.src=url.href;
     dialog.append(frame,exit); document.body.append(dialog); dialog.showModal();
+    dialog.animate([{opacity:0}, {opacity:1}], {duration:motionDuration(), easing:'ease-out'});
     dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
   }
   document.addEventListener('click',e=>{
