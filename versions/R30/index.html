@@ -551,7 +551,7 @@
   document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
   $("sFav").addEventListener("click", () => { if (!window.KFav || !C) return; const on = KFav.toggle(C.id); favSync(); const tt = FAVT[(window.KLang && KLang.language) || "es"] || FAVT.es; say(on ? tt[0] : tt[1]); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} });
   addEventListener("karats:fav", favSync);
-  window.KUI = { openSheet(i) { fill(i); openLayer("sheet"); }, openDetails, isOpen: () => B.classList.contains("menu") || B.classList.contains("sheet") };
+  window.KUI = { openSheet(i) { fill(i); openLayer("sheet"); }, openDetails, isOpen: () => B.classList.contains("menu") || B.classList.contains("sheet") || !!document.querySelector("#kc-dlg.on") };
   if (B.classList.contains("sheet")) fill(+((/^#(\d)$/.exec(location.hash) || [0, 1])[1]) - 1);
   {
     const u = new URL(location.href);
@@ -1299,7 +1299,13 @@
   }
   let unlockedOnce = false; addEventListener("pointerdown", () => { unlockedOnce = true; }, true);
   pump();
-  addEventListener("resize", () => { if (isPortrait() !== small) location.reload(); else resize(); });
+  addEventListener("resize", () => {
+    if (isPortrait() !== small) {
+      // The new asset orientation must restore the selected destination, not the last parked car.
+      try { history.replaceState(history.state, "", "#" + (idx + 1)); } catch (e) {}
+      location.reload();
+    } else resize();
+  });
   if (document.fonts) document.fonts.ready.then(() => resize());           // the wordmark is centred by its width in Jost
   ui(); resize();
   addEventListener("karats:language", () => { resize(); document.documentElement.classList.remove("room-boot"); });
