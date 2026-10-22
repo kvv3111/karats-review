@@ -67,3 +67,9 @@ a.gbtn, a.btn { color:var(--ink); text-decoration:none; -webkit-tap-highlight-co
 }
 @keyframes kvt-out { to { opacity:0; transform:scale(.985); } }
 @keyframes kvt-in { from { opacity:0; transform:translateY(10px); } }
+
+/* Keep state feedback, without travel or springs, when motion is reduced. */
+@media (prefers-reduced-motion:reduce) {
+  #lang .knob, #toast, .toast { transition:none !important; }
+  #toast, .toast { transform:translate(-50%, 0) !important; }
+}

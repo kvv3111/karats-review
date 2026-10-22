@@ -1,5 +1,12 @@
 /* Ventajas: compare toggle, hotspots, reveal on scroll (r34) */
 (() => {
+  // CSS display:none on <animate> does not stop SVG SMIL timelines.
+  const mapMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const syncMapMotion = () => document.querySelectorAll('.px-map svg').forEach(svg => {
+    if (mapMotion.matches) { svg.pauseAnimations(); svg.setCurrentTime(0); }
+    else svg.unpauseAnimations();
+  });
+  syncMapMotion(); mapMotion.addEventListener('change', syncMapMotion);
   const root = document.querySelector('main.prose'); if (!root || !document.querySelector('.vx')) return;
   const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const tap = () => { try { navigator.vibrate && navigator.vibrate(8) } catch (e) {} };

@@ -66,8 +66,8 @@
 
   const css = `
   #kc-bar{position:fixed;z-index:70;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;padding:16px 16px 14px;border-radius:24px;--lg-tint:.70;
-    transform:translateY(130%);opacity:0;transition:transform .6s var(--spring,ease),opacity .3s;font-size:14px;line-height:1.45;color:var(--ink,#1d211e)}
-  #kc-bar.on{transform:none;opacity:1}
+    transform:translateY(130%);opacity:0;visibility:hidden;pointer-events:none;transition:transform .6s var(--spring,ease),opacity .3s,visibility 0s .6s;font-size:14px;line-height:1.45;color:var(--ink,#1d211e)}
+  #kc-bar.on{transform:none;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
   #kc-bar>*{position:relative;z-index:1}
   #kc-bar b{font-family:Jost,sans-serif;font-weight:500;font-size:17px;display:block;margin-bottom:4px}
   #kc-bar a{color:var(--acc,#304c40)}
@@ -76,8 +76,8 @@
   .kc-link{display:block;margin:10px auto 0;border:0;background:none;color:var(--acc,#304c40);font:inherit;font-weight:600;text-decoration:underline;cursor:pointer;padding:4px 8px}
   .kc-eq{background:var(--ink,#1d211e);color:#fff;box-shadow:0 8px 20px rgba(20,22,20,.18)}
   .kc-sec{background:rgba(255,255,255,.55);box-shadow:inset 0 0 0 .8px rgba(29,33,30,.16)}
-  #kc-dlg{position:fixed;z-index:80;inset:0;display:none;align-items:flex-end;justify-content:center;padding:10px;background:rgba(20,22,20,.28);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-  #kc-dlg.on{display:flex}
+  #kc-dlg{position:fixed;z-index:80;inset:0;display:flex;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility 0s .18s;align-items:flex-end;justify-content:center;padding:10px;background:rgba(20,22,20,.28);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  #kc-dlg.on{opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
   #kc-box{width:100%;max-width:560px;max-height:calc(100dvh - 20px);overflow:auto;border-radius:26px;padding:20px 18px 16px;--lg-tint:.80;color:var(--ink,#1d211e);font-size:14px;line-height:1.45;margin-bottom:env(safe-area-inset-bottom)}
   #kc-box>*{position:relative;z-index:1}
   #kc-box h2{font-family:Jost,sans-serif;font-weight:500;font-size:22px;margin:0 0 10px}
@@ -87,15 +87,19 @@
   .kc-sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:11px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .3s var(--spring,ease)}
   .kc-sw[aria-checked="true"]{background:var(--acc,#304c40)} .kc-sw[aria-checked="true"]::after{transform:translateX(20px)}
   .kc-sw:disabled{opacity:.55;cursor:default}
-  .kc-x{position:absolute!important;top:12px;right:12px}
+  #kc-box .kc-x{position:absolute!important;top:12px;right:12px;z-index:2}
   @media (min-width:700px){#kc-dlg{align-items:center}}
+  @media (prefers-reduced-motion:reduce){
+    #kc-bar{transform:none!important;transition:none!important}
+    #kc-dlg,.kc-sw,.kc-sw::after{transition:none!important}
+  }
   `;
-  let bar, dlg, lastFocus;
+  let bar, dlg, lastFocus, prefsFocusTimer;
   function build() {
     if (bar) return;
     const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
     bar = document.createElement('div'); bar.id = 'kc-bar'; bar.className = 'lg'; bar.setAttribute('role', 'dialog'); bar.setAttribute('aria-live', 'polite'); bar.setAttribute('translate', 'no');
-    dlg = document.createElement('div'); dlg.id = 'kc-dlg'; dlg.setAttribute('translate', 'no');
+    dlg = document.createElement('div'); dlg.id = 'kc-dlg'; dlg.inert = true; dlg.setAttribute('translate', 'no');
     document.body.append(bar, dlg);
     dlg.addEventListener('click', e => { if (e.target === dlg) closePrefs(); });
     addEventListener('keydown', e => { if (e.key === 'Escape' && dlg.classList.contains('on')) { e.stopPropagation(); closePrefs(); } }, true);
@@ -140,14 +144,17 @@
   }
   function done(a, m) { write(a, m); closePrefs(); hideBar(); toast(t('saved')); }
   function openPrefs() {
-    build(); lastFocus = document.activeElement;
+    build(); if (!dlg.contains(document.activeElement)) lastFocus = document.activeElement;
+    clearTimeout(prefsFocusTimer);
     draft = { analytics: !!(state && state.analytics), marketing: !!(state && state.marketing) };
-    renderPrefs(); dlg.classList.add('on');
-    setTimeout(() => { const f = dlg.querySelector('.kc-sw:not(:disabled),.kc-x'); f && f.focus({ preventScroll: true }); }, 30);
+    renderPrefs(); dlg.inert = false;
+    // Commit the hidden presentation on first build before starting its fade.
+    void dlg.offsetWidth; dlg.classList.add('on');
+    prefsFocusTimer = setTimeout(() => { if (!dlg.classList.contains('on')) return; const f = dlg.querySelector('.kc-sw:not(:disabled),.kc-x'); f && f.focus({ preventScroll: true }); }, 30);
   }
   function closePrefs() {
     if (!dlg || !dlg.classList.contains('on')) return;
-    dlg.classList.remove('on'); if (!state) showBar();
+    clearTimeout(prefsFocusTimer); dlg.inert = true; dlg.classList.remove('on'); if (!state) showBar();
     if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
   }
   function toast(msg) {
