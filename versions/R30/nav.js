@@ -61,7 +61,7 @@
   }
 
   // ---- title in the bar once the page heading has scrolled away (like iOS large titles) ----
-  const src = $('main h1, .phead h1, h1#title, h1'), title = bar.querySelector('.ptitle');
+  const src = $('[data-bar]') || $('main h1, .phead h1, h1#title, h1'), title = bar.querySelector('.ptitle');
   function syncTitle() { if (src && title) requestAnimationFrame(() => { title.textContent = src.textContent.trim(); }); }
   if (src && title) {
     syncTitle();
