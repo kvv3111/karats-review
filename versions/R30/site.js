@@ -9,31 +9,31 @@
   const AVAILABLE = Object.freeze({ analytics: false, marketing: false });
   const lang = () => (window.KLang && KLang.language) || 'es';
   const T = {
-    es: { title: 'Cookies', text: 'Solo guardamos el idioma que eliges, tus favoritos y la decisión de este panel. No hay cookies de análisis ni de publicidad. Aceptar no autoriza nuevos usos. Puedes cambiar tu elección en «Configurar cookies».',
+    es: { title: 'Cookies', text: 'Solo guardamos el idioma que eliges, tus favoritos, los últimos filtros del catálogo y la decisión de este panel. No hay cookies de análisis ni de publicidad. Aceptar no autoriza nuevos usos. Puedes cambiar tu elección en «Configurar cookies».',
           more: 'Política de cookies', accept: 'Aceptar', reject: 'Rechazar', config: 'Configurar',
           prefs: 'Configurar cookies', save: 'Guardar selección', acceptAll: 'Aceptar todas', rejectAll: 'Rechazar todas', close: 'Cerrar',
-          nec: 'Necesarias', necD: 'Idioma, favoritos que guardas con ♥ y tu elección en este panel. No se usan para seguirte ni mostrar publicidad.',
+          nec: 'Necesarias', necD: 'Idioma, favoritos que guardas con ♥, últimos filtros del catálogo y tu elección en este panel. No se usan para seguirte ni mostrar publicidad.',
           ana: 'Análisis', anaD: 'Estadísticas de visitas para mejorar la web. Ahora mismo no usamos ninguna herramienta de este tipo.',
           mkt: 'Publicidad', mktD: 'Medir anuncios y mostrar publicidad relevante. Ahora mismo no usamos ninguna.',
           always: 'Siempre activas', saved: 'Preferencias guardadas' },
-    en: { title: 'Cookies', text: 'We only store your chosen language, saved favourites and the choice in this panel. There are no analytics or advertising cookies. Accepting does not permit new uses. You can change your choice in “Cookie settings”.',
+    en: { title: 'Cookies', text: 'We only store your chosen language, saved favourites, your last catalogue filters and the choice in this panel. There are no analytics or advertising cookies. Accepting does not permit new uses. You can change your choice in “Cookie settings”.',
           more: 'Cookie policy', accept: 'Accept', reject: 'Reject', config: 'Settings',
           prefs: 'Cookie settings', save: 'Save choice', acceptAll: 'Accept all', rejectAll: 'Reject all', close: 'Close',
-          nec: 'Necessary', necD: 'Your language, cars saved with ♥ and your choice in this panel. Not used to track you or show ads.',
+          nec: 'Necessary', necD: 'Your language, cars saved with ♥, your last catalogue filters and your choice in this panel. Not used to track you or show ads.',
           ana: 'Analytics', anaD: 'Visit statistics to improve the site. We do not use any such tool at the moment.',
           mkt: 'Advertising', mktD: 'Ad measurement and relevant ads. We do not use any at the moment.',
           always: 'Always on', saved: 'Preferences saved' },
-    ca: { title: 'Cookies', text: 'Només desem l’idioma que tries, els preferits i la decisió d’aquest panell. No hi ha cookies d’anàlisi ni de publicitat. Acceptar no autoritza usos nous. Pots canviar l’elecció a «Configurar les cookies».',
+    ca: { title: 'Cookies', text: 'Només desem l’idioma que tries, els preferits, els últims filtres del catàleg i la decisió d’aquest panell. No hi ha cookies d’anàlisi ni de publicitat. Acceptar no autoritza usos nous. Pots canviar l’elecció a «Configurar les cookies».',
           more: 'Política de cookies', accept: 'Acceptar', reject: 'Rebutjar', config: 'Configurar',
           prefs: 'Configurar les cookies', save: 'Desar la selecció', acceptAll: 'Acceptar-les totes', rejectAll: 'Rebutjar-les totes', close: 'Tancar',
-          nec: 'Necessàries', necD: 'Idioma, preferits que deses amb ♥ i la teva elecció en aquest panell. No es fan servir per seguir-te ni mostrar publicitat.',
+          nec: 'Necessàries', necD: 'Idioma, preferits que deses amb ♥, últims filtres del catàleg i la teva elecció en aquest panell. No es fan servir per seguir-te ni mostrar publicitat.',
           ana: 'Anàlisi', anaD: 'Estadístiques de visites per millorar el web. Ara mateix no fem servir cap eina d’aquest tipus.',
           mkt: 'Publicitat', mktD: 'Mesurar anuncis i mostrar publicitat rellevant. Ara mateix no en fem servir cap.',
           always: 'Sempre actives', saved: 'Preferències desades' },
-    ru: { title: 'Cookies', text: 'Сохраняем выбранный язык, избранное и решение в этой панели. Аналитических и рекламных cookies нет. Нажатие «Принять» не разрешает новые способы использования. Изменить выбор можно в «Настройках cookies».',
+    ru: { title: 'Cookies', text: 'Сохраняем выбранный язык, избранное, последние фильтры каталога и решение в этой панели. Аналитических и рекламных cookies нет. Нажатие «Принять» не разрешает новые способы использования. Изменить выбор можно в «Настройках cookies».',
           more: 'Политика cookies', accept: 'Принять', reject: 'Отклонить', config: 'Настроить',
           prefs: 'Настройки cookies', save: 'Сохранить выбор', acceptAll: 'Принять все', rejectAll: 'Отклонить все', close: 'Закрыть',
-          nec: 'Необходимые', necD: 'Язык, машины, сохранённые через ♥, и выбор в этой панели. Не используются для отслеживания или рекламы.',
+          nec: 'Необходимые', necD: 'Язык, машины, сохранённые через ♥, последние фильтры каталога и выбор в этой панели. Не используются для отслеживания или рекламы.',
           ana: 'Аналитика', anaD: 'Статистика посещений, чтобы улучшать сайт. Сейчас таких инструментов у нас нет.',
           mkt: 'Реклама', mktD: 'Измерение рекламы и показ релевантных объявлений. Сейчас не используем.',
           always: 'Всегда включены', saved: 'Настройки сохранены' }
@@ -170,7 +170,7 @@
     document.querySelectorAll('[data-lang]').forEach(el => { el.hidden = el.dataset.lang !== l; });
     const ttl = document.documentElement.dataset['title' + l[0].toUpperCase() + l[1]]; if (ttl) document.title = ttl;
     document.querySelectorAll('[data-t-es]').forEach(el => { const v = el.dataset['t' + l[0].toUpperCase() + l[1]]; if (v != null) el.textContent = v; });
-    if (window.KLang) document.querySelectorAll('a[href]:not([href^="#"])').forEach(a => {   // keep ?lang on internal links (incl. translate=no blocks)
+    if (window.KLang) document.querySelectorAll('a[href]:not([href^="#"]):not([hreflang])').forEach(a => {   // keep ?lang on internal links; language switch links keep their own (incl. translate=no blocks)
       const h = a.getAttribute('href'); if (/^[\w-]+\.html/.test(h) || a.href.startsWith(location.origin)) a.href = KLang.url(h);
     });
     if (bar && bar.classList.contains('on')) renderBar();
@@ -204,7 +204,8 @@
     const a = n => `<a href="${n[0]}${q}">${n[i]}</a>`;
     const col = (id, h, body) => `<div class="kf-col"><button type="button" class="kf-h" aria-expanded="false" aria-controls="kf-${id}">${h}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><div class="kf-list" id="kf-${id}"><div>${body}</div></div></div>`;
     const here = location.pathname.split('/').pop() || 'index.html';
-    const langs = [['es', 'ES'], ['ca', 'CA'], ['en', 'EN'], ['ru', 'RU']].map(([c, n]) => `<a href="${here}${c === 'es' ? '?lang=es' : '?lang=' + c}" hreflang="${c}"${c === L ? ' aria-current="true"' : ''}>${n}</a>`).join('');
+    const lq = c => { const u = new URLSearchParams(location.search); u.set('lang', c); return '?' + u.toString(); };
+    const langs = [['es', 'ES'], ['ca', 'CA'], ['en', 'EN'], ['ru', 'RU']].map(([c, n]) => `<a href="${here}${lq(c)}" hreflang="${c}" lang="${c}"${c === L ? ' aria-current="true"' : ''}>${n}</a>`).join('');
     document.querySelectorAll('[data-footer]').forEach(f => {
       f.setAttribute('translate', 'no'); f.classList.add('kfoot');
       f.innerHTML = `<div class="kf-in"><p class="kf-note">${f0.note}</p>

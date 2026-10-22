@@ -16,7 +16,7 @@
       fuels: ['Gasolina', 'Diésel', 'Híbrido', 'Eléctrico'], gears: ['Automático', 'Manual'],
       whens: ['Cuanto antes', 'En 1 mes', 'En 2-3 meses', 'Sin prisa'],
       send: 'Enviar por WhatsApp', close: 'Cerrar', privacy: 'Esta web no guarda nada: el texto solo se envía si lo mandas desde WhatsApp.',
-      msg: 'Hola, me gustaría que me buscarais un coche.', sign: 'Mi nombre', y: 'desde', k: 'hasta', upto: 'hasta',
+      msg: 'Hola, me gustaría que me buscarais un coche.', sign: 'Mi nombre', need: 'Escribe qué coche buscas o marca alguna opción.', y: 'desde', k: 'hasta', upto: 'hasta',
     },
     ca: {
       cta_h: 'No hi veus el teu cotxe?', cta_p: 'Digues-nos què busques i te’l trobem.', cta_b: 'Et busquem el cotxe',
@@ -27,7 +27,7 @@
       fuels: ['Gasolina', 'Dièsel', 'Híbrid', 'Elèctric'], gears: ['Automàtic', 'Manual'],
       whens: ['Com més aviat millor', 'D’aquí a 1 mes', 'D’aquí a 2-3 mesos', 'Sense pressa'],
       send: 'Enviar per WhatsApp', close: 'Tancar', privacy: 'Aquest web no desa res: el text només s’envia si el mandes des de WhatsApp.',
-      msg: 'Hola, m’agradaria que em busquéssiu un cotxe.', sign: 'Em dic', y: 'des de', k: 'fins a', upto: 'fins a',
+      msg: 'Hola, m’agradaria que em busquéssiu un cotxe.', sign: 'Em dic', need: 'Escriu quin cotxe busques o marca alguna opció.', y: 'des de', k: 'fins a', upto: 'fins a',
     },
     en: {
       cta_h: 'Can’t see your car?', cta_p: 'Tell us what you want and we’ll find it for you.', cta_b: 'Find me a car',
@@ -38,7 +38,7 @@
       fuels: ['Petrol', 'Diesel', 'Hybrid', 'Electric'], gears: ['Automatic', 'Manual'],
       whens: ['As soon as possible', 'Within a month', 'In 2-3 months', 'No rush'],
       send: 'Send via WhatsApp', close: 'Close', privacy: 'This website stores nothing: the text is only sent if you send it from WhatsApp.',
-      msg: 'Hello, I’d like you to find a car for me.', sign: 'My name is', y: 'from', k: 'up to', upto: 'up to',
+      msg: 'Hello, I’d like you to find a car for me.', sign: 'My name is', need: 'Tell us which car you want or pick an option.', y: 'from', k: 'up to', upto: 'up to',
     },
     ru: {
       cta_h: 'Не нашли свою машину?', cta_p: 'Расскажите, что ищете, и мы её найдём.', cta_b: 'Подберите мне машину',
@@ -49,7 +49,7 @@
       fuels: ['Бензин', 'Дизель', 'Гибрид', 'Электро'], gears: ['Автомат', 'Механика'],
       whens: ['Как можно скорее', 'В течение месяца', 'Через 2-3 месяца', 'Не спешу'],
       send: 'Отправить в WhatsApp', close: 'Закрыть', privacy: 'Сайт ничего не сохраняет: текст уйдёт, только если вы отправите его в WhatsApp.',
-      msg: 'Здравствуйте, хочу, чтобы вы подобрали мне машину.', sign: 'Меня зовут', y: 'от', k: 'до', upto: 'до',
+      msg: 'Здравствуйте, хочу, чтобы вы подобрали мне машину.', sign: 'Меня зовут', need: 'Напишите, какую машину ищете, или выберите вариант.', y: 'от', k: 'до', upto: 'до',
     },
   };
   const lang = () => (window.KLang && L[KLang.language]) ? KLang.language : 'es';
@@ -84,6 +84,8 @@
   #kfind .kf-chips button{height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--line,rgba(29,33,30,.12));background:#fff;font:inherit;font-size:14px;color:var(--ink,#1d211e);cursor:pointer}
   #kfind .kf-chips button[aria-pressed="true"]{background:var(--acc,#304c40);border-color:var(--acc,#304c40);color:#fff}
   #kfind .kf-send{width:100%;margin-top:4px}
+  #kfind input[aria-invalid="true"]{border-color:#b3261e;box-shadow:0 0 0 1px #b3261e}
+  #kfind .kf-need{margin:-6px 0 12px;font-size:13px;color:#b3261e}
   #kfind .kf-priv{font-size:12px;color:var(--faint,#9aa09a);text-align:center;margin:10px 0 0}
   body.kf-open{overflow:hidden}
   </style>`);
@@ -113,7 +115,8 @@
     box.innerHTML = `<div class="kf-veil"></div><form class="kf-box" role="dialog" aria-modal="true" aria-labelledby="kfH" translate="no" novalidate>
       <div class="kf-head"><h2 id="kfH">${esc(t.h)}</h2><button type="button" class="kf-x" aria-label="${esc(t.close)}">×</button></div>
       <p class="kf-sub">${esc(t.sub)}</p>
-      <label><span>${esc(t.model)}</span><input name="model" autocomplete="off" placeholder="${esc(t.model_ph)}"></label>
+      <label><span>${esc(t.model)}</span><input name="model" autocomplete="off" placeholder="${esc(t.model_ph)}" aria-describedby="kfNeed"></label>
+      <p class="kf-need" id="kfNeed" role="alert" hidden>${esc(t.need)}</p>
       <div class="kf-row"><label><span>${esc(t.budget)}</span><input name="budget" inputmode="numeric" placeholder="${esc(t.budget_ph)}"></label>
         <label><span>${esc(t.year)}</span><select name="year"><option value="">${esc(t.any)}</option>${YEARS.map(y => `<option>${y}</option>`).join('')}</select></label></div>
       <label><span>${esc(t.km)}</span><select name="km"><option value="">${esc(t.any)}</option>${KMS.map(k => `<option value="${k}">${n(k)} km</option>`).join('')}</select></label>
@@ -132,7 +135,15 @@
       if (g.dataset.key !== 'fuel') g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false'));
       b.setAttribute('aria-pressed', String(on));
     });
-    box.querySelector('form').onsubmit = e => { e.preventDefault(); send(l); };
+    const f = box.querySelector('form'), need = f.querySelector('.kf-need'), model = f.elements.model;
+    const ok = () => { need.hidden = true; model.removeAttribute('aria-invalid'); };
+    f.addEventListener('input', ok); f.addEventListener('click', e => { if (e.target.closest('.kf-chips button')) ok(); });
+    f.onsubmit = e => {
+      e.preventDefault();
+      if (message(l, f).split('\n').filter(s => s.startsWith('• ')).length) return send(l);
+      need.hidden = false; model.setAttribute('aria-invalid', 'true');
+      model.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); model.focus({ preventScroll: true });
+    };
   }
   function message(l, f) {
     const t = L[l], v = k => (f.elements[k].value || '').trim(), out = [t.msg];
@@ -151,8 +162,8 @@
   function send(l) {
     const url = `https://wa.me/${WA}?text=` + encodeURIComponent(message(l, box.querySelector('form')));
     state.last = url;
-    const w = window.open(url, '_blank', 'noopener');
-    if (!w) location.href = url;
+    const w = window.open(url, '_blank');   // not 'noopener': that always returns null and fired the fallback too
+    if (w) { try { w.opener = null; } catch (e) {} } else location.href = url;   // popup really blocked: go in this tab
   }
   function open(l) {
     if (!box) { box = document.createElement('div'); box.id = 'kfind'; document.body.appendChild(box); }

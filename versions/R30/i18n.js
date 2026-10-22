@@ -114,7 +114,7 @@
       const old=root.getAttribute(a); if(old && artwork(old)!==old) root.setAttribute(a,artwork(old));
     }
     const bg=root.style.backgroundImage; if(bg && artwork(bg)!==bg) root.style.backgroundImage=artwork(bg);
-    if(root.matches('a[href]')) {
+    if(root.matches('a[href]:not([hreflang])')) {   // language switch links (hreflang) keep their own ?lang
       const href=root.getAttribute('href');
       if(href && !href.startsWith('#')) { const dest=url(href); if(dest!==root.href) root.href=dest; }
     }
