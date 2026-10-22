@@ -25,6 +25,11 @@
 .cfav svg { width:20px; height:20px; } .cfav.on svg path { fill:#c8463b; stroke:#c8463b; } .cfav:active { transform:scale(.86); }
 @media (prefers-reduced-motion:no-preference) { .cfav.on svg { animation:cfpop .45s var(--spring); } }
 @keyframes cfpop { 0% { transform:scale(.6) } 60% { transform:scale(1.2) } 100% { transform:none } }
+/* stage5: results button under the filters, way out of an empty list */
+.cfacts { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 12px; margin-top:8px; } .cfacts .cfshow { margin-left:auto; max-width:100%; white-space:nowrap; }
+.cfshow { height:44px; padding:0 18px; font-size:15px; } .cfshow[disabled] { opacity:.45; pointer-events:none; }
+.cempty { grid-column:1 / -1; } .cempty p { margin:0 0 14px; } .cempty .btn { height:44px; padding:0 20px; font-size:15px; color:var(--ink); }
+.cmeta { scroll-margin-top:calc(140px + env(safe-area-inset-top)); }
 </style>
 <style>[data-demo-notice]{font-size:13px;line-height:1.4;color:#253e32;background:#f1f4ed;border:1px solid #b7c6b8;border-radius:12px;padding:10px 14px;margin:14px 0;}</style>
 <!--seo-->
@@ -69,7 +74,7 @@
       <div class="cfgroup"><small id="lGear"></small><div class="cfchips" id="fGear"></div></div>
       <div class="cfgroup"><small id="lPrice"></small><div class="cfrange"><input type="range" id="fPrice"><output id="oPrice"></output></div></div>
       <div class="cfgroup"><small id="lKm"></small><div class="cfrange"><input type="range" id="fKm"><output id="oKm"></output></div></div>
-      <button type="button" class="cfreset" id="freset"></button>
+      <div class="cfacts"><button type="button" class="cfreset" id="freset"></button><button type="button" class="btn primary cfshow" id="fshow"></button></div>
     </div>
   </div>
 
@@ -114,30 +119,40 @@
           note:'Пока сайт готовится, данные и фото демонстрационные. Это не предложение о продаже.' }
   };
   const t = k => T[L()][k];
-  const fuelOf = c => /eléctr/i.test(c.fuel) ? 'ele' : /híbrid|mhev|hev/i.test(c.fuel) ? 'hyb' : /diés/i.test(c.fuel) ? 'die' : 'gas';
+  // a mild hybrid ("Gasolina MHEV") is found under Gasolina AND Híbrido
+  const fuelsOf = c => { const f = c.fuel.toLowerCase(); return /eléctr/.test(f) ? ['ele'] : /mhev/.test(f) ? ['gas', 'hyb'] : /híbrid|hev/.test(f) ? ['hyb'] : /diés/.test(f) ? ['die'] : ['gas']; };
+  // search ignores case, accents, spaces and hyphens; knows short and Cyrillic names; also matches the translated name shown on the card
+  const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[\s\-·.,/]+/g, '');
+  const ALIAS = { Volkswagen:'vw фольксваген фольцваген', BMW:'бмв', Toyota:'тойота', Hyundai:'хендай хёндай хюндай хундай', Kia:'киа', Golf:'гольф', Corolla:'королла', Ioniq:'ионик', Sportage:'спортейдж спортэйдж', 'Serie 3':'3 series 3er' };
+  const hay = c => norm([c.brand, c.model, c.trim, tr(c.brand + ' ' + c.model), tr(c.trim), ...Object.keys(ALIAS).filter(k => `${c.brand} ${c.model}`.includes(k)).map(k => ALIAS[k])].join(' '));
+  const SHOW = { es:'Ver', en:'Show', ca:'Veure', ru:'Показать' };
   const gearOf = c => /^autom/i.test(c.gear) ? 'a' : 'm';
   const brands = [...new Set(CARS.map(c => c.brand))].sort();
-  const fuels = ['gas', 'die', 'hyb', 'ele'].filter(f => CARS.some(c => fuelOf(c) === f));
+  const fuels = ['gas', 'die', 'hyb', 'ele'].filter(f => CARS.some(c => fuelsOf(c).includes(f)));
   const gears = ['a', 'm'].filter(g => CARS.some(c => gearOf(c) === g));
   const step = (v, s) => Math.ceil(v / s) * s;
   const PMIN = step(Math.min(...CARS.map(c => c.price)), 1000), PMAX = step(Math.max(...CARS.map(c => c.price)), 1000);
   const KMAX = step(Math.max(...CARS.map(c => c.km)), 10000);
+  const KMIN = step(Math.min(...CARS.map(c => c.km)), 10000);
   const S = { q:'', brand:new Set(), fuel:new Set(), gear:new Set(), price:PMAX, km:KMAX, sort:'0' };
 
   // state <-> URL so Back from a car page and shared links keep the filters
   function load() {
     const p = new URLSearchParams(location.search);
-    S.q = p.get('q') || ''; S.sort = p.get('o') || '0';
-    ['brand', 'fuel', 'gear'].forEach(k => (p.get(k) || '').split(',').filter(Boolean).forEach(v => S[k].add(v)));
-    if (+p.get('p')) S.price = Math.min(PMAX, Math.max(PMIN, +p.get('p')));
-    if (+p.get('km')) S.km = Math.min(KMAX, +p.get('km'));
+    const known = { brand:brands, fuel:fuels, gear:gears };
+    S.q = p.get('q') || ''; S.sort = /^[0-4]$/.test(p.get('o') || '') ? p.get('o') : '0'; S.fav = p.get('fav') === '1';
+    ['brand', 'fuel', 'gear'].forEach(k => (p.get(k) || '').split(',').filter(v => known[k].includes(v)).forEach(v => S[k].add(v)));
+    if (+p.get('p') > 0) S.price = Math.min(PMAX, Math.max(PMIN, +p.get('p')));
+    if (+p.get('km') > 0) S.km = Math.min(KMAX, Math.max(KMIN, +p.get('km')));
   }
   function save() {
     const p = new URLSearchParams(location.search);
     const set = (k, v, def) => v && v !== def ? p.set(k, v) : p.delete(k);
     set('q', S.q.trim()); set('o', S.sort, '0'); ['brand', 'fuel', 'gear'].forEach(k => set(k, [...S[k]].join(',')));
-    set('p', String(S.price), String(PMAX)); set('km', String(S.km), String(KMAX));
+    set('p', String(S.price), String(PMAX)); set('km', String(S.km), String(KMAX)); set('fav', S.fav ? '1' : '');
     const qs = p.toString(); history.replaceState(history.state, '', location.pathname + (qs ? '?' + qs : ''));
+    // the menu's "Coches" brings the visitor back to these filters (this tab only)
+    try { const keep = new URLSearchParams(qs); keep.delete('lang'); sessionStorage.setItem('karats.catalog', keep.toString()); } catch (_) {}
   }
   const chips = (el, items, key, label) => {
     el.innerHTML = items.map(v => `<button type="button" data-v="${v}" aria-pressed="${S[key].has(v)}">${label(v)}</button>`).join('');
@@ -155,12 +170,18 @@
     $('note').textContent = t('note');
   }
   const P = $('fPrice'), K = $('fKm');
-  P.min = PMIN; P.max = PMAX; P.step = 1000; K.min = 10000; K.max = KMAX; K.step = 10000;
+  P.min = PMIN; P.max = PMAX; P.step = 1000; K.min = KMIN; K.max = KMAX; K.step = 10000;
   P.oninput = () => { S.price = +P.value; update(); }; K.oninput = () => { S.km = +K.value; update(); };
   $('q').oninput = () => { S.q = $('q').value; update(); };
   $('sort').onchange = () => { S.sort = $('sort').value; update(); };
-  $('fbtn').onclick = () => { const o = $('cbar').classList.toggle('open'); $('fbtn').setAttribute('aria-expanded', o); };
-  $('freset').onclick = () => { S.brand.clear(); S.fuel.clear(); S.gear.clear(); S.price = PMAX; S.km = KMAX; S.q = ''; $('q').value = ''; labels(); update(); };
+  // the panel's open/closed state belongs to this history entry: Back restores it exactly, a fresh visit starts folded
+  const keepOpen = o => { try { history.replaceState({ ...(history.state || {}), catOpen:o }, ''); } catch (_) {} };
+  $('fbtn').onclick = () => { const o = $('cbar').classList.toggle('open'); $('fbtn').setAttribute('aria-expanded', o); keepOpen(o); };
+  const reset = () => { S.brand.clear(); S.fuel.clear(); S.gear.clear(); S.price = PMAX; S.km = KMAX; S.q = ''; S.fav = false; $('q').value = ''; labels(); update(); };
+  $('freset').onclick = reset;
+  // 4: on a phone the open panel covers the list: this button folds it and shows what was found
+  $('fshow').onclick = () => { $('cbar').classList.remove('open'); $('fbtn').setAttribute('aria-expanded', 'false'); keepOpen(false);
+    document.querySelector('.cmeta').scrollIntoView({ block:'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); };
 
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
   function card(c) {
@@ -170,20 +191,21 @@
     const facts = [c.year, fmtKM(c.km), tr(c.fuel), tr(c.gear.split(' ')[0]), tr(c.power)].map(f => `<span>${esc(tr(String(f)))}</span>`).join('');
     return `<a class="ccar" href="${href}"><div class="img"><img src="c/${c.id}_s.webp" srcset="c/${c.id}_s.webp 600w, c/${c.id}.webp 900w" sizes="(min-width:980px) 380px, (min-width:620px) 50vw, 100vw" alt="${esc(c.brand + ' ' + c.model)}" loading="lazy" decoding="async" width="600" height="400">
       <button type="button" class="cfav${fav ? ' on' : ''}" data-fav="${c.id}" aria-pressed="${fav ? 'true' : 'false'}" aria-label="${t('favA')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg></button><span class="badge">${esc(c.label === '0' ? ({ es:'CERO', en:'ZERO', ru:'0', ca:'ZERO' })[L()] : c.label)}</span></div>
-      <div class="body"><h3>${esc(c.brand + ' ' + tr(c.model))}</h3><div class="trim">${esc(tr(c.trim))}</div><div class="facts">${facts}</div>
+      <div class="body"><h3>${esc(tr(c.brand + ' ' + c.model))}</h3><div class="trim">${esc(tr(c.trim))}</div><div class="facts">${facts}</div>
       <div class="price"><b>${fmtEUR(c.price)}</b><small>${t('vat')}</small></div></div></a>`;
   }
   function update() {
     P.value = S.price; K.value = S.km;
     $('oPrice').textContent = S.price >= PMAX ? t('any') : fmtEUR(S.price);
     $('oKm').textContent = S.km >= KMAX ? t('any') : fmtKM(S.km);
-    const q = S.q.trim().toLowerCase();
-    let list = CARS.filter(c => (!S.fav || (window.KFav && KFav.has(c.id))) && (!q || `${c.brand} ${c.model} ${c.trim}`.toLowerCase().includes(q))
-      && (!S.brand.size || S.brand.has(c.brand)) && (!S.fuel.size || S.fuel.has(fuelOf(c))) && (!S.gear.size || S.gear.has(gearOf(c)))
+    const toks = S.q.split(/\s+/).map(norm).filter(Boolean);
+    let list = CARS.filter(c => (!S.fav || (window.KFav && KFav.has(c.id))) && (!toks.length || (h => toks.every(x => h.includes(x)))(hay(c)))
+      && (!S.brand.size || S.brand.has(c.brand)) && (!S.fuel.size || fuelsOf(c).some(f => S.fuel.has(f))) && (!S.gear.size || S.gear.has(gearOf(c)))
       && c.price <= S.price && c.km <= S.km);
     const by = { 1:(a, b) => a.price - b.price, 2:(a, b) => b.price - a.price, 3:(a, b) => a.km - b.km, 4:(a, b) => b.year - a.year || a.km - b.km }[S.sort];
     if (by) list = list.slice().sort(by);
-    $('grid').innerHTML = list.length ? list.map(card).join('') : `<div class="cempty">${S.fav ? t('favEmpty') : t('empty')}</div>`;
+    $('grid').innerHTML = list.length ? list.map(card).join('') : `<div class="cempty"><p>${S.fav ? t('favEmpty') : t('empty')}</p><button type="button" class="btn lg" data-reset>${t('reset')}</button></div>`;
+    $('fshow').textContent = `${SHOW[L()] || SHOW.es} ${t('n')(list.length)}`; $('fshow').disabled = !list.length;
     const nfav = window.KFav ? KFav.count() : 0; $('nFav').textContent = nfav || ''; $('lFav').textContent = t('fav');
     $('favf').classList.toggle('on', !!S.fav); $('favf').setAttribute('aria-pressed', !!S.fav); $('favf').hidden = !nfav && !S.fav;
     $('count').textContent = t('n')(list.length);
@@ -192,12 +214,16 @@
     save();
   }
   $('favf').onclick = () => { S.fav = !S.fav; update(); };
-  $('grid').addEventListener('click', e => { const b = e.target.closest('[data-fav]'); if (!b) return; e.preventDefault(); e.stopPropagation();
+  $('grid').addEventListener('click', e => { if (e.target.closest('[data-reset]')) { reset(); return; } const b = e.target.closest('[data-fav]'); if (!b) return; e.preventDefault(); e.stopPropagation();
     const on = KFav.toggle(b.dataset.fav); b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
     try { navigator.vibrate && navigator.vibrate(8); } catch (_) {} if (S.fav && !on) update(); else { const n = KFav.count(); $('nFav').textContent = n || ''; $('favf').hidden = !n && !S.fav; } });
   addEventListener('karats:fav', e => { if (!e.detail || !e.detail.id) update(); });
+  try {
+    const KEYS = ['q', 'o', 'brand', 'fuel', 'gear', 'p', 'km', 'fav'], cur = new URLSearchParams(location.search), prev = sessionStorage.getItem('karats.catalog');
+    if (prev && !KEYS.some(k => cur.has(k))) { new URLSearchParams(prev).forEach((v, k) => { if (KEYS.includes(k)) cur.set(k, v); }); history.replaceState(history.state, '', location.pathname + '?' + cur.toString()); }
+  } catch (_) {}
   load(); $('q').value = S.q;
-  if (S.brand.size || S.fuel.size || S.gear.size || S.price < PMAX || S.km < KMAX) { $('cbar').classList.add('open'); $('fbtn').setAttribute('aria-expanded', 'true'); }
+  if (history.state && history.state.catOpen) { $('cbar').classList.add('open'); $('fbtn').setAttribute('aria-expanded', 'true'); }
   labels(); update();
   addEventListener('karats:language', () => { labels(); update(); });
 })();
