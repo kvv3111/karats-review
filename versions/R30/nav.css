@@ -24,6 +24,9 @@ body.page { padding-top:calc(64px + env(safe-area-inset-top)); }
 #menuBtn i:nth-child(1) { top:18px; } #menuBtn i:nth-child(2) { top:24px; }
 body.menu #menuBtn i:nth-child(1) { top:21px; transform:rotate(45deg); } body.menu #menuBtn i:nth-child(2) { top:21px; transform:rotate(-45deg); }
 body.menu .ptop, body.menu .topbar { z-index:21; }
+/* Keep the close control inside the panel, independent of header layout. */
+body.menu #menuBtn { position:fixed; top:calc(26px + env(safe-area-inset-top)); right:26px; }
+@media (min-width:900px) { body.menu #menuBtn { right:38px; } }
 body.menu .ptop .ptitle, body.menu .topbar .ptitle, body.menu .ptop .pback, body.menu .topbar .pback, body.menu .topbar .r > :not(#menuBtn) { opacity:0; pointer-events:none; }
 body.menu .ptop::before, body.menu .topbar::before { opacity:0; }
 
