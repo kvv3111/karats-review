@@ -99,6 +99,12 @@
   #viewer.zoomed .vthumbs, #viewer.zoomed .vcap { opacity:0; pointer-events:none; }
   .varrow { position:absolute; z-index:3; top:50%; margin-top:-24px; width:48px; height:48px; }
   .varrow.l { left:16px; } .varrow.r { right:16px; }
+  /* stage4: a tap on the photo hides / brings back the controls (as in Photos on iPhone); arrows vanish at the ends */
+  .vtop, .varrow { transition:opacity .25s var(--ease); }
+  .vcap { text-shadow:0 1px 2px rgba(0,0,0,.6), 0 0 14px rgba(0,0,0,.5); }
+  #viewer.bare .vtop, #viewer.bare .varrow, #viewer.bare .vcap, #viewer.bare .vthumbs { opacity:0; pointer-events:none; }
+  #viewer.bare .vtop > * { pointer-events:none; }
+  .varrow.end { opacity:0; pointer-events:none; }
   @media (hover:none) { .varrow { display:none; } }
   @media (min-width:900px) {
     .hero { height:78vh; } main { margin-top:-160px; max-width:1080px; padding-left:24px; padding-right:24px; }
@@ -245,6 +251,7 @@
   function setCur(k) {
     cur = k; $("vcount").textContent = `${k + 1} / ${SH.length}`; $("vcap").textContent = SH[k][1];
     thumbs.forEach((b, i) => b.classList.toggle("on", i === k));
+    $("vprev").classList.toggle("end", k === 0); $("vnext").classList.toggle("end", k === SH.length - 1);
     if (embeddedGallery) parent.postMessage({type:"karats:gallery-shot",shot:SH[k][0]},location.origin);
     if (!embeddedGallery && history.state && history.state.viewer) history.replaceState({ viewer: 1 }, "", base + "#foto-" + SH[k][0]); thumbs[k].scrollIntoView({ block: "nearest", inline: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
     [k - 1, k, k + 1].forEach(load);
@@ -254,7 +261,7 @@
   // the open gallery is its own history step: the phone's Back closes the photo first, not the page
   function open(k) {
     if (!document.body.classList.contains("viewer")) viewerOpener = document.activeElement;
-    V.inert = false; V.setAttribute("aria-modal", "true");
+    V.inert = false; V.setAttribute("aria-modal", "true"); V.classList.remove("bare");
     viewerBackground.forEach(el => { el.inert = true; });
     $("vclose").focus({ preventScroll: true });
     document.body.classList.add("viewer"); [k - 1, k, k + 1].forEach(load); T.scrollLeft = k * T.clientWidth; setCur(k);
@@ -309,7 +316,12 @@
     const on = z.s > 1.01; V.classList.toggle("zoomed", on); T.classList.toggle("zoomed", on); slides[cur].classList.toggle("zoom", on);
     if (on && img.dataset.full && img.src.indexOf(img.dataset.full) < 0) { const hi = new Image(); hi.src = img.dataset.full; hi.decode().then(() => { if (img && z.s > 1.01) img.src = hi.src; }).catch(() => {}); } }
   function clamp() { const w = img.clientWidth, h = img.clientHeight;
-    z.s = Math.max(1, Math.min(MAX, z.s)); z.x = Math.min(0, Math.max(w - w * z.s, z.x)); z.y = Math.min(0, Math.max(h - h * z.s, z.y)); }
+    z.s = Math.max(1, Math.min(MAX, z.s));
+    // stage4: clamp to the SCREEN (slide), not to the picture's own box: no black band beside a zoomed photo; smaller than the screen = centred
+    const sb = img.parentNode.getBoundingClientRect(), r = img.getBoundingClientRect(), m = new DOMMatrixReadOnly(getComputedStyle(img).transform);
+    const L = r.left - m.e - sb.left, Tp = r.top - m.f - sb.top, sw = sb.width, sh = sb.height, ws = w * z.s, hs = h * z.s;
+    z.x = ws > sw ? Math.min(-L, Math.max(sw - ws - L, z.x)) : (sw - ws) / 2 - L;
+    z.y = hs > sh ? Math.min(-Tp, Math.max(sh - hs - Tp, z.y)) : (sh - hs) / 2 - Tp; }
   function resetZoom() { if (img) { z = { s: 1, x: 0, y: 0 }; apply(); } img = null; }
   function zoomAt(cx, cy, ns, live) { // keep the point under (cx, cy) fixed
     const r = img.getBoundingClientRect(), px = (cx - r.left) / z.s, py = (cy - r.top) / z.s;
@@ -336,6 +348,17 @@
   };
   let down = null, lastType = "mouse"; T.addEventListener("pointerdown", e => { down = { x: e.clientX, y: e.clientY }; lastType = e.pointerType; }, true);
   T.addEventListener("pointerup", end); T.addEventListener("pointercancel", end);
+  // stage4: single tap = show / hide the controls; a second tap within 330 ms is the double-tap zoom instead
+  let tapT = 0, tapSecond = false, multi = false;
+  T.addEventListener("pointerdown", () => { if (pts.size > 1) multi = true; if (tapT) { clearTimeout(tapT); tapT = 0; tapSecond = true; } });
+  T.addEventListener("pointerup", e => {
+    if (multi) { if (!pts.size) multi = false; return; }
+    if (tapSecond) { tapSecond = false; return; }
+    if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) >= 12 || (e.pointerType === "mouse" && e.button)) return;
+    tapT = setTimeout(() => { tapT = 0; V.classList.toggle("bare"); }, 330);
+  });
+  T.addEventListener("pointercancel", () => { clearTimeout(tapT); tapT = 0; tapSecond = false; });
+  addEventListener("keydown", () => V.classList.remove("bare"), true);
   T.addEventListener("dblclick", e => { if (lastType !== "mouse") return; if (!img) img = slides[cur].firstChild; zoomAt(e.clientX, e.clientY, z.s > 1.01 ? 1 : 2.6); });
   T.addEventListener("wheel", e => { if (!e.ctrlKey && !(z.s > 1.01) && Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; e.preventDefault(); if (!img) img = slides[cur].firstChild;
     zoomAt(e.clientX, e.clientY, z.s * Math.exp(-e.deltaY * (e.ctrlKey ? .01 : .0025)), true); clearTimeout(T._w); T._w = setTimeout(() => apply(false), 120); }, { passive: false });

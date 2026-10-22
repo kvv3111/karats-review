@@ -228,6 +228,26 @@
   @media (min-width:900px) { body.details #sheet { left:auto; right:24px; top:24px; bottom:24px; width:min(700px, calc(100vw - 48px)); } }
   @media (orientation:landscape) and (max-height:520px) { body.details #sheet { left:auto; right:12px; top:8px; bottom:8px; width:min(620px, 72vw); } #sheet .s-hero { aspect-ratio:16/7; } }
   @media (min-width:900px) { #sheet { left:auto; right:24px; bottom:24px; width:420px; } }
+  /* stage4: open details own the screen: the counter and ≡ stood half under the panel and ≡ opened the menu over it */
+  .top .r { transition:opacity .22s var(--ease); }
+  body.details .top .r, body.details #menuBtn { opacity:0; pointer-events:none; }
+  /* stage4: iPhone SE / big system text: the compact card keeps its four buttons on one row (Galería becomes an icon) */
+  @media (max-width:360px) {
+    body:not(.details) #sheet #sGal { flex:none; width:52px; height:52px; padding:0; border-radius:26px; justify-content:center; }
+    body:not(.details) #sheet #sGal span { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  }
+  /* stage4: phone on its side: photo left, price right, so the whole car is above the call / WhatsApp bar */
+  @media (orientation:landscape) and (max-height:520px) {
+    body.details #sheet { display:grid; grid-template-columns:auto minmax(0, 1fr); column-gap:16px; align-content:start; }
+    body.details #sheet > .grab { grid-column:1 / -1; grid-row:1; } body.details #sheet > .sh-head { grid-column:1 / -1; grid-row:2; }
+    body.details #sheet > .s-hero { grid-column:1; grid-row:3 / span 2; justify-self:start; height:clamp(96px, calc(100dvh - 210px), 190px); width:auto; aspect-ratio:3/2; margin:6px 0 0; }
+    body.details #sheet > .price { grid-column:2; grid-row:3; align-self:end; } body.details #sheet > .chips { grid-column:2; grid-row:4; align-self:start; margin-top:8px; }
+    body.details #sheet > .s-full { grid-column:1 / -1; grid-row:5; } body.details #sheet > .sh-acts { grid-column:1 / -1; grid-row:6; }
+  }
+  /* stage4: «Antes de comprar» tiles are links now */
+  #sheet a.s-perk { display:block; position:relative; color:inherit; text-decoration:none; transition:transform .35s var(--spring); }
+  #sheet a.s-perk::after { content:""; position:absolute; right:14px; top:17px; width:7px; height:7px; border-top:1.6px solid var(--soft); border-right:1.6px solid var(--soft); transform:rotate(45deg); }
+  #sheet a.s-perk:active { transform:scale(.97); }
   html.haze .top { background:linear-gradient(rgba(239,236,230,.82),rgba(239,236,230,0)); }   /* no free wall for the bar: keep it readable */
   .top { z-index:9; } .top .r { display:flex; align-items:center; gap:14px; transform:scale(var(--rs, 1)); transform-origin:100% 50%; }
   body.menu .top .r { position:fixed; top:calc(var(--menu-top) + 16px); right:26px; transform:none; }
@@ -318,10 +338,10 @@
     <section><h4>Datos principales</h4><div class="s-specs" id="sSpecs"></div></section>
     <section><h4>Equipamiento destacado</h4><div class="s-equip" id="sEquip"></div></section>
     <section><h4>Antes de comprar</h4><div class="s-perks">
-      <div class="s-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><b>Garantía legal</b><small>Consulta tus derechos</small></div>
-      <div class="s-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11l2 2 4-4"/></svg><b>Estado del coche</b><small>Consulta la documentación</small></div>
-      <div class="s-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><b>Cambio de titular</b><small>Condiciones antes de firmar</small></div>
-      <div class="s-perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><b>Entrega del vehículo</b><small>Lugar, plazo y coste acordados</small></div>
+      <a class="s-perk" href="ventajas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><b>Garantía legal</b><small>Consulta tus derechos</small></a>
+      <a class="s-perk" href="ventajas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11l2 2 4-4"/></svg><b>Estado del coche</b><small>Consulta la documentación</small></a>
+      <a class="s-perk" href="comprar.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/></svg><b>Cambio de titular</b><small>Condiciones antes de firmar</small></a>
+      <a class="s-perk" href="comprar.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><b>Entrega del vehículo</b><small>Lugar, plazo y coste acordados</small></a>
     </div></section>
     <section><h4>Galería</h4><div class="s-gal" id="sGalGrid"></div></section>
     <p class="s-note">Maqueta: fotos y datos de ejemplo. Las fotos reales se añaden después.</p>
@@ -350,7 +370,7 @@
     $("sPrice").textContent = fmtEUR(C.price);
     $("sChips").innerHTML = [[ico.cal, C.year], [ico.road, fmtKM(C.km)], [ico.fuel, C.fuel], [ico.gear, C.gear.split(" ")[0]]].map(([i, t]) => `<span class="chip">${svg(i)}${t}</span>`).join("");
     $("sHl").innerHTML = C.highlights.map(t => `<li>${svg(ico.ok)}${t}</li>`).join("");
-    const pick = ["01_front34", "04_rear34", "08_wheel", "03_side"];
+    const pick = ["01_front34", "04_rear34", "08_wheel"]; pick.push(SH.map(s => s[0]).find(s => !pick.includes(s)));
     $("sThumbs").innerHTML = pick.map((s, k) => `<button style="background-image:url(gal/ph/${s}_t.webp)" ${k === 3 ? `class="more" data-more="+${SH.length - 3}"` : ""} data-shot="${s}"></button>`).join("");
     $("sMore").href = carURL(C); $("sGal").href = carURL(C) + "#galeria";
     document.querySelectorAll('#sheet [data-contact="wa"]').forEach(a => { a.href = carWA(C, window.KLang ? KLang.language : "es"); });
@@ -398,7 +418,7 @@
     transitionLayer("details");
   }
   function closeDetails() { if (!closing && B.classList.contains("details")) { closing = true; if (layer() === "details") history.back(); else transitionLayer("sheet"); } }
-  $("menuBtn").onclick = () => B.classList.contains("menu") ? closeAll() : openLayer("menu");
+  $("menuBtn").onclick = () => { if (B.classList.contains("details")) return; B.classList.contains("menu") ? closeAll() : openLayer("menu"); };
   $("veil").onclick = closeAll;
   $("sClose").onclick = () => B.classList.contains("details") ? closeDetails() : closeAll();
   $("sMore").addEventListener("click", e => { if (e.ctrlKey || e.metaKey || e.shiftKey || e.button) return; e.preventDefault(); openDetails(); });
@@ -439,6 +459,10 @@
   }
   // Pull the anchored sheet upward; expand the same panel, never navigate.
   const sh = $("sheet"); let drag = null, sheetMotion = null, openingDetails = false;
+  // stage4: remember how far the panel is scrolled, measured in the CURRENT layout (a turn of the phone re-lays it out before any resize handler runs)
+  const keep = { r: 0, w: innerWidth, h: innerHeight };
+  sh.addEventListener("scroll", () => { if (innerWidth !== keep.w || innerHeight !== keep.h) return; const m = sh.scrollHeight - sh.clientHeight; keep.r = m > 0 ? sh.scrollTop / m : 0; }, { passive: true });
+  addEventListener("resize", () => setTimeout(() => { keep.w = innerWidth; keep.h = innerHeight; const m = sh.scrollHeight - sh.clientHeight; keep.r = m > 0 ? sh.scrollTop / m : 0; }, 400));
   function resizeSheet(height, done) {
     const from = sh.getBoundingClientRect().height;
     const duration = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 320;
@@ -552,8 +576,18 @@
   document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
   $("sFav").addEventListener("click", () => { if (!window.KFav || !C) return; const on = KFav.toggle(C.id); favSync(); const tt = FAVT[(window.KLang && KLang.language) || "es"] || FAVT.es; say(on ? tt[0] : tt[1]); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} });
   addEventListener("karats:fav", favSync);
-  window.KUI = { openSheet(i) { fill(i); openLayer("sheet"); }, openDetails, isOpen: () => B.classList.contains("menu") || B.classList.contains("sheet") || !!document.querySelector("#kc-dlg.on") };
+  window.KUI = { sheetRatio: () => keep.r, openSheet(i) { fill(i); openLayer("sheet"); }, openDetails, isOpen: () => B.classList.contains("menu") || B.classList.contains("sheet") || !!document.querySelector("#kc-dlg.on") };
   if (B.classList.contains("sheet")) fill(+((/^#(\d)$/.exec(location.hash) || [0, 1])[1]) - 1);
+  // stage4: after an orientation reload the open card comes back at the same place, not at the top
+  if (B.classList.contains("sheet") && history.state && history.state.sheetScroll > 0) {
+    const r = history.state.sheetScroll, sh = $("sheet"), put = () => { sh.scrollTop = r * (sh.scrollHeight - sh.clientHeight); };
+    const st = { ...history.state }; delete st.sheetScroll; history.replaceState(st, "");
+    // re-apply while fonts and images settle, until the visitor touches the panel himself
+    let mine = false; const stop = () => { mine = true; }; ["touchstart", "wheel", "keydown", "pointerdown"].forEach(t => sh.addEventListener(t, stop, { once: true, passive: true }));
+    const again = () => { if (!mine) put(); };
+    requestAnimationFrame(() => requestAnimationFrame(again)); addEventListener("load", again, { once: true });
+    if (document.fonts) document.fonts.ready.then(again); setTimeout(again, 400); setTimeout(again, 1200);
+  }
   {
     const u = new URL(location.href);
     if (u.searchParams.has("detalle")) {
@@ -1303,7 +1337,11 @@
   addEventListener("resize", () => {
     if (isPortrait() !== small) {
       // The new asset orientation must restore the selected destination, not the last parked car.
-      try { history.replaceState(history.state, "", "#" + (idx + 1)); } catch (e) {}
+      try {
+        const sh = $("sheet"), room = sh.scrollHeight - sh.clientHeight, st = history.state;
+        const kept = window.KUI && KUI.sheetRatio ? KUI.sheetRatio() : (room > 0 ? sh.scrollTop / room : 0);   // the ratio before the turn: by now the panel is already re-laid out
+        history.replaceState(st && document.body.classList.contains("sheet") && kept > 0 ? { ...st, sheetScroll: kept } : st, "", "#" + (idx + 1));
+      } catch (e) {}
       location.reload();
     } else resize();
   });
@@ -1316,7 +1354,7 @@
                             vis: +cv.style.opacity > 0.9 || !shownEl ? cvFrame : nOf(shownEl, shownEl.currentTime) });
 })();
 </script>
-<script src="i18n.js?v=precision-1"></script>
+<script src="i18n.js?v=stage4-1"></script>
 <script src="site.js?v=motion-20261022"></script>
 <script src="kx.js?v=r37"></script>
 <script src="showroom-gallery.js?v=3"></script>
