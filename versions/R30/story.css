@@ -1,0 +1,96 @@
+/* «О нас» в стиле apple.com. Движение только transform/opacity/clip-path; без JS всё видно. */
+@font-face { font-family:'Jost'; font-style:normal; font-weight:600; font-display:swap; src:url(fonts/92zatBhPNqw73oDd4iYl.woff2) format('woff2'); unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116; }
+@font-face { font-family:'Jost'; font-style:normal; font-weight:600; font-display:swap; src:url(fonts/92zatBhPNqw73ord4iYl.woff2) format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family:'Jost'; font-style:normal; font-weight:600; font-display:swap; src:url(fonts/92zatBhPNqw73oTd4g.woff2) format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+
+.story-page .phead h1 { font-weight:600; letter-spacing:-.04em; }
+.story { --grey:#7c837d; --night:#121513; --red:#ff453a; --green:#30d158; }
+.why-page .prose .story p, .why-page .prose .story h2 { margin:0; }
+.why-page .prose .story ul { list-style:none; margin:0; padding:0; }
+.why-page .prose .story li { margin:0; }
+.bleed { width:100vw; margin-left:calc(50% - 50vw); }
+
+/* Всё движение — только transform и opacity, без перерисовки.
+   Где есть scroll-driven animations (Chrome 115+, Safari 26+), анимация привязана к прокрутке
+   и идёт на compositor: плавно в обе стороны, без JS. Иначе — запасной вариант в story.js. */
+@keyframes rv-in { from { opacity:0; transform:translate3d(0,48px,0); } to { opacity:1; transform:none; } }
+@keyframes sh-open { from { transform:scale(var(--s0,.9)); } to { transform:none; } }
+@keyframes sh-zoom { from { transform:scale(1.12); } to { transform:none; } }
+
+/* 1. Кадр-герой: карточка со скруглением раскрывается до краёв (scale, а не clip-path) */
+.sh { width:100vw; margin-left:calc(50% - 50vw); padding:0 0 clamp(80px,14vh,160px); overflow:hidden; }
+.sh-frame { margin:0; height:min(88vh,56.25vw); height:min(88svh,56.25vw); min-height:420px; }
+.sh-card { --s0:.94; height:100%; overflow:hidden; border-radius:28px; background:#e4e0d8; transform:scale(var(--s0,.9)); transform-origin:50% 0; will-change:transform; contain:paint; }
+.sh-card img { display:block; width:100%; height:100%; object-fit:cover; object-position:50% 58%; transform:scale(1.12); transform-origin:50% 60%; will-change:transform; backface-visibility:hidden; }
+
+.story-js .story .rv { opacity:0; transform:translate3d(0,40px,0); transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); }
+.story-js .story .rv.in { opacity:1; transform:none; }
+
+@supports (animation-timeline:view()) {
+ .story .rv, .story-js .story .rv { opacity:1; transform:none; transition:none; animation:rv-in linear both; animation-timeline:view(); animation-range:entry 0% entry 85%; }
+ .sh-card { animation:sh-open linear both; animation-timeline:view(); animation-range:entry 30% cover 55%; }
+ .sh-card img { animation:sh-zoom linear both; animation-timeline:view(); animation-range:entry 0% cover 60%; }
+}
+
+/* 2. Абзац в два тона */
+.why-page .prose .tt { font:600 clamp(26px,3.3vw,44px)/1.18 Jost,sans-serif; letter-spacing:-.025em; color:var(--grey); max-width:980px; text-wrap:pretty; }
+.tt b { font-weight:600; color:var(--ink); }
+.st { padding:0 0 clamp(64px,11vh,120px); }
+
+/* 3. Цифры */
+.ss { display:grid; grid-template-columns:1fr 1fr; gap:40px; padding:0 0 clamp(80px,14vh,160px); }
+.why-page .prose .ss-n { font:600 clamp(72px,10vw,136px)/1 Jost,sans-serif; letter-spacing:-.05em; background:linear-gradient(100deg,#1f3a2f 0%,#4f7a5f 60%,#8aa889 100%); -webkit-background-clip:text; background-clip:text; color:transparent; padding-bottom:.06em; }
+.why-page .prose .ss-c { margin-top:14px; max-width:360px; font:600 clamp(19px,1.7vw,22px)/1.35 Jost,sans-serif; letter-spacing:-.01em; color:var(--grey); }
+.ss-i:nth-child(2) { transition-delay:.12s; }
+
+/* 4. Тёмная карточка-список */
+.sc { padding:0 0 clamp(80px,14vh,160px); }
+.sc-card { background:var(--night); color:#f5f5f7; border-radius:32px; padding:clamp(32px,5vw,64px); }
+.why-page .prose .sc-card h2 { font:600 clamp(32px,4vw,52px)/1.08 Jost,sans-serif; letter-spacing:-.035em; color:#f5f5f7; margin-bottom:clamp(20px,3vw,36px); text-wrap:balance; }
+.why-page .prose .sc-list li { display:flex; align-items:center; gap:16px; padding:18px 0; border-top:1px solid rgba(255,255,255,.12); font:500 clamp(18px,1.7vw,22px)/1.3 Jost,sans-serif; letter-spacing:-.01em; color:rgba(245,245,247,.86); }
+.sc-list li:nth-child(odd) { transition-delay:.05s; }
+.ic { flex:none; display:grid; place-items:center; width:30px; height:30px; border-radius:50%; }
+.ic svg { width:20px; height:20px; fill:none; stroke:#fff; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+.ic.no { background:var(--red); }
+.ic.yes { background:var(--green); }
+.why-page .prose .sc-list li.sc-ok { color:#fff; font-weight:600; border-top-color:rgba(255,255,255,.28); padding-top:24px; margin-top:6px; }
+
+/* 5. Тёмная секция «как ювелир» со свечением */
+.sj { width:100vw; margin-left:calc(50% - 50vw); background:#000; color:#f5f5f7; padding:clamp(96px,16vh,180px) 0 clamp(96px,16vh,180px); }
+.sj-in { max-width:1200px; margin:0 auto; padding:0 40px; box-sizing:border-box; }
+.sj-glow { position:relative; width:clamp(180px,20vw,240px); aspect-ratio:1; margin:0 0 clamp(36px,6vh,64px); display:grid; place-items:center; isolation:isolate; }
+.sj-glow::before, .sj-ring { content:""; position:absolute; border-radius:50%; background:conic-gradient(from 0deg,#6fe3b4,#e8d48a,#f5a3c7,#9db5ff,#7fe0d6,#6fe3b4); animation:sjspin 12s linear infinite; will-change:transform; }
+.sj-glow::before { inset:-4%; filter:blur(30px); opacity:.6; z-index:-2; }
+.sj-ring { inset:17%; z-index:-1; }
+.sj-glow::after { content:""; position:absolute; inset:20.5%; border-radius:50%; background:#000; box-shadow:0 0 6px 2px #000; z-index:-1; }
+.sj-gem { position:relative; width:46%; height:auto; fill:none; stroke:#fff; stroke-width:1.7; stroke-linejoin:round; stroke-linecap:round; }
+@keyframes sjspin { from { transform:rotate(0deg) translateZ(0); } to { transform:rotate(360deg) translateZ(0); } }
+.why-page .prose .sj h2 { font:600 clamp(40px,5.6vw,80px)/1.04 Jost,sans-serif; letter-spacing:-.045em; color:#f5f5f7; max-width:900px; text-wrap:balance; }
+.sj .tt { color:#86868b; }
+.sj .tt b { color:#f5f5f7; }
+.why-page .prose .sj-intro { margin-top:28px; }
+.sj-facets { display:grid; grid-template-columns:1fr 1fr; gap:clamp(36px,5vw,64px) clamp(40px,6vw,96px); margin-top:clamp(64px,10vh,112px); }
+.why-page .prose .sj-facets .tt { font-size:clamp(21px,2vw,26px); line-height:1.35; letter-spacing:-.015em; }
+.sj-facets .tt:nth-child(even) { transition-delay:.12s; }
+.story .why-action { padding-top:clamp(56px,9vh,96px); }
+
+@media (max-width:760px) {
+ .sh-frame { height:auto; aspect-ratio:7/8; min-height:0; }
+ .sh-card { --s0:.88; border-radius:24px; }
+ .ss { grid-template-columns:1fr; gap:44px; }
+ .sc-card { border-radius:26px; padding:30px 22px 26px; }
+ .why-page .prose .sc-list li { padding:16px 0; gap:14px; font-size:18px; }
+ .ic { width:26px; height:26px; } .ic svg { width:18px; height:18px; }
+ .sj-in { padding:0 max(24px,env(safe-area-inset-left)); }
+ .sj-facets { grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion:reduce) {
+ .story-js .story .rv { opacity:1; transform:none; transition:none; }
+ .sj-ring, .sj-glow::before { animation:none; }
+ .sh-card, .sh-card img { transform:none !important; animation:none !important; }
+ .story .rv, .story-js .story .rv { animation:none !important; }
+}
+@media (prefers-contrast:more) {
+ .story { --grey:#4d5850; }
+ .sj .tt { color:#c7c7cc; }
+}
