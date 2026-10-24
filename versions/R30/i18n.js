@@ -95,8 +95,13 @@
     const next=translate(rec.source); rec.result=next; slots[key]=rec;
     if (next!==current) write(next);
   }
+  const P=window.KPaths||{on:false};
   function url(href) {
     const u=new URL(href,location.href);
+    if(P.on){   // prod: language = path; internal page links go to the same page in the current language
+      if(u.origin!==location.origin || /\.(?!html)[a-z0-9]+$/i.test(u.pathname)) return u.href;
+      return P.href(lang,u.href);
+    }
     if(u.origin===location.origin && u.pathname.startsWith(location.pathname.replace(/[^/]*$/,''))) u.searchParams.set('lang',lang);
     return u.href;
   }
@@ -154,7 +159,7 @@
   window.KLang={get language(){return lang;},translate,url,set};
   document.querySelectorAll('#lang button').forEach((b,i)=>b.onclick=()=>set(LANGS[i]));
   const select=document.getElementById('pageLang'); if(select) select.onchange=()=>set(select.value);
-  addEventListener('pageshow',e=>{if(e.persisted) set(stored()||lang);});
+  addEventListener('pageshow',e=>{if(e.persisted) set(P.on ? P.of(location.pathname) : (stored()||lang));});
   // Closing a history-backed panel must not restore an older language query.
   addEventListener('popstate',()=>set(lang));
   set(lang);

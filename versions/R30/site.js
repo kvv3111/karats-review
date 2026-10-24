@@ -205,7 +205,9 @@
     const col = (id, h, body) => `<div class="kf-col"><button type="button" class="kf-h" aria-expanded="false" aria-controls="kf-${id}">${h}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><div class="kf-list" id="kf-${id}"><div>${body}</div></div></div>`;
     const here = location.pathname.split('/').pop() || 'index.html';
     const lq = c => { const u = new URLSearchParams(location.search); u.set('lang', c); return '?' + u.toString(); };
-    const langs = [['es', 'ES'], ['ca', 'CA'], ['en', 'EN'], ['ru', 'RU']].map(([c, n]) => `<a href="${here}${lq(c)}" hreflang="${c}" lang="${c}"${c === L ? ' aria-current="true"' : ''}>${n}</a>`).join('');
+    // es on the root needs an explicit ?lang=es, otherwise the remembered language would send the visitor back
+    const lhref = c => { if (!(window.KPaths && KPaths.on)) return here + lq(c); const u = new URL(KPaths.href(c)); if (c === 'es') u.searchParams.set('lang', 'es'); return u.pathname + u.search + u.hash; };
+    const langs = [['es', 'ES'], ['ca', 'CA'], ['en', 'EN'], ['ru', 'RU']].map(([c, n]) => `<a href="${lhref(c)}" hreflang="${c}" lang="${c}"${c === L ? ' aria-current="true"' : ''}>${n}</a>`).join('');
     document.querySelectorAll('[data-footer]').forEach(f => {
       f.setAttribute('translate', 'no'); f.classList.add('kfoot');
       f.innerHTML = `<div class="kf-in"><p class="kf-note">${f0.note}</p>
