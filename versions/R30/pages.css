@@ -4,7 +4,7 @@ body.page { overflow-x:hidden; min-height:100vh; min-height:100dvh; background:v
 .pwrap { max-width:880px; margin:0 auto; padding:8px 16px 0; }
 .phead { padding:26px 4px 8px; }
 .kick { font-family:Jost,sans-serif; font-size:12px; letter-spacing:.24em; color:var(--soft); text-transform:uppercase; }
-.phead h1 { font-family:Jost,sans-serif; font-weight:400; font-size:clamp(28px, 7.6vw, 54px); line-height:1.08; overflow-wrap:break-word; hyphens:auto; -webkit-hyphens:auto; letter-spacing:.005em; margin-top:8px; }
+.phead h1 { font-family:Jost,sans-serif; font-weight:400; font-size:clamp(28px, 7.6vw, 54px); line-height:1.08; overflow-wrap:break-word; hyphens:auto; -webkit-hyphens:auto; letter-spacing:-.022em; margin-top:8px; }
 .phead .lead { font-size:18px; line-height:1.45; color:var(--soft); margin-top:12px; max-width:640px; }
 
 .prose { margin-top:18px; font-size:16px; line-height:1.6; }

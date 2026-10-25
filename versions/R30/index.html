@@ -50,9 +50,10 @@
   .count span { color:var(--soft); }
   .side { position:fixed; top:50%; transform:translateY(-50%); width:56px; height:56px; border-radius:50%; border:1px solid rgba(29,33,30,.14);
           background:rgba(251,250,247,.86); color:var(--ink); cursor:pointer; z-index:3;
-          display:flex; align-items:center; justify-content:center; transition:opacity .3s, background .2s; box-shadow:0 6px 20px rgba(0,0,0,.08); }
+          display:flex; align-items:center; justify-content:center; transition:opacity .3s, background .2s, transform .35s var(--spring); box-shadow:0 6px 20px rgba(0,0,0,.08); }
   button:focus-visible, a:focus-visible { outline:2px solid var(--acc); outline-offset:3px; }
-  .side:hover { background:rgba(255,255,255,.92); }
+  @media (hover:hover) { .side:hover { background:rgba(255,255,255,.92); } }
+  .side:active { transform:translateY(-50%) scale(.9); background:rgba(255,255,255,.96); transition-duration:.3s, .08s, .08s; }
   .side svg { width:22px; height:22px; }
   .side:disabled { opacity:0; pointer-events:none; }
   .side.tight { display:none; }
@@ -61,7 +62,7 @@
          background:linear-gradient(rgba(239,236,230,0),rgba(239,236,230,.9) 55%); }
   .info { min-width:0; transition:opacity .35s, transform .35s; }
   .info.away { opacity:0; transform:translateY(8px); }
-  .info h2 { font-family:Jost,sans-serif; font-size:26px; font-weight:500; letter-spacing:.01em; }
+  .info h2 { font-family:Jost,sans-serif; font-size:26px; font-weight:500; letter-spacing:-.012em; }
   .info p { color:var(--soft); margin-top:3px; }
   .info .price { color:var(--ink); font-weight:600; }
   #more { pointer-events:auto; flex:none; padding:13px 20px; border-radius:26px; border:0; background:var(--acc); color:#fff; font:inherit; font-weight:600; cursor:pointer; transition:opacity .35s; }
@@ -132,13 +133,13 @@
   }
   #menu .mlegal { position:relative; z-index:1; display:flex; flex-wrap:wrap; gap:2px 14px; margin:10px 8px 2px; font-size:12.5px; }
   #menu .mlegal a, #menu .mlegal button { color:var(--soft); text-decoration:none; background:none; border:0; padding:4px 0; cursor:pointer; font:inherit; }
-  #menu .mlegal a:hover, #menu .mlegal button:hover { text-decoration:underline; }
+  @media (hover:hover) { #menu .mlegal a:hover, #menu .mlegal button:hover { text-decoration:underline; } }
   #menu nav .it { width:100%; border:0; background:none; text-align:left; cursor:pointer; color:inherit; font:inherit; display:flex; align-items:center; gap:14px; padding:13px 16px; border-radius:18px; text-decoration:none; position:relative; z-index:1;
                 opacity:1; transform:none; transition:background .2s; }
   body.menu #menu nav .it { opacity:1; transform:none; }
   #menu nav .it:active { background:rgba(255,255,255,.45); }
   #menu nav .it .n { font-family:Jost,sans-serif; font-size:12px; color:var(--faint); letter-spacing:.1em; width:22px; }
-  #menu nav .it .t { flex:1; } #menu nav .it .t b { display:block; font-family:Jost,sans-serif; font-weight:400; font-size:25px; letter-spacing:.01em; line-height:1.15; }
+  #menu nav .it .t { flex:1; } #menu nav .it .t b { display:block; font-family:Jost,sans-serif; font-weight:400; font-size:25px; letter-spacing:-.01em; line-height:1.15; }
   #menu nav .it .t small { color:var(--soft); font-size:13px; }
   #menu nav .it svg { width:18px; height:18px; color:var(--faint); }
   #menu .foot { flex-wrap:wrap; row-gap:10px; display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 6px 0; padding-top:14px; border-top:1px solid var(--line); position:relative; z-index:1; }
@@ -169,12 +170,12 @@
   #sheet > * { position:relative; z-index:1; }
   #sheet .grab { width:38px; height:5px; border-radius:3px; background:rgba(29,33,30,.22); margin:0 auto 12px; }
   #sheet .sh-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-  #sheet .sh-head h3 { font-family:Jost,sans-serif; font-weight:500; font-size:27px; line-height:1.1; letter-spacing:.005em; }
+  #sheet .sh-head h3 { font-family:Jost,sans-serif; font-weight:500; font-size:27px; line-height:1.1; letter-spacing:-.018em; }
   #sheet .sh-head .trim { color:var(--soft); font-size:14px; margin-top:3px; }
   #sheet .sh-head .x { flex:none; width:34px; height:34px; border-radius:17px; }
   #sheet .sh-head .x svg { width:15px; height:15px; }
   #sheet .price { display:flex; align-items:baseline; gap:10px; margin:12px 0 12px; }
-  #sheet .price { flex-wrap:wrap; } #sheet .price b { white-space:nowrap; font-family:Jost,sans-serif; font-weight:500; font-size:30px; letter-spacing:.01em; }
+  #sheet .price { flex-wrap:wrap; } #sheet .price b { white-space:nowrap; font-family:Jost,sans-serif; font-weight:500; font-size:30px; letter-spacing:-.02em; }
   #sheet .price span { color:var(--soft); font-size:14px; }
   #sheet .chips { display:flex; flex-wrap:wrap; gap:7px; margin:0; padding:0 0 2px; }
   #sheet .chip { flex:0 1 auto; min-width:0; max-width:100%; height:auto; min-height:32px; padding:6px 13px; white-space:normal; overflow-wrap:anywhere; }
@@ -209,7 +210,7 @@
   #sheet .s-hero { margin:16px 0 14px; aspect-ratio:3/2; background:#e6e2da; overflow:hidden; border-radius:18px; }
   #sheet .s-hero img { width:100%; height:100%; object-fit:cover; display:block; }
   #sheet .s-full section { margin-top:22px; }
-  #sheet .s-full h4 { font-family:Jost,sans-serif; font-weight:400; font-size:21px; letter-spacing:.01em; margin:0 2px 10px; }
+  #sheet .s-full h4 { font-family:Jost,sans-serif; font-weight:400; font-size:21px; letter-spacing:-.008em; margin:0 2px 10px; }
   #sheet .s-specs { display:grid; grid-template-columns:repeat(2, 1fr); gap:7px; }
   #sheet .s-spec { border-radius:var(--r-m); padding:10px 12px; background:rgba(255,255,255,.55); box-shadow:inset 0 0 0 .6px var(--line); min-width:0; }
   #sheet .s-spec small { display:block; color:var(--soft); font-size:12px; } #sheet .s-spec b { display:block; font-weight:600; margin-top:2px; font-size:15px; overflow-wrap:anywhere; }
@@ -405,7 +406,13 @@
     if (opener) { opener.focus({ preventScroll: true }); opener = null; }
   }
   // closed panels are inert: Tab and screen readers skip them
-  const syncInert = () => { $("menu").inert = !B.classList.contains("menu"); $("sheet").inert = !B.classList.contains("sheet"); };
+  // the sheet turns inert only once it has slid away, so a closing card can still be caught by its handle
+  const syncInert = () => {
+    $("menu").inert = !B.classList.contains("menu");
+    clearTimeout(syncInert.t);
+    if (B.classList.contains("sheet")) $("sheet").inert = false;
+    else if (!$("sheet").inert) syncInert.t = setTimeout(() => { if (!B.classList.contains("sheet")) $("sheet").inert = true; }, 420);
+  };
   new MutationObserver(syncInert).observe(B, { attributes: true, attributeFilter: ["class"] }); syncInert();
   const applyLayer = l => { B.classList.remove("menu", "sheet", "details"); if (l === "details") B.classList.add("sheet", "details"); else if (l) B.classList.add(l); if (l !== "details") $("sheet").style.height = ""; };
   if (layer()) applyLayer(layer());
@@ -473,6 +480,14 @@
       sh.style.height = height + "px"; animation.cancel(); sheetMotion = null; done();
     }).catch(() => {});
   }
+  // release velocity -> close timing: duration from the speed, starting slope of the curve = the finger's speed
+  function flingOut(y, vy) {                                    // y: current translateY of the card, vy: px/ms downward
+    const D = sh.getBoundingClientRect().height + 30 - y;
+    if (D <= 0 || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const v = Math.max(0.2, vy || 0), T = Math.round(Math.max(170, Math.min(340, D / (v * 0.9)))), y1 = Math.max(0.12, Math.min(1, 0.2 * v * T / D)).toFixed(3);
+    sh.style.transition = `transform ${T}ms cubic-bezier(.2,${y1},.25,1)`;
+    clearTimeout(flingOut.t); flingOut.t = setTimeout(() => { sh.style.transition = ""; }, T + 120);
+  }
   function resetDetailGesture() {
     if (sheetMotion) sheetMotion.cancel(); sheetMotion = null; openingDetails = false; drag = null;
     sh.style.height = ""; sh.classList.remove("drag"); B.style.setProperty("--dy", "0px");
@@ -482,6 +497,10 @@
     if (drag || !e.isPrimary || (e.pointerType === "mouse" && e.button !== 0) || e.target.closest("a,button") || !e.target.closest(".grab,.sh-head")) return;
     // Grab the presentation geometry, not the previous animation's destination.
     const rect = sh.getBoundingClientRect(), matrix = new DOMMatrixReadOnly(getComputedStyle(sh).transform);
+    if (!B.classList.contains("sheet")) {                         // caught while sliding away: it is open again, under the finger
+      if (closing || rect.top > innerHeight - 24) return;
+      clearTimeout(flingOut.t); sh.style.transition = ""; openLayer("sheet");
+    }
     const interrupted = !!(detailAnimations.length || sheetMotion);
     ++detailEpoch;
     detailAnimations.forEach(a => a.cancel()); detailAnimations = [];
@@ -520,12 +539,14 @@
       } else transitionLayer("sheet", true);
       return;
     }
-    B.style.setProperty("--dy", "0px");
     if (intentional && (d.dy < -64 || (flick && proj < -110))) {
-      $("sMore").click();
+      B.style.setProperty("--dy", "0px"); $("sMore").click();
     } else {
-      if (intentional && (d.dy > 110 || (flick && proj > 160))) closeAll();
-      resizeSheet(d.height, () => { sh.style.cssText = ""; sh.dataset.motion = "idle"; });
+      if (intentional && (d.dy > 110 || (flick && proj > 160))) {
+        flingOut(d.baseY + Math.max(0, d.dy), vy); closeAll();     // leaves from where the finger let go
+        if (B.classList.contains("sheet") && !closing) B.style.setProperty("--dy", "0px");
+      } else B.style.setProperty("--dy", "0px");
+      resizeSheet(d.height, () => { const t = sh.style.transition; sh.style.cssText = ""; if (flingOut.t && t) sh.style.transition = t; sh.dataset.motion = "idle"; });
     }
   }
   // iOS-style: pulling the CONTENT down while it is already scrolled to the top moves the whole sheet, instead of a rubber band
@@ -553,7 +574,7 @@
     sh.classList.remove("drag");
     const h = d.hist, dt = h.length > 1 ? h[h.length - 1][0] - h[0][0] : 0, vy = dt > 0 && e.timeStamp - h[h.length - 1][0] < 60 ? (h[h.length - 1][1] - h[0][1]) / dt : 0;
     const proj = d.dy + vy * 99;
-    if (e.type === "touchend" && (d.dy > 90 || (d.dy > 12 && proj > 150))) { if (B.classList.contains("details")) closeDetails(); else { B.style.setProperty("--dy", "0px"); closeAll(); } }
+    if (e.type === "touchend" && (d.dy > 90 || (d.dy > 12 && proj > 150))) { if (B.classList.contains("details")) closeDetails(); else { flingOut(d.dy, vy); closeAll(); if (B.classList.contains("sheet") && !closing) B.style.setProperty("--dy", "0px"); } }
     else B.style.setProperty("--dy", "0px");
   };
   sh.addEventListener("touchend", pullEnd); sh.addEventListener("touchcancel", pullEnd);
@@ -885,6 +906,7 @@
   }
 
   // ---------- hop: play the clips of the transition(s) at their own 60 fps, stop exactly on the car ----------
+  let turnAt = null, turnDir = null;                   // a reversal that is braking right now (its turning frame)
   async function go(i) {
     if (i < 0 || i > CARS.length - 1) {                  // past the end of the row: stretch and spring back, stay on this car
       if (mode === "idle") { rubber(i < 0 ? 1 : -1); return; }
@@ -900,9 +922,30 @@
       await settleStill(i, my); return;
     }
     loadStill(CARS[i]); // The target remains reachable even when video is unavailable.
-    mode = "hop"; hopTarget = to; switching = false; pauseAll();
+    const cur = mode === "hop" && !noPlay ? active() : null, cc = cur && cOf(cur), oldTarget = hopTarget;
+    mode = "hop"; hopTarget = to; switching = false;
     const rate = Math.min(3, Math.max(1, Math.abs(to - from) / SEG * 0.85));
-    let n = from;
+    let n = from, ease = false;
+    if (!(cc && !cur.paused && cc.dir !== dir)) turnAt = null;
+    if (cc && !cur.paused && cc.dir !== dir && oldTarget !== null) {
+      // reversal mid-move: keep rolling while braking, meanwhile the opposite clip is sought to the turning frame
+      const r0 = cur.playbackRate, k = Math.round(Math.min(8, 4 + 2 * r0)), sg = cc.dir === "f" ? 1 : -1;
+      // the turning frame lies AHEAD in the clip's own direction; a press during the braking keeps the same turn
+      let turn = turnAt !== null && turnDir === cc.dir ? turnAt : (sg > 0 ? Math.min(SEG * cc.s + SEG, from + k) : Math.max(SEG * cc.s, from - k));
+      if ((oldTarget - from) * sg > 0) turn = sg > 0 ? Math.min(turn, oldTarget) : Math.max(turn, oldTarget);
+      const back = clipFor(turn, dir);
+      if ((turn - from) * sg > 0 && Math.abs(turn - from) <= 12 && back.ready && back.el && back.el !== cur) {
+        turnAt = turn; turnDir = cc.dir;
+        const sought = seekTo(back.el, turn), t0 = performance.now();
+        const brake = () => { if (my !== seq || cur.paused) return; const u = Math.min(1, (performance.now() - t0) / 150); cur.playbackRate = Math.max(0.25, r0 * (1 - 0.75 * u)); if (u < 1) requestAnimationFrame(brake); };
+        requestAnimationFrame(brake);
+        const reached = await playClip(cur, cc, turn, my);
+        if (my !== seq || reached === null) return;
+        turnAt = null; n = turn; pos = turn; ease = true;
+        await sought; if (my !== seq) return;
+      }
+    }
+    pauseAll();
     while (true) {
       const c = clipFor(n, dir);
       if (!c.ready) {
@@ -915,6 +958,11 @@
       const sought = await seekTo(v, n); if (my !== seq) return;
       if (!sought) { await settleStill(i, my); return; }
       show(v); v.playbackRate = rate;
+      if (ease) {                                        // after a turn the camera picks up speed instead of jumping to it
+        ease = false; const t1 = performance.now(); v.playbackRate = Math.min(rate, 0.35);
+        const accel = () => { if (my !== seq || v.paused) return; const u = Math.min(1, (performance.now() - t1) / 220); v.playbackRate = 0.35 + (rate - 0.35) * u * u * (3 - 2 * u); if (u < 1) requestAnimationFrame(accel); };
+        requestAnimationFrame(accel);
+      }
       const reached = await playClip(v, c, stopHere, my);
       if (my !== seq || reached === null) return;
       n = stopHere;
