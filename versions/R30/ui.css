@@ -1,7 +1,7 @@
 /* KARATS AUTO design system: light travertine base, Jost display type, Liquid Glass surfaces */
 :root {
   color-scheme:only light;
-  --ink:#1d211e; --soft:#6b716c; --faint:#9aa09a; --bg:#efece6; --paper:#f7f5f0; --acc:#304c40; --acc2:#3d6152;
+  --ink:#1d211e; --soft:#616661; --faint:#666c66; --bg:#efece6; --paper:#f7f5f0; --acc:#304c40; --acc2:#3d6152;
   --line:rgba(29,33,30,.10); --r-xl:30px; --r-l:22px; --r-m:16px;
   --spring:cubic-bezier(.3,1.35,.45,1); --ease:cubic-bezier(.22,.8,.25,1);
   --press-depth:.97; --press-down:.12s; --press-up:.18s; --press-ease:cubic-bezier(.22,.8,.25,1);

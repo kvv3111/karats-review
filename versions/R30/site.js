@@ -82,7 +82,7 @@
   #kc-box>*{position:relative;z-index:1}
   #kc-box h2{font-family:Jost,sans-serif;font-weight:500;font-size:22px;margin:0 0 10px}
   .kc-cat{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid rgba(29,33,30,.10)}
-  .kc-cat div{flex:1} .kc-cat b{display:block;font-weight:600} .kc-cat small{color:var(--soft,#6b716c);font-size:13px;display:block;margin-top:2px}
+  .kc-cat div{flex:1} .kc-cat b{display:block;font-weight:600} .kc-cat small{color:var(--soft,#616661);font-size:13px;display:block;margin-top:2px}
   .kc-sw{position:relative;flex:none;width:48px;height:28px;border-radius:14px;border:0;background:rgba(29,33,30,.18);cursor:pointer;transition:background .2s}
   .kc-sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:11px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .3s var(--spring,ease)}
   .kc-sw[aria-checked="true"]{background:var(--acc,#304c40)} .kc-sw[aria-checked="true"]::after{transform:translateX(20px)}
@@ -122,7 +122,7 @@
     const sw = (k, on, dis) => `<button type="button" class="kc-sw" role="switch" aria-checked="${on}" ${dis ? 'disabled' : ''} data-k="${k}" aria-label="${t(k === 'necessary' ? 'nec' : k === 'analytics' ? 'ana' : 'mkt')}"></button>`;
     dlg.innerHTML = `<div id="kc-box" class="lg" role="dialog" aria-modal="true" aria-labelledby="kc-h">
       <button type="button" class="gbtn lg kc-x" aria-label="${t('close')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-      <h2 id="kc-h">${t('prefs')}</h2><p style="color:var(--soft,#6b716c)">${t('text')} <a href="${policy()}" style="color:var(--acc,#304c40)">${t('more')}</a></p>
+      <h2 id="kc-h">${t('prefs')}</h2><p style="color:var(--soft,#616661)">${t('text')} <a href="${policy()}" style="color:var(--acc,#304c40)">${t('more')}</a></p>
       <div style="margin-top:12px">
         <div class="kc-cat"><div><b>${t('nec')}</b><small>${t('necD')}</small></div>${sw('necessary', true, true)}</div>
         <div class="kc-cat"><div><b>${t('ana')}</b><small>${t('anaD')}</small></div>${sw('analytics', draft.analytics, !AVAILABLE.analytics)}</div>
@@ -155,7 +155,12 @@
   function closePrefs() {
     if (!dlg || !dlg.classList.contains('on')) return;
     clearTimeout(prefsFocusTimer); dlg.inert = true; dlg.classList.remove('on'); if (!state) showBar();
-    if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+    // the cookie bar comes back with a fade: focus «Configurar» again on the first frame it is shown
+    const k = lastFocus && lastFocus.dataset && lastFocus.dataset.k, f0 = lastFocus; let n = 0; const go = () => {
+      const o = f0 && !f0.isConnected && k ? document.querySelector(`#kc-bar [data-k="${k}"]`) : f0;   // the bar re-renders: same button, new element
+      const a = document.activeElement; if (!o || !o.focus || (a && a !== document.body && a !== o && !a.closest('#kc-dlg'))) return;
+      if (o.isConnected && getComputedStyle(o).visibility !== 'hidden' && !o.closest('[inert]')) { o.focus({ preventScroll: true }); if (document.activeElement === o) return; }
+      if (++n < 60) requestAnimationFrame(go); }; go();
   }
   function toast(msg) {
     let el = document.getElementById('toast');
@@ -224,11 +229,11 @@
   }
   const footCss = `.kfoot{margin-top:48px;background:#e8e4dc;color:#6e716c;font-size:12px;line-height:1.35}
     .kf-in{max-width:980px;margin:0 auto;padding:18px 22px calc(22px + env(safe-area-inset-bottom))}
-    .kf-note{padding-bottom:14px;border-bottom:.6px solid rgba(29,33,30,.14);font-size:12px;color:#7a7e78}
+    .kf-note{padding-bottom:14px;border-bottom:.6px solid rgba(29,33,30,.14);font-size:12px;color:#616661}
     .kf-cols{display:grid;grid-template-columns:1fr}
     .kf-col{border-bottom:.6px solid rgba(29,33,30,.14)}
     .kf-h{all:unset;box-sizing:border-box;display:flex;width:100%;justify-content:space-between;align-items:center;padding:12px 0;font-weight:600;font-size:12.5px;color:#1d211e;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    .kf-h svg{width:15px;height:15px;color:#7a7e78;transition:transform .45s cubic-bezier(.3,1.35,.45,1)}
+    .kf-h svg{width:15px;height:15px;color:#616661;transition:transform .45s cubic-bezier(.3,1.35,.45,1)}
     .kf-col.open .kf-h svg{transform:rotate(180deg)}
     .kf-list{display:grid;grid-template-rows:0fr;overflow:hidden;transition:grid-template-rows .45s cubic-bezier(.22,.8,.25,1)}
     .kf-col.open .kf-list{grid-template-rows:1fr}
@@ -238,7 +243,7 @@
     .kf-list span{cursor:default}
     @media (hover:hover){.kf-list a:hover,.kf-list button:hover{color:#1d211e;text-decoration:underline}}
     .kf-bottom{display:flex;flex-direction:column;gap:10px;padding-top:14px}
-    .kf-bottom p{font-size:12px;color:#7a7e78}
+    .kf-bottom p{font-size:12px;color:#616661}
     .kf-lang{display:flex;gap:4px}
     .kf-lang a{color:#5e625d;text-decoration:none;font-weight:600;font-size:12px;padding:6px 9px;border-radius:12px}
     .kf-lang a[aria-current]{background:rgba(29,33,30,.08);color:#1d211e}

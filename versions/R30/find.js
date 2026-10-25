@@ -60,7 +60,7 @@
   document.head.insertAdjacentHTML('beforeend', `<style>
   .kf-cta{margin:26px auto 8px;max-width:640px;padding:22px 22px 20px;border-radius:var(--r-l,22px);background:rgba(255,255,255,.55);border:1px solid var(--line,rgba(29,33,30,.1));text-align:center}
   .kf-cta h3{font-family:Jost,sans-serif;font-weight:500;font-size:22px;margin:0 0 4px}
-  .kf-cta p{color:var(--soft,#6b716c);margin:0 0 14px;font-size:15px}
+  .kf-cta p{color:var(--soft,#616661);margin:0 0 14px;font-size:15px}
   #kfind{position:fixed;inset:0;z-index:75;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}
   #kfind .kf-veil{position:absolute;inset:0;background:rgba(20,22,21,.28);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transition:opacity .3s}
   #kfind .kf-box{position:relative;width:100%;max-width:520px;margin:8px;margin-bottom:calc(8px + env(safe-area-inset-bottom));max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;
@@ -71,10 +71,10 @@
   @media (prefers-reduced-motion:reduce){#kfind .kf-box,#kfind .kf-veil{transition:none}}
   #kfind .kf-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
   #kfind h2{font-family:Jost,sans-serif;font-weight:500;font-size:26px;line-height:1.1;margin:0}
-  #kfind .kf-sub{color:var(--soft,#6b716c);font-size:14px;margin:6px 0 14px}
+  #kfind .kf-sub{color:var(--soft,#616661);font-size:14px;margin:6px 0 14px}
   #kfind .kf-x{flex:none;width:38px;height:38px;border-radius:19px;border:0;background:rgba(29,33,30,.07);font-size:20px;line-height:38px;cursor:pointer;color:var(--ink,#1d211e)}
   #kfind label{display:block;margin:0 0 12px}
-  #kfind label>span,#kfind .kf-l{display:block;font-size:13px;color:var(--soft,#6b716c);margin:0 0 5px}
+  #kfind label>span,#kfind .kf-l{display:block;font-size:13px;color:var(--soft,#616661);margin:0 0 5px}
   #kfind input,#kfind select,#kfind textarea{width:100%;box-sizing:border-box;font:inherit;font-size:16px;color:var(--ink,#1d211e);background:#fff;border:1px solid var(--line,rgba(29,33,30,.12));border-radius:14px;padding:12px 14px;-webkit-appearance:none;appearance:none}
   #kfind select{padding-right:40px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b716c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center/18px 18px;cursor:pointer}
   #kfind textarea{min-height:70px;resize:vertical}
@@ -86,7 +86,7 @@
   #kfind .kf-send{width:100%;margin-top:4px}
   #kfind input[aria-invalid="true"]{border-color:#b3261e;box-shadow:0 0 0 1px #b3261e}
   #kfind .kf-need{margin:-6px 0 12px;font-size:13px;color:#b3261e}
-  #kfind .kf-priv{font-size:12px;color:var(--faint,#9aa09a);text-align:center;margin:10px 0 0}
+  #kfind .kf-priv{font-size:12px;color:var(--faint,#666c66);text-align:center;margin:10px 0 0}
   body.kf-open{overflow:hidden}
   </style>`);
 

@@ -21,9 +21,9 @@
 <link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="theme-color" content="#efece6">
 <script>addEventListener('pagereveal',e=>{const v=e.viewTransition;v&&['ready','finished','updateCallbackDone'].forEach(k=>v[k]&&v[k].catch(()=>{}))})</script>
 <link rel="stylesheet" href="fonts/jost.css">
-<link rel="stylesheet" href="ui.css?v=details-20261025-2">
+<link rel="stylesheet" href="ui.css?v=a11y-1">
 <style>
-  :root { color-scheme:only light; --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
+  :root { color-scheme:only light; --ink:#1d211e; --soft:#616661; --bg:#efece6; --acc:#304c40; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html, body, button, a, .side, .more, #card { touch-action:manipulation; }
   html,body { width:100%; max-width:100%; height:100%; background:#efece6; color:var(--ink); font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; overflow:hidden; overscroll-behavior:none; }
@@ -399,6 +399,11 @@
   const B = document.body;
   // an open menu or sheet is its own history step: Android's Back button / iOS edge swipe closes it instead of leaving the site
   const layer = () => history.state && history.state.layer;
+  // the button that opened a layer is hidden while the layer is open, so focus it again on the first frame it is shown
+  const refocus = o => { if (!o || !o.focus) return; let n = 0; const go = () => { const a = document.activeElement;
+    if (a && a !== document.body && a !== o && !a.closest('#sheet,#menu')) return;   // the visitor already moved on
+    if (o.isConnected && getComputedStyle(o).visibility !== 'hidden' && !o.closest('[inert]')) { o.focus({ preventScroll: true }); if (document.activeElement === o) return; }
+    if (++n < 60) requestAnimationFrame(go); }; go(); };
   let opener = null;
   function openLayer(name) {
     if (!opener) opener = document.activeElement;
@@ -412,7 +417,7 @@
     if (B.classList.contains("details")) { closeDetails(); return; }
     if (closing || !(B.classList.contains("menu") || B.classList.contains("sheet"))) return;
     if (layer()) { closing = true; history.back(); } else B.classList.remove("menu", "sheet");
-    if (opener) { opener.focus({ preventScroll: true }); opener = null; }
+    refocus(opener); opener = null;
   }
   // closed panels are inert: Tab and screen readers skip them
   // the sheet turns inert only once it has slid away, so a closing card can still be caught by its handle
@@ -1492,7 +1497,7 @@
 })();
 </script>
 <script src="i18n.js?v=paths-1"></script>
-<script src="site.js?v=paths-1"></script>
+<script src="site.js?v=a11y-1"></script>
 <script src="kx.js?v=r37"></script>
 <script src="showroom-gallery.js?v=3"></script>
 </body>
