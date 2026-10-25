@@ -77,3 +77,9 @@ a.gbtn, a.btn { color:var(--ink); text-decoration:none; -webkit-tap-highlight-co
   #lang .knob, #toast, .toast { transition:none !important; }
   #toast, .toast { transform:translate(-50%, 0) !important; }
 }
+
+/* Quiet secondary chrome; keep the showroom's Liquid Glass material and motion. */
+#menu nav .it .n { display:none; }
+#sheet .btn.primary { box-shadow:0 4px 10px rgba(48,76,64,.16), inset 0 1px 0 rgba(255,255,255,.18); }
+#sheet .btn.wa { box-shadow:0 4px 10px rgba(31,143,85,.14), inset 0 1px 0 rgba(255,255,255,.18); }
+#sheet .btn.lg { box-shadow:0 4px 12px rgba(20,22,20,.10), 0 1px 3px rgba(20,22,20,.05), inset 0 1px 0 rgba(255,255,255,.90), inset 0 -1px 0 rgba(255,255,255,.35), inset 0 0 0 .6px rgba(255,255,255,.55); }
