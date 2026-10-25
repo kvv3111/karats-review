@@ -204,6 +204,8 @@
 (() => {
   const $ = id => document.getElementById(id);
   const q = new URLSearchParams(location.search), CID = window.KARATS_CAR_ID || q.get("id"), C = KARATS_CARS.find(c => c.id === CID) || KARATS_CARS[1];
+  // a link to a car that is not (or no longer) in the showroom: say so instead of showing another car
+  if (!window.KARATS_CAR_ID && CID && !KARATS_CARS.some(c => c.id === CID) && parent === window) { location.replace(new URL("404.html", location.href).href); return; }
   // old links coche.html?id=… move to the car's own address (embedded overlays keep using coche.html)
   if (!window.KARATS_CAR_ID && q.get("id") && !q.get("galleryOverlay") && !q.get("detailOverlay") && window.carURL && parent === window) {
     const u = new URL(carURL(C), location.href); q.forEach((v, k) => { if (k !== "id") u.searchParams.set(k, v); }); u.hash = location.hash; location.replace(u.href); return;

@@ -419,6 +419,8 @@
   const applyLayer = l => { B.classList.remove("menu", "sheet", "details"); if (l === "details") B.classList.add("sheet", "details"); else if (l) B.classList.add(l); if (l !== "details") $("sheet").style.height = ""; };
   if (layer()) applyLayer(layer());
   addEventListener("popstate", () => { closing = false; transitionLayer(layer()); });
+  // back from another page restores this one from the page cache with the panel that was open when it left: show the step's own layer
+  addEventListener("pageshow", e => { if (e.persisted) { closing = false; applyLayer(layer()); } });
   function openDetails() {
     if (B.classList.contains("details")) return;
     if (!B.classList.contains("sheet")) openLayer("sheet");
@@ -595,7 +597,12 @@
   const toast = document.createElement("div"); toast.className = "toast lg"; toast.innerHTML = "<span></span>"; document.body.appendChild(toast);
   const say = t => { toast.firstChild.textContent = t; toast.classList.add("on"); clearTimeout(say.t); say.t = setTimeout(() => toast.classList.remove("on"), 1800); };
   // menu items are real links; drop the menu step so Back from the page returns to the hall, not to an open menu
-  document.querySelectorAll("#menu .it").forEach(b => b.addEventListener("click", e => { if (!(e.metaKey || e.ctrlKey || e.shiftKey) && history.state && history.state.layer) history.replaceState(null, "", location.href); }));
+  // the page takes the PLACE of the menu step (location.replace): history stays [hall, page], so Back = hall, Back again = leave
+  document.querySelectorAll("#menu .it").forEach(b => b.addEventListener("click", e => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || !b.href || !(history.state && history.state.layer)) return;
+    // mark the step closed first: otherwise closing the menu on the way out calls history.back(), which cancels this navigation
+    e.preventDefault(); history.replaceState(null, "", location.href); location.replace(b.href);
+  }));
   document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
   $("sFav").addEventListener("click", () => { if (!window.KFav || !C) return; const on = KFav.toggle(C.id); favSync(); const tt = FAVT[(window.KLang && KLang.language) || "es"] || FAVT.es; say(on ? tt[0] : tt[1]); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} });
   addEventListener("karats:fav", favSync);
@@ -1440,6 +1447,15 @@
   ui(); resize();
   addEventListener("karats:language", () => { resize(); document.documentElement.classList.remove("room-boot"); });
   requestAnimationFrame(tick);
+  // the address names the car (#1…#N): junk such as #9 or #abc is rewritten to the car shown,
+  // and a #N typed in the address bar or opened from a link on this page drives the hall to car N
+  const fixHash = () => { if (location.hash && location.hash !== "#" + (idx + 1)) try { history.replaceState(history.state, "", location.pathname + location.search + "#" + (idx + 1)); } catch (e) {} };
+  fixHash();
+  addEventListener("hashchange", () => {
+    const m = /^#(\d+)$/.exec(location.hash), n = m ? +m[1] - 1 : -1;
+    if (n < 0 || n > CARS.length - 1) { fixHash(); return; }
+    if (n !== idx && !KUI.isOpen()) go(n);
+  });
   window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown: shownEl ? (cOf(shownEl).dir === "f" ? "vf" : "vr") : "still",
                             disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, rubberZ: Math.round(rubberZ * 1000) / 1000, rubber: !!rubberOn,
                             vis: +cv.style.opacity > 0.9 || !shownEl ? cvFrame : nOf(shownEl, shownEl.currentTime) });
