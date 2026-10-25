@@ -267,7 +267,8 @@
 </style>
 <style>
 .sh-btns { display:flex; gap:8px; flex:none; }
-#sheet .sh-head .sfav { width:34px; height:34px; border-radius:17px; } #sheet .sh-head .sfav svg { width:16px; height:16px; }
+#sheet .sh-head .sfav { width:34px; height:34px; border-radius:17px; }
+#sFav::before, #sClose::before { content:""; position:absolute; top:-5px; bottom:-5px; } #sFav::before { left:-6px; right:-4px; } #sClose::before { left:-4px; right:-6px; } #sheet .sh-head .sfav svg { width:16px; height:16px; }
 .sfav svg path { transition:fill .25s, stroke .25s; } .sfav.saved svg path { fill:#c8463b; stroke:#c8463b; }
 @media (prefers-reduced-motion:no-preference) { .sfav.saved svg { animation:cfpop .45s cubic-bezier(.3,1.35,.45,1); } }
 @keyframes cfpop { 0% { transform:scale(.6) } 60% { transform:scale(1.2) } 100% { transform:none } }
@@ -1497,7 +1498,7 @@
 })();
 </script>
 <script src="i18n.js?v=paths-1"></script>
-<script src="site.js?v=a11y-1"></script>
+<script src="site.js?v=tap-1"></script>
 <script src="kx.js?v=r37"></script>
 <script src="showroom-gallery.js?v=3"></script>
 </body>
