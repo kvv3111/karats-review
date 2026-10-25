@@ -49,6 +49,13 @@
 <meta property="og:locale:alternate" content="ru_RU">
 <meta name="twitter:card" content="summary_large_image">
 <!--/seo-->
+<style id="catalog-fact-rows">
+.ccar .facts { display:flex; flex-direction:column; gap:6px; }
+.ccar .facts .fact-row { display:flex; align-items:baseline; gap:12px; white-space:normal; }
+.ccar .facts .fact-drive { flex-wrap:wrap; gap:4px 12px; }
+.ccar .facts .fact-fuel { white-space:normal; }
+.ccar .facts .fact-transmission { display:inline-flex; gap:12px; white-space:nowrap; }
+</style>
 </head>
 <body class="page">
 <div class="ptop">
@@ -188,7 +195,8 @@
     const n = CARS.findIndex(x => x.id === c.id) + 1;               // straight into the hall, details open, at this car
     const href = (window.KLang ? KLang.url('index.html?detalle=1') : 'index.html?detalle=1') + '#' + n;
     const fav = window.KFav && KFav.has(c.id);
-    const facts = [c.year, fmtKM(c.km), tr(c.fuel), tr(c.gear.split(' ')[0]), tr(c.power)].map(f => `<span>${esc(tr(String(f)))}</span>`).join('');
+    const fact = value => `<span>${esc(tr(String(value)))}</span>`;
+    const facts = `<span class="fact-row fact-history">${fact(c.year)}${fact(fmtKM(c.km))}</span><span class="fact-row fact-drive"><span class="fact-fuel">${esc(tr(c.fuel))}</span><span class="fact-transmission">${fact(tr(c.gear.split(' ')[0]))}${fact(tr(c.power))}</span></span>`;
     return `<a class="ccar" href="${href}"><div class="img"><img src="c/${c.id}_s.webp" srcset="c/${c.id}_s.webp 600w, c/${c.id}.webp 900w" sizes="(min-width:980px) 380px, (min-width:620px) 50vw, 100vw" alt="${esc(c.brand + ' ' + c.model)}" loading="lazy" decoding="async" width="600" height="400">
       <button type="button" class="cfav${fav ? ' on' : ''}" data-fav="${c.id}" aria-pressed="${fav ? 'true' : 'false'}" aria-label="${t('favA')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg></button><span class="badge">${esc(c.label === '0' ? ({ es:'CERO', en:'ZERO', ru:'0', ca:'ZERO' })[L()] : c.label)}</span></div>
       <div class="body"><h3>${esc(tr(c.brand + ' ' + c.model))}</h3><div class="trim">${esc(tr(c.trim))}</div><div class="facts">${facts}</div>
