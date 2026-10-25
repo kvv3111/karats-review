@@ -21,7 +21,7 @@
 <link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="theme-color" content="#efece6">
 <script>addEventListener('pagereveal',e=>{const v=e.viewTransition;v&&['ready','finished','updateCallbackDone'].forEach(k=>v[k]&&v[k].catch(()=>{}))})</script>
 <link rel="stylesheet" href="fonts/jost.css">
-<link rel="stylesheet" href="ui.css?v=motion-20261022">
+<link rel="stylesheet" href="ui.css?v=phones-1">
 <style>
   :root { color-scheme:only light; --ink:#1d211e; --soft:#6b716c; --bg:#efece6; --acc:#304c40; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
@@ -45,15 +45,15 @@
   .brand { display:inline-block; text-align:center; }
   html.wall .brand { line-height:1; }
   .brand span { margin-right:-.34em; }                         /* letter-spacing adds space after the last letter: cancel it so both lines centre */
-  .brand small { display:block; font-size:.42em; font-weight:500; letter-spacing:.9em; margin-right:-.9em; color:#4f544e; margin-top:.35em; line-height:1; }
+  .brand small { display:block; font-size:max(.42em, 9px); font-weight:500; letter-spacing:.9em; margin-right:-.9em; color:#4f544e; margin-top:.35em; line-height:1; }
   .count { font-family:Jost,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:.12em; color:var(--ink); font-size:14px; }
-  .count span { color:var(--soft); }
+  .count span { color:#5a605b; }
   .side { position:fixed; top:50%; transform:translateY(-50%); width:56px; height:56px; border-radius:50%; border:1px solid rgba(29,33,30,.14);
           background:rgba(251,250,247,.86); color:var(--ink); cursor:pointer; z-index:3;
-          display:flex; align-items:center; justify-content:center; transition:opacity .3s, background .2s, transform .35s var(--spring); box-shadow:0 6px 20px rgba(0,0,0,.08); }
+          display:flex; align-items:center; justify-content:center; scale:1;transition:opacity .3s,background .2s,scale var(--press-up) var(--press-ease); box-shadow:0 6px 20px rgba(0,0,0,.08); }
   button:focus-visible, a:focus-visible { outline:2px solid var(--acc); outline-offset:3px; }
   @media (hover:hover) { .side:hover { background:rgba(255,255,255,.92); } }
-  .side:active { transform:translateY(-50%) scale(.9); background:rgba(255,255,255,.96); transition-duration:.3s, .08s, .08s; }
+  .side:active:not(:disabled) { scale:var(--press-depth);background:rgba(255,255,255,.96);transition-duration:.3s,.2s,var(--press-down); }
   .side svg { width:22px; height:22px; }
   .side:disabled { opacity:0; pointer-events:none; }
   .side.tight { display:none; }
@@ -64,11 +64,15 @@
   .info.away { opacity:0; transform:translateY(8px); }
   .info h2 { font-family:Jost,sans-serif; font-size:26px; font-weight:500; letter-spacing:-.012em; }
   .info p { color:var(--soft); margin-top:3px; }
+  #meta { display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px;row-gap:2px; }
+  #meta .facts,#meta .price { white-space:nowrap; }
+  @media(max-width:640px) { #meta .price { flex-basis:100%; } }
   .info .price { color:var(--ink); font-weight:600; }
-  #more { pointer-events:auto; flex:none; padding:13px 20px; border-radius:26px; border:0; background:var(--acc); color:#fff; font:inherit; font-weight:600; cursor:pointer; transition:opacity .35s; }
+  #more { pointer-events:auto; flex:none; padding:13px 20px; border-radius:26px; border:0; background:var(--acc); color:#fff; font:inherit; font-weight:600; cursor:pointer; scale:1;transition:opacity .35s,scale var(--press-up) var(--press-ease); }
+  #more:active { scale:var(--press-depth);transition-duration:.35s,var(--press-down); }
   #more.away { opacity:0; pointer-events:none; }
   /* dots track = Liquid Glass capsule (iOS 26 style): frosted blur + saturation, specular rim, refraction on Chromium */
-  .track { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom) + 14px); width:176px; height:56px; z-index:3; touch-action:none; cursor:grab; -webkit-user-select:none; user-select:none; }
+  .track { position:fixed; left:50%; transform:translateX(-50%) scale(var(--tk, 1)); bottom:calc(env(safe-area-inset-bottom) + 14px); width:176px; height:56px; z-index:3; touch-action:none; cursor:grab; -webkit-user-select:none; user-select:none; }
   .track.drag { cursor:grabbing; }
   .glass { position:absolute; left:50%; top:50%; width:132px; height:34px; margin:-17px 0 0 -66px; border-radius:17px; overflow:hidden; isolation:isolate;
            box-shadow:0 8px 22px rgba(20,22,20,.16), 0 1px 3px rgba(20,22,20,.10);
@@ -83,7 +87,7 @@
   .track.lens .rail .thumb { opacity:0; }
   .rail .thumb { transition:opacity .15s; }
   .track.drag .glass { transform:scale(1.06, 1.04); box-shadow:0 12px 30px rgba(20,22,20,.20), 0 2px 6px rgba(20,22,20,.10); }
-  @media (prefers-reduced-motion:reduce) { #lensWrap, .glass { transition:none; } }
+  @media (prefers-reduced-motion:reduce) { #lensWrap, .glass { transition:none; } #more:active,.side:active:not(:disabled) { scale:1; } }
   #more, #prev, #next { touch-action:none; }
   .glass > span { position:absolute; inset:0; border-radius:inherit; pointer-events:none; }
   .glass__refract { -webkit-backdrop-filter:blur(10px) saturate(185%) brightness(1.06); backdrop-filter:blur(10px) url(#lg-refract) saturate(185%) brightness(1.06); }
@@ -93,7 +97,7 @@
   .rail { position:absolute; left:50%; width:84px; margin-left:-42px; top:50%; height:0; z-index:2; }
   .rail i { position:absolute; top:-2.5px; width:5px; height:5px; margin-left:-2.5px; border-radius:3px; background:rgba(29,33,30,.30); }
   .rail .thumb { position:absolute; top:-3px; width:16px; height:6px; margin-left:-8px; border-radius:3px; background:rgba(29,33,30,.88); box-shadow:0 1px 2px rgba(0,0,0,.18); will-change:left; }
-  .hint { position:fixed; left:50%; top:auto; bottom:132px; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:nowrap; max-width:90%; }
+  .hint { position:fixed; left:50%; top:auto; bottom:132px; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:normal;text-align:center;text-wrap:balance;width:max-content;max-width:90%; }
   #load { position:fixed; left:0; top:0; height:2px; background:var(--acc); width:0; z-index:4; transition:width .2s, opacity .6s; }
   .credits { position:fixed; right:26px; bottom:calc(6px + env(safe-area-inset-bottom)); font-size:10px; color:var(--soft); }
   .credits a { color:inherit; }
@@ -103,6 +107,9 @@
     .bar { flex-wrap:wrap; padding-left:18px; padding-right:18px; } .info { flex:1 1 100%; } #more { margin-left:auto; }
     .info h2 { font-size:19px; }
   }
+  /* zoomed page / big system text: the counter would wrap into the wordmark — the dots pill already shows the position */
+  @media (max-width:299px) { .top { padding-left:14px; padding-right:14px; } .top .count { display:none; } }
+  @media (max-width:209px) { .brand { --bf:16px; } }
   @media (max-width:640px) {
     .side { width:46px; height:46px; } .info h2 { font-size:21px; } #more { padding:11px 16px; }
     .credits { display:none; }
@@ -305,7 +312,7 @@
     <feImage result="map" x="0" y="0" width="132" height="34" preserveAspectRatio="none" href="data:image/png;base64,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"/>
     <feDisplacementMap in="SourceGraphic" in2="map" scale="-28" xChannelSelector="R" yChannelSelector="G"/>
   </filter></defs></svg>
-<div class="hint" id="hint">desliza · scroll · flechas</div>
+<div class="hint" id="hint">Mantén pulsados los puntos y arrastra</div>
 <div class="credits">Modelos 3D: <a href="credits.html">créditos (CC BY)</a></div>
 <div id="veil"></div>
 <div id="menu" class="lg" role="dialog" aria-label="Menú">
@@ -731,9 +738,22 @@
       $("prev").style.top = $("next").style.top = navY + "px";
       $("track").style.top = (navY - $("track").offsetHeight / 2) + "px"; $("track").style.bottom = "auto";
       // Reserve only the actual lower half of the centred arrow, not its full height.
-      const tight = navY + parseFloat(getComputedStyle($("next")).height) / 2 + 6 > barTop;
+      // the dots pill shrinks to fit between the arrows (zoomed page / big system text = fewer CSS px); with no room
+      // even at half size the arrows step aside: a swipe on the picture and the pill still move between cars
+      const sw = parseFloat(getComputedStyle($("next")).width) || 46, room = innerWidth - 2 * (18 + sw + 6);
+      let tk = Math.min(1, room / 176); const cramped = tk < 0.5; if (cramped) tk = Math.min(1, (innerWidth - 36) / 176);
+      R.setProperty("--tk", tk.toFixed(3)); $("track").style.left = "";
+      const tight = cramped || navY + parseFloat(getComputedStyle($("next")).height) / 2 + 6 > barTop;
       $("prev").classList.toggle("tight", tight); $("next").classList.toggle("tight", tight);
-    } else { fa.style.display = fb.style.display = "none"; }
+    } else {
+      fa.style.display = fb.style.display = "none"; R.setProperty("--tk", "1");
+      // a wrapped bar on a short, narrow screen (zoomed foldable) puts «Ver coche» under the pill: the pill goes to its left
+      const tr = $("track"); tr.style.left = ""; const mr = $("more").getBoundingClientRect(), t0 = tr.getBoundingClientRect();
+      if (mr.width && t0.right > mr.left && t0.bottom > mr.top && t0.top < mr.bottom) {
+        const k = Math.max(0.5, Math.min(1, (mr.left - 6 - 18) / 176));
+        R.setProperty("--tk", k.toFixed(3)); tr.style.left = Math.round(18 + 176 * k / 2) + "px";
+      }
+    }
     positionHint();
     drawStill();
   }
@@ -864,7 +884,7 @@
   function uiText() {
     const c = CARS[idx], nb = t => String(t).replace(/ /g, "\u00a0");
     $("name").textContent = c.name;
-    $("meta").innerHTML = `${c.year} · ${nb(c.km)} · <span class="price">${nb(c.price)}</span>`;
+    $("meta").innerHTML = `<span class="facts">${c.year} · ${nb(c.km)}</span><span class="price">${nb(c.price)}</span>`;
   }
   function setAway(a) { if (!a) uiText(); $("info").classList.toggle("away", a); $("more").classList.toggle("away", a); }
   const nearestCar = p => { let b = 0; CARS.forEach((c, k) => { if (Math.abs(c.stop - p) < Math.abs(CARS[b].stop - p)) b = k; }); return b; };
@@ -1090,6 +1110,7 @@
       return;
     }
     if (!d.moved) { go(railIdx(e.clientX)); return; }         // tap on a dot = go to that car
+    if (d.axis === "h" && Math.abs(follow - d.p0) > 1) learnRail();
     go(nearestCar(follow));
   }
   $("track").addEventListener("pointerup", trackUp);
@@ -1296,8 +1317,17 @@
   stage.addEventListener("mousemove", e => stage.classList.toggle("hot", atStop() && inCar(e.clientX, e.clientY)));
   stage.addEventListener("click", e => { if (!moved && atStop() && inCar(e.clientX, e.clientY)) openCard(); moved = false; });
   function openCard() { KUI.openSheet(idx); }
-  let hinted = false; function hideHint() { if (!hinted) { hinted = true; $("hint").style.opacity = 0; } }
-  setTimeout(hideHint, 4000);
+  const RAIL_LEARNED_KEY = "karats.rail.learned";
+  let hinted = false, hintLearned = false;
+  function hideHint() { if (!hinted) { hinted = true; $("hint").style.opacity = 0; } }
+  function learnRail() {
+    hideHint();
+    if (hintLearned) return;
+    hintLearned = true;
+    try { localStorage.setItem(RAIL_LEARNED_KEY, "1"); } catch (_) {}
+  }
+  try { hintLearned = localStorage.getItem(RAIL_LEARNED_KEY) === "1"; } catch (_) {}
+  if (hintLearned) hideHint();
 
   // ---------- loading: the still of the car on screen, then the clips one by one, nearest transitions first ----------
   CARS.forEach((c, k) => { const d = document.createElement("i"); d.style.left = (k / (CARS.length - 1) * 100) + "%"; $("rail").insertBefore(d, $("thumb")); });
