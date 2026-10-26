@@ -214,7 +214,11 @@
   if (embeddedGallery) document.body.classList.add("gallery-embedded");
   const svg = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
   document.title = `${C.brand} ${C.model} · KARATS AUTO`;
-  $("heroImg").src = `f/${C.still}.webp`;   // hero = the car as it stands in the showroom
+  { const h = $("heroImg"), pick = () => {   // a portrait phone sees the middle 1000 px of the photo: fp/ is that crop (178 KB, not 633)
+    const b = h.parentElement.getBoundingClientRect(), crop = b.width > 0 && b.width / b.height <= 0.78;
+    if (crop && h.src && h.complete && h.naturalWidth) return;   // never trade a loaded full photo for the crop
+    const u = `${crop ? "fp" : "f"}/${C.still}.webp`; if (!h.src.endsWith("/" + u)) h.src = u; };
+  pick(); addEventListener("resize", pick); }   // hero = the car as it stands in the showroom
   $("nPhotos").textContent = SH.length + " fotos";
   $("title").textContent = `${C.brand} ${C.model}`; $("trim").textContent = C.trim;
   $("price").textContent = fmtEUR(C.price);

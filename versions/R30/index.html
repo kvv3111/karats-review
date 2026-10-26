@@ -666,6 +666,10 @@
   let pos = CARS[hashIdx].stop, idx = hashIdx, mode = "idle", hopTarget = null, shown = "still", follow = pos, lastT = 0, seq = 0;
   let noPlay = false;
   let ready = false;
+  // lite showroom: a slow line or Save-Data gets the photos only (the videos are 43 MB on a phone, 82 MB on a computer)
+  const LITE_Q = new URLSearchParams(location.search).get("lite");
+  let lite = LITE_Q === "1", clipsStarted = false;
+  const photoOnly = () => lite || !clipsStarted;              // also while the first photo is still measuring the line
 
   // ---------- layout ----------
   function positionHint() {
@@ -953,7 +957,7 @@
     { const cur = active(); if (cur) pos = posOf(cur); }
     const from = Math.round(pos), dir = to > from ? "f" : "r";
     if (to === from) { pauseAll(); switching = false; pos = to; mode = "idle"; arrive(my); return; }
-    if (reduceMotion.matches) {                          // "Reduce Motion" on: no camera travel, a short cross-fade to the car
+    if (reduceMotion.matches || photoOnly()) {                  // "Reduce Motion" on / lite showroom: no camera travel, a short cross-fade to the car
       await settleStill(i, my); return;
     }
     loadStill(CARS[i]); // The target remains reachable even when video is unavailable.
@@ -1366,7 +1370,7 @@
     };
     const start = () => {
       clearTimeout(job.timer); job.pending = true; job.attempts++;
-      job.timer = setTimeout(fail, 6000);
+      job.timer = setTimeout(fail, 40000);                       // a slow line is not a failure: never abort a photo that is coming
       im.src = base + (job.attempts > 1 ? `?retry=${job.attempts}` : "");
     };
     job.restart = () => { if (!job.pending && !im.naturalWidth) { job.attempts = 0; start(); } };
@@ -1382,15 +1386,18 @@
     stillJobs[c.stop].restart();
     return new Promise(resolve => {
       const done = () => { clearTimeout(timer); im.removeEventListener("load", done); resolve(!!im.naturalWidth); };
-      const timer = setTimeout(done, 5000); im.addEventListener("load", done);
+      const timer = setTimeout(done, 45000); im.addEventListener("load", done);
     });
   }
   async function settleStill(i, my) {
     const ok = await waitStill(CARS[i]); if (my !== seq) return;
     pauseAll(); switching = false;
     if (!ok) { idx = nearestCar(pos); mode = "idle"; setAway(false); ui(); showSceneStatus(); return; }
+    const fade = photoOnly() && !reduceMotion.matches;               // lite: the photo changes through a short dip, not a cut
+    if (fade) { try { await cv.animate([{ opacity: COVER }, { opacity: 0 }], { duration: 160, easing: "ease-in" }).finished; } catch (e) {} if (my !== seq) return; }
     pos = CARS[i].stop; mode = "idle"; restSrc = null;
     drawStill(); show(null); arrive(my);
+    if (fade) cv.animate([{ opacity: 0 }, { opacity: COVER }], { duration: 280, easing: "ease-out" });
   }
   function retryScene() {
     loadStill(CARS[idx]); stillJobs[CARS[idx].stop].restart();
@@ -1441,7 +1448,7 @@
     });
   }
   let busy = false, wantedClip = null, loadedN = 0, retryT = null;
-  const want = c => { if (!c.ready && !c.loading) { wantedClip = c; pump(); } };
+  const want = c => { if (!photoOnly() && !c.ready && !c.loading) { wantedClip = c; pump(); } };
   function order() {
     const p = CARS[idx].stop;
     const dist = c => (c.dir === "f" ? Math.abs(SEG * c.s - p) : Math.abs(SEG * c.s + SEG - p)) + (c.dir === "r" ? 0 : 0.5);   // ties: "next car" first
@@ -1450,7 +1457,7 @@
   const prioritize = () => pump();
   const bar = f => { $("load").style.width = (f / (NSEG * 2) * 100) + "%"; };
   async function pump() {
-    if (busy) return;
+    if (busy || photoOnly()) return;
     const c = wantedClip && !wantedClip.ready && !wantedClip.loading ? wantedClip : order()[0]; wantedClip = null;
     if (!c) { $("load").style.opacity = 0; loadWide(CARS[0]); loadWide(CARS[CARS.length - 1]); return; }
     busy = true; c.loading = true;
@@ -1467,7 +1474,35 @@
     if (restClips(pos).includes(c)) { ready = true; if (shown === "still") warm(null); if (mode === "idle") seekTo(c.el, pos).then(() => { if (mode === "idle" && shown === "still") showRest(); }); }
   }
   let unlockedOnce = false; addEventListener("pointerdown", () => { unlockedOnce = true; }, true);
-  pump();
+  // Videos start only once this car's photo is on screen (on a slow line they took the bandwidth the photo needed).
+  // That photo also measures the line: under 3 Mbit/s, with Save-Data or on 2g/3g the showroom stays on photos.
+  function slowLine(im) {
+    if (LITE_Q === "0") return false; if (LITE_Q === "1") return true;
+    const cn = navigator.connection;
+    if (cn && (cn.saveData || /2g$|^3g$/.test(cn.effectiveType || ""))) return true;
+    if (!im || !im.complete || !im.naturalWidth) return true;    // not even the photo arrived: no videos on this line
+    const e = performance.getEntriesByName(im.src).pop();
+    if (!e || !(e.transferSize > 20000) || !(e.responseEnd > e.requestStart)) return false;   // from the cache / unknown: full showroom
+    return e.transferSize * 8 / (e.responseEnd - e.requestStart) / 1000 < 3;              // Mbit/s
+  }
+  function prefetchStills() {                                    // lite: the other cars' photos, nearest first, one at a time
+    const p = CARS[idx].stop, todo = CARS.slice().sort((a, b) => Math.abs(a.stop - p) - Math.abs(b.stop - p));
+    const next = () => {
+      const c = todo.shift(); if (!c) return;
+      const im = loadStill(c); if (im.complete && im.naturalWidth) { next(); return; }
+      im.addEventListener("load", next, { once: true }); im.addEventListener("error", next, { once: true });
+    };
+    next();
+  }
+  function startClips(im) {                                     // im: the photo that has just finished loading
+    if (clipsStarted) return; clipsStarted = true;
+    lite = lite || slowLine(im);
+    if (lite) { $("load").style.opacity = 0; prefetchStills(); return; }
+    pump();
+  }
+  { const im0 = loadStill(CARS[idx]);
+    const go0 = () => startClips(im0);
+    if (im0.complete && im0.naturalWidth) go0(); else { im0.addEventListener("load", go0, { once: true }); setTimeout(go0, 40000); } }
   addEventListener("resize", () => {
     if (isPortrait() !== small) {
       // The new asset orientation must restore the selected destination, not the last parked car.
@@ -1493,7 +1528,7 @@
     if (n !== idx && !KUI.isOpen()) go(n);
   });
   window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown: shownEl ? (cOf(shownEl).dir === "f" ? "vf" : "vr") : "still",
-                            disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, rubberZ: Math.round(rubberZ * 1000) / 1000, rubber: !!rubberOn,
+                            disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, lite, rubberZ: Math.round(rubberZ * 1000) / 1000, rubber: !!rubberOn,
                             vis: +cv.style.opacity > 0.9 || !shownEl ? cvFrame : nOf(shownEl, shownEl.currentTime) });
 })();
 </script>
