@@ -98,7 +98,15 @@
   .rail i { position:absolute; top:-2.5px; width:5px; height:5px; margin-left:-2.5px; border-radius:3px; background:rgba(29,33,30,.30); }
   .rail .thumb { position:absolute; top:-3px; width:16px; height:6px; margin-left:-8px; border-radius:3px; background:rgba(29,33,30,.88); box-shadow:0 1px 2px rgba(0,0,0,.18); will-change:left; }
   .hint { position:fixed; left:50%; top:auto; bottom:132px; transform:translateX(-50%); background:rgba(29,33,30,.72); color:#fff; padding:9px 16px; border-radius:20px; font-size:13px; pointer-events:none; transition:opacity .6s; white-space:normal;text-align:center;text-wrap:balance;width:max-content;max-width:90%; }
-  #load { position:fixed; left:0; top:0; height:2px; background:var(--acc); width:0; z-index:4; transition:width .2s, opacity .6s; }
+  #load { display:none; position:fixed; left:0; top:0; height:2px; background:var(--acc); width:0; z-index:4; transition:width .2s, opacity .6s; }   /* replaced by #vload */
+  #vload { position:fixed; left:50%; top:calc(env(safe-area-inset-top, 0px) + 72px); z-index:6; display:flex; align-items:center; gap:9px; height:30px; padding:0 13px 0 14px;
+    --lg-tint:.62; border-radius:15px; font-size:12px; font-weight:500; letter-spacing:.02em; color:var(--ink); white-space:nowrap; pointer-events:none;
+    opacity:0; transform:translate(-50%, -6px) scale(.96); transition:opacity .45s ease, transform .55s cubic-bezier(.3,1.35,.45,1); }
+  #vload.on { opacity:1; transform:translate(-50%, 0) scale(1); }
+  #vload .vl-bar { display:block; width:58px; height:3px; border-radius:2px; background:rgba(29,33,30,.13); overflow:hidden; }
+  #vload .vl-bar b { display:block; height:100%; width:0; border-radius:2px; background:var(--acc); transition:width .3s ease; }
+  #vload .vl-p { min-width:3.3em; text-align:right; font-variant-numeric:tabular-nums; color:var(--soft); }
+  @media (prefers-reduced-motion: reduce) { #vload, #vload .vl-bar b { transition:opacity .2s; transform:translate(-50%, 0); } }
   .credits { position:fixed; right:26px; bottom:calc(6px + env(safe-area-inset-bottom)); font-size:10px; color:var(--soft); }
   .credits a { color:inherit; }
   /* big system text (Android/iOS text size = narrower page): stack the bar, no hint over the arrows */
@@ -299,6 +307,7 @@
   <div class="fade" id="fadeA"></div><div class="fade" id="fadeB"></div>
 </div>
 <div id="load"></div>
+<div id="vload" class="lg" aria-hidden="true"><span class="vl-t">Vídeo</span><i class="vl-bar"><b></b></i><span class="vl-p">0 %</span></div>
 <div class="top"><div class="brand"><span>KARATS</span><small>AUTO</small></div><div class="r"><div class="count" id="count">01 <span>/ 05</span></div><button class="gbtn lg" id="menuBtn" aria-label="Menú"><i></i><i></i></button></div></div>
 <button class="side" id="prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
 <button class="side" id="next" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
@@ -668,7 +677,7 @@
   let ready = false;
   // lite showroom: a slow line or Save-Data gets the photos only (the videos are 43 MB on a phone, 82 MB on a computer)
   const LITE_Q = new URLSearchParams(location.search).get("lite");
-  let lite = LITE_Q === "1", clipsStarted = false;
+  let lite = LITE_Q === "1", clipsStarted = false, slow = false;
   const photoOnly = () => lite || !clipsStarted;              // also while the first photo is still measuring the line
 
   // ---------- layout ----------
@@ -989,6 +998,7 @@
       const c = clipFor(n, dir);
       if (!c.ready) {
         want(c); $("load").style.opacity = 1;
+        if (slow) { await settleStill(i, my); return; }  // slow line, this clip is still on its way: change the car by photo now
         const available = await bounded(c.promise.then(() => true), 4500, false);
         if (my !== seq) return;
         if (!available) { await settleStill(i, my); return; }
@@ -1393,7 +1403,7 @@
     const ok = await waitStill(CARS[i]); if (my !== seq) return;
     pauseAll(); switching = false;
     if (!ok) { idx = nearestCar(pos); mode = "idle"; setAway(false); ui(); showSceneStatus(); return; }
-    const fade = photoOnly() && !reduceMotion.matches;               // lite: the photo changes through a short dip, not a cut
+    const fade = !reduceMotion.matches;                       // a change by photo goes through a short dip, not a cut
     if (fade) { try { await cv.animate([{ opacity: COVER }, { opacity: 0 }], { duration: 160, easing: "ease-in" }).finished; } catch (e) {} if (my !== seq) return; }
     pos = CARS[i].stop; mode = "idle"; restSrc = null;
     drawStill(); show(null); arrive(my);
@@ -1455,11 +1465,20 @@
     return Object.values(clips).filter(c => !c.ready && !c.loading).sort((a, b) => dist(a) - dist(b));
   }
   const prioritize = () => pump();
-  const bar = f => { $("load").style.width = (f / (NSEG * 2) * 100) + "%"; };
+  const bar = f => { $("load").style.width = (f / (NSEG * 2) * 100) + "%"; vpill(f / (NSEG * 2)); };
+  // the video pill: shows only when the videos take longer than a moment (a cached or fast visit never sees it), 0..100 % of all clips
+  const vl = $("vload"), VLT = { es: "Vídeo", ca: "Vídeo", en: "Video", ru: "Видео" }; let vlShow = null, vlDone = false;
+  function vpill(f) {
+    if (vlDone) return; const p = Math.max(0, Math.min(100, Math.floor(f * 100))), L = document.documentElement.lang;
+    vl.querySelector(".vl-t").textContent = VLT[L] || VLT.es; vl.querySelector(".vl-p").textContent = p + (L === "en" ? "%" : "\u00a0%");
+    vl.querySelector(".vl-bar b").style.width = p + "%";
+    if (p >= 100) { vlDone = true; clearTimeout(vlShow); setTimeout(() => vl.classList.remove("on"), 900); return; }
+    if (!vlShow) vlShow = setTimeout(() => { if (!vlDone) vl.classList.add("on"); }, 700);
+  }
   async function pump() {
     if (busy || photoOnly()) return;
     const c = wantedClip && !wantedClip.ready && !wantedClip.loading ? wantedClip : order()[0]; wantedClip = null;
-    if (!c) { $("load").style.opacity = 0; loadWide(CARS[0]); loadWide(CARS[CARS.length - 1]); return; }
+    if (!c) { $("load").style.opacity = 0; vpill(1); loadWide(CARS[0]); loadWide(CARS[CARS.length - 1]); return; }
     busy = true; c.loading = true;
     try {
       const url = await getClip(clipUrl(c.dir, c.s), f => bar(loadedN + f));
@@ -1479,7 +1498,7 @@
   function slowLine(im) {
     if (LITE_Q === "0") return false; if (LITE_Q === "1") return true;
     const cn = navigator.connection;
-    if (cn && (cn.saveData || /2g$|^3g$/.test(cn.effectiveType || ""))) return true;
+    if (cn && /2g$|^3g$/.test(cn.effectiveType || "")) return true;
     if (!im || !im.complete || !im.naturalWidth) return true;    // not even the photo arrived: no videos on this line
     const e = performance.getEntriesByName(im.src).pop();
     if (!e || !(e.transferSize > 20000) || !(e.responseEnd > e.requestStart)) return false;   // from the cache / unknown: full showroom
@@ -1496,9 +1515,21 @@
   }
   function startClips(im) {                                     // im: the photo that has just finished loading
     if (clipsStarted) return; clipsStarted = true;
-    lite = lite || slowLine(im);
+    const cn = navigator.connection;
+    lite = lite || (LITE_Q !== "0" && !!(cn && cn.saveData));   // the visitor asked to save data: photos only, no videos
+    slow = slowLine(im);                                         // slow line: videos still load (pill), a tap does not wait for them
     if (lite) { $("load").style.opacity = 0; prefetchStills(); return; }
-    pump();
+    prefetchNear(pump);
+  }
+  function prefetchNear(done) {                                  // the two neighbours' photos first: a tap during the video download moves at once
+    let fired = false; const fin = () => { if (!fired) { fired = true; clearTimeout(t); done(); } }, t = setTimeout(fin, 15000);
+    const todo = [CARS[idx - 1], CARS[idx + 1]].filter(Boolean);
+    const next = () => {
+      const c = todo.shift(); if (!c) { fin(); return; }
+      const im = loadStill(c); if (im.complete && im.naturalWidth) { next(); return; }
+      im.addEventListener("load", next, { once: true }); im.addEventListener("error", next, { once: true });
+    };
+    next();
   }
   { const im0 = loadStill(CARS[idx]);
     const go0 = () => startClips(im0);
@@ -1528,7 +1559,7 @@
     if (n !== idx && !KUI.isOpen()) go(n);
   });
   window.__state = () => ({ pos, idx, mode, ready, parked: atStop(), shown: shownEl ? (cOf(shownEl).dir === "f" ? "vf" : "vr") : "still",
-                            disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, lite, rubberZ: Math.round(rubberZ * 1000) / 1000, rubber: !!rubberOn,
+                            disp: shownEl ? nOf(shownEl, shownEl.currentTime) : null, clip: shownEl ? cOf(shownEl).key : null, loaded: loadedN, lite, slow, rubberZ: Math.round(rubberZ * 1000) / 1000, rubber: !!rubberOn,
                             vis: +cv.style.opacity > 0.9 || !shownEl ? cvFrame : nOf(shownEl, shownEl.currentTime) });
 })();
 </script>
