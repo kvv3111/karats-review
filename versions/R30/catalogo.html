@@ -91,7 +91,7 @@
   <p class="cnote" id="note"></p>
 </div>
 <footer data-footer></footer>
-<script src="cars.js?v=seo-20261021"></script>
+<script src="cars.js?v=incoming-1"></script>
 <script src="i18n.js?v=paths-1"></script>
 <script src="site.js?v=tap-1"></script>
 <script src="nav.js?v=copy-v3"></script>
@@ -100,7 +100,7 @@
 <script>
 (() => {
   'use strict';
-  const $ = id => document.getElementById(id), CARS = KARATS_CARS;
+  const $ = id => document.getElementById(id), CARS = KARATS_CARS.filter(c => !carIncoming(c));
   const L = () => (window.KLang && KLang.language) || 'es', tr = s => window.KLang ? KLang.translate(s) : s;
   const T = {
     es: { search:'Buscar marca o modelo', filters:'Filtros', brand:'Marca', fuel:'Combustible', gear:'Cambio', price:'Precio hasta', km:'Kilómetros hasta',
@@ -192,7 +192,7 @@
 
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
   function card(c) {
-    const n = CARS.findIndex(x => x.id === c.id) + 1;               // straight into the hall, details open, at this car
+    const n = KARATS_CARS.findIndex(x => x.id === c.id) + 1;               // straight into the hall, details open, at this car
     const href = (window.KLang ? KLang.url('index.html?detalle=1') : 'index.html?detalle=1') + '#' + n;
     const fav = window.KFav && KFav.has(c.id);
     const fact = value => `<span>${esc(tr(String(value)))}</span>`;

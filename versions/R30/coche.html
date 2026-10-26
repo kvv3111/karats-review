@@ -199,12 +199,13 @@
   <div class="vcap" id="vcap"></div>
   <div class="vthumbs lg dark" id="vthumbs"></div>
 </div>
-<script src="cars.js?v=seo-20261021"></script>
+<script src="cars.js?v=incoming-1"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
   const q = new URLSearchParams(location.search), CID = window.KARATS_CAR_ID || q.get("id"), C = KARATS_CARS.find(c => c.id === CID) || KARATS_CARS[1];
   // a link to a car that is not (or no longer) in the showroom: say so instead of showing another car
+  if (carIncoming(C)) { location.replace(new URL('index.html#1', location.href).href); return; }
   if (!window.KARATS_CAR_ID && CID && !KARATS_CARS.some(c => c.id === CID) && parent === window) { location.replace(new URL(location.pathname.endsWith(".html") ? "404.html" : "404", location.href).href); return; }   // prod has no .html: /404.html would add a 308 hop
   // old links coche.html?id=… move to the car's own address (embedded overlays keep using coche.html)
   if (!window.KARATS_CAR_ID && q.get("id") && !q.get("galleryOverlay") && !q.get("detailOverlay") && window.carURL && parent === window) {
@@ -388,7 +389,7 @@
   const others = () => {
     const nf = n => n.toLocaleString("es-ES").replace(/\u00a0/g, " ");
     $("oTitle").textContent = OT[LG()] || OT.es;
-    $("ocars").innerHTML = KARATS_CARS.filter(o => o.id !== C.id).map(o => {
+    $("ocars").innerHTML = KARATS_CARS.filter(o => o.id !== C.id && !carIncoming(o)).map(o => {
       const href = window.KLang ? KLang.url(carURL(o)) : carURL(o);
       return `<a class="ocar" href="${href}"><span class="oimg"><img src="c/${o.id}_s.webp" alt="${o.brand} ${o.model}" loading="lazy" decoding="async"></span><b>${o.brand} ${o.model}</b><small>${o.year} · ${nf(o.km)} km</small><span class="op">${nf(o.price)} €</span></a>`; }).join("");
   };

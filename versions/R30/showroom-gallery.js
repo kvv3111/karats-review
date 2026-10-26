@@ -28,7 +28,7 @@
     return animation;
   }
   const tr = s => window.KLang ? KLang.translate(s) : s;
-  const valid = g => g && KARATS_CARS.some(c => c.id === g.car) && KARATS_SHOTS.some(s => s[0] === g.shot);
+  const valid = g => g && KARATS_CARS.some(c => c.id === g.car && !carIncoming(c)) && KARATS_SHOTS.some(s => s[0] === g.shot);
   async function hide() {
     if (!dialog || exitMotion) return;
     const node = dialog;

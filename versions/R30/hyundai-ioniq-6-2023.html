@@ -200,7 +200,7 @@
   <div class="vcap" id="vcap"></div>
   <div class="vthumbs lg dark" id="vthumbs"></div>
 </div>
-<script src="cars.js?v=seo-20261021"></script>
+<script src="cars.js?v=incoming-1"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id);
@@ -387,7 +387,7 @@
   const others = () => {
     const nf = n => n.toLocaleString("es-ES").replace(/\u00a0/g, " ");
     $("oTitle").textContent = OT[LG()] || OT.es;
-    $("ocars").innerHTML = KARATS_CARS.filter(o => o.id !== C.id).map(o => {
+    $("ocars").innerHTML = KARATS_CARS.filter(o => o.id !== C.id && !carIncoming(o)).map(o => {
       const href = window.KLang ? KLang.url(carURL(o)) : carURL(o);
       return `<a class="ocar" href="${href}"><span class="oimg"><img src="c/${o.id}_s.webp" alt="${o.brand} ${o.model}" loading="lazy" decoding="async"></span><b>${o.brand} ${o.model}</b><small>${o.year} · ${nf(o.km)} km</small><span class="op">${nf(o.price)} €</span></a>`; }).join("");
   };

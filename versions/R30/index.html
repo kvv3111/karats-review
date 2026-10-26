@@ -300,6 +300,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "AutoDealer", "name": "KARATS AUTO", "legalName": "KARATS AUTO, S.L.", "taxID": "B05735238", "url": "https://karatsauto.es/", "logo": "https://karatsauto.es/icon-192.png", "image": "https://karatsauto.es/og/home.jpg", "telephone": "+34602520978", "email": "info@karatsauto.es", "areaServed": {"@type": "City", "name": "Barcelona"}, "knowsLanguage": ["es", "ca", "en", "ru"]}</script>
 <!--/seo-->
+<style>#more[hidden]{display:none!important}#stage.incoming.hot{cursor:grab}</style>
 </head>
 <body>
 <div id="stage" aria-label="Showroom KARATS AUTO">
@@ -373,7 +374,7 @@
     <a class="btn wa round" href="https://wa.me/34602520978" target="_blank" rel="noopener" data-contact="wa" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18.2a8.2 8.2 0 01-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1112 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 01-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2 5.2 5.2 0 001.1 2.7 11.8 11.8 0 004.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 001.8-1.2 2.2 2.2 0 00.1-1.2c0-.1-.2-.2-.5-.3z"/></svg></a>
   </div>
 </div>
-<script src="cars.js?v=seo-20261021"></script>
+<script src="cars.js?v=incoming-1"></script>
 <script>
 (() => {
   const $ = id => document.getElementById(id), SH = KARATS_SHOTS; let C = KARATS_CARS[0];
@@ -385,6 +386,7 @@
   const favSync = () => { const b = $("sFav"); if (!b || !C || !window.KFav) return; const on = KFav.has(C.id); b.classList.toggle("saved", on); b.setAttribute("aria-pressed", on); };
   function fill(i) {
     C = KARATS_CARS[i];
+    if (carIncoming(C)) { document.body.classList.remove("sheet", "details"); return; }
     favSync();
     $("sName").textContent = C.brand + " " + C.model; $("sTrim").textContent = C.trim;
     $("sPrice").textContent = fmtEUR(C.price);
@@ -408,7 +410,15 @@
   $("sThumbs").onclick = e => { const b = e.target.closest("button"); if (b) location.href = KLang.url(`${carURL(C)}#foto-${b.dataset.shot}`); };
   const B = document.body;
   // an open menu or sheet is its own history step: Android's Back button / iOS edge swipe closes it instead of leaving the site
-  const layer = () => history.state && history.state.layer;
+  const selectedIncoming = () => carIncoming(KARATS_CARS[Math.max(0, Math.min(KARATS_CARS.length - 1, +((/^#(\d)$/.exec(location.hash) || [0, 1])[1]) - 1))]);
+  const validLayer = l => {
+    if ((l === "sheet" || l === "details") && selectedIncoming()) {
+      const st = { ...history.state }; delete st.layer; delete st.sheetScroll; history.replaceState(st, "");
+      return null;
+    }
+    return l;
+  };
+  const layer = () => validLayer(history.state && history.state.layer);
   // the button that opened a layer is hidden while the layer is open, so focus it again on the first frame it is shown
   const refocus = o => { if (!o || !o.focus) return; let n = 0; const go = () => { const a = document.activeElement;
     if (a && a !== document.body && a !== o && !a.closest('#sheet,#menu')) return;   // the visitor already moved on
@@ -438,12 +448,13 @@
     else if (!$("sheet").inert) syncInert.t = setTimeout(() => { if (!B.classList.contains("sheet")) $("sheet").inert = true; }, 420);
   };
   new MutationObserver(syncInert).observe(B, { attributes: true, attributeFilter: ["class"] }); syncInert();
-  const applyLayer = l => { B.classList.remove("menu", "sheet", "details"); if (l === "details") B.classList.add("sheet", "details"); else if (l) B.classList.add(l); if (l !== "details") $("sheet").style.height = ""; };
+  const applyLayer = l => { l = validLayer(l); B.classList.remove("menu", "sheet", "details"); if (l === "details") B.classList.add("sheet", "details"); else if (l) B.classList.add(l); if (l !== "details") $("sheet").style.height = ""; };
   if (layer()) applyLayer(layer());
   addEventListener("popstate", () => { closing = false; transitionLayer(layer()); });
   // back from another page restores this one from the page cache with the panel that was open when it left: show the step's own layer
   addEventListener("pageshow", e => { if (e.persisted) { closing = false; applyLayer(layer()); } });
   function openDetails() {
+    if (selectedIncoming()) return;
     if (B.classList.contains("details")) return;
     if (!B.classList.contains("sheet")) openLayer("sheet");
     B.style.setProperty("--dy", "0px");
@@ -462,6 +473,7 @@
   // Continuous in-place presentation: shared header, expanding shell, soft content reveal.
   let detailAnimations = [], detailEpoch = 0;
   function transitionLayer(next, force = false) {
+    next = validLayer(next);
     const panel = $("sheet"), wasDetails = B.classList.contains("details"), toDetails = next === "details";
     if (wasDetails === toDetails && !force) { applyLayer(next); return; }
     const from = panel.getBoundingClientRect(), opacity = getComputedStyle(panel).opacity;
@@ -628,7 +640,7 @@
   document.querySelectorAll("[data-soon]").forEach(b => b.onclick = () => say(b.dataset.soon === "wa" ? "WhatsApp · número pendiente" : "Teléfono · número pendiente"));
   $("sFav").addEventListener("click", () => { if (!window.KFav || !C) return; const on = KFav.toggle(C.id); favSync(); const tt = FAVT[(window.KLang && KLang.language) || "es"] || FAVT.es; say(on ? tt[0] : tt[1]); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} });
   addEventListener("karats:fav", favSync);
-  window.KUI = { sheetRatio: () => keep.r, openSheet(i) { fill(i); openLayer("sheet"); }, openDetails, isOpen: () => B.classList.contains("menu") || B.classList.contains("sheet") || !!document.querySelector("#kc-dlg.on") };
+  window.KUI = { sheetRatio: () => keep.r, openSheet(i) { if (carIncoming(KARATS_CARS[i])) return; fill(i); openLayer("sheet"); }, openDetails, isOpen: () => B.classList.contains("menu") || B.classList.contains("sheet") || !!document.querySelector("#kc-dlg.on") };
   if (B.classList.contains("sheet")) fill(+((/^#(\d)$/.exec(location.hash) || [0, 1])[1]) - 1);
   // stage4: after an orientation reload the open card comes back at the same place, not at the top
   if (B.classList.contains("sheet") && history.state && history.state.sheetScroll > 0) {
@@ -645,8 +657,10 @@
     if (u.searchParams.has("detalle")) {
       const i = Math.max(0, Math.min(KARATS_CARS.length - 1, +((/^#(\d)$/.exec(location.hash) || [0, 1])[1]) - 1));
       u.searchParams.delete("detalle"); history.replaceState(null, "", u.href);
-      fill(i); B.style.setProperty("--dy", "0px"); B.classList.add("sheet", "details");
-      history.pushState({ layer: "details" }, "");          // one Back = the hall at this car, a second = where the visitor came from
+      if (!carIncoming(KARATS_CARS[i])) {
+        fill(i); B.style.setProperty("--dy", "0px"); B.classList.add("sheet", "details");
+        history.pushState({ layer: "details" }, "");
+      }          // one Back = the hall at this car, a second = where the visitor came from
     }
   }
 })();
@@ -656,7 +670,7 @@
   // The camera move is played as hardware-decoded VIDEO, one short clip per transition (see "videos" below),
   // not as hundreds of images: iPhone cannot keep ~700 big decoded images in memory.
   const CARS = [
-    { name: "Kia Sportage",       year: 2022, km: "38 000 km", fuel: "Gasolina MHEV", gear: "Automático", price: "27 900 €", stop: 716, still: 284 },
+    { name: "", status: "incoming", stop: 716, still: 284 },
     { name: "BMW Serie 3",        year: 2023, km: "24 000 km", fuel: "Diésel",        gear: "Automático", price: "36 500 €", stop: 537, still: 213 },
     { name: "Toyota Corolla",     year: 2021, km: "45 000 km", fuel: "Híbrido",       gear: "Automático", price: "18 900 €", stop: 358, still: 142 },
     { name: "Hyundai Ioniq 6",    year: 2023, km: "19 000 km", fuel: "Eléctrico",     gear: "Automático", price: "34 900 €", stop: 179, still: 71  },
@@ -781,7 +795,7 @@
   // Clips are downloaded one at a time, nearest transitions first, kept in the phone's Cache Storage for the next
   // visit, and played from memory (blob) -> no network during a move. H.264 for all browsers: HEVC was measured
   // and is only ~11 % smaller once the parked frames are as sharp, not worth an untested Safari decode path.
-  const SEG = 179, NSEG = 4, VER = "s1";
+  const SEG = 179, NSEG = 4, VER = "incoming-1";
   const clipUrl = (dir, s) => `v/s/${pre}_${dir}${s}.mp4?v=${VER}`;
   const clips = {};                                              // "f0".."r3" -> { dir, s, el, ready, promise, resolve }
   for (let s = 0; s < NSEG; s++) for (const dir of ["f", "r"]) {
@@ -902,8 +916,13 @@
   }
   function uiText() {
     const c = CARS[idx], nb = t => String(t).replace(/ /g, "\u00a0");
-    $("name").textContent = c.name;
-    $("meta").innerHTML = `<span class="facts">${c.year} · ${nb(c.km)}</span><span class="price">${nb(c.price)}</span>`;
+    const incoming = carIncoming(KARATS_CARS[idx]), copy = incomingCopy();
+    $("info").setAttribute("translate", incoming ? "no" : "yes");
+    $("name").textContent = incoming ? copy.title : c.name;
+    $("meta").innerHTML = incoming ? `<span class="facts">${copy.detail}</span>` : `<span class="facts">${c.year} · ${nb(c.km)}</span><span class="price">${nb(c.price)}</span>`;
+    $("more").hidden = incoming;
+    $("more").disabled = incoming;
+    stage.classList.toggle("incoming", incoming);
   }
   function setAway(a) { if (!a) uiText(); $("info").classList.toggle("away", a); $("more").classList.toggle("away", a); }
   const nearestCar = p => { let b = 0; CARS.forEach((c, k) => { if (Math.abs(c.stop - p) < Math.abs(CARS[b].stop - p)) b = k; }); return b; };
@@ -917,7 +936,7 @@
   function loadWide(c) {
     if (!small || wide[c.stop]) return;
     const im = new Image(); im.decoding = "async"; if ("fetchPriority" in im) im.fetchPriority = "low";
-    im.src = `f/${String(c.still).padStart(3, "0")}.webp`; wide[c.stop] = im;
+    im.src = `f/${String(c.still).padStart(3, "0")}.webp?v=incoming-1`; wide[c.stop] = im;
   }
   let rubberOn = 0, rubberZ = 1;
   function rubber(sign) {
@@ -1336,7 +1355,7 @@
   function inCar(cx, cy) { const x = (cx - view.ox) / view.s, y = (cy - view.oy) / view.s; return x > HIT.x1 && x < HIT.x2 && y > HIT.y1 && y < HIT.y2; }
   stage.addEventListener("mousemove", e => stage.classList.toggle("hot", atStop() && inCar(e.clientX, e.clientY)));
   stage.addEventListener("click", e => { if (!moved && atStop() && inCar(e.clientX, e.clientY)) openCard(); moved = false; });
-  function openCard() { KUI.openSheet(idx); }
+  function openCard() { if (!carIncoming(KARATS_CARS[idx])) KUI.openSheet(idx); }
   const RAIL_LEARNED_KEY = "karats.rail.learned";
   let hinted = false, hintLearned = false;
   function hideHint() { if (!hinted) { hinted = true; $("hint").style.opacity = 0; } }
@@ -1381,7 +1400,7 @@
     const start = () => {
       clearTimeout(job.timer); job.pending = true; job.attempts++;
       job.timer = setTimeout(fail, 40000);                       // a slow line is not a failure: never abort a photo that is coming
-      im.src = base + (job.attempts > 1 ? `?retry=${job.attempts}` : "");
+      im.src = base + `?v=incoming-1` + (job.attempts > 1 ? `&retry=${job.attempts}` : "");
     };
     job.restart = () => { if (!job.pending && !im.naturalWidth) { job.attempts = 0; start(); } };
     im.onload = () => {
@@ -1547,7 +1566,7 @@
   });
   if (document.fonts) document.fonts.ready.then(() => resize());           // the wordmark is centred by its width in Jost
   ui(); resize();
-  addEventListener("karats:language", () => { resize(); document.documentElement.classList.remove("room-boot"); });
+  addEventListener("karats:language", () => { uiText(); resize(); document.documentElement.classList.remove("room-boot"); });
   requestAnimationFrame(tick);
   // the address names the car (#1…#N): junk such as #9 or #abc is rewritten to the car shown,
   // and a #N typed in the address bar or opened from a link on this page drives the hall to car N
@@ -1566,6 +1585,6 @@
 <script src="i18n.js?v=paths-1"></script>
 <script src="site.js?v=tap-1"></script>
 <script src="kx.js?v=r37"></script>
-<script src="showroom-gallery.js?v=3"></script>
+<script src="showroom-gallery.js?v=incoming-1"></script>
 </body>
 </html>
