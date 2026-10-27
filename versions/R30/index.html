@@ -712,7 +712,12 @@
       // tall phones: grow the car into the free height between the logo and the dots (up to a 1000 px wide crop, the car's
       // own width stays inside), and centre it there, so no empty band is left above the caption
       const topY = document.querySelector(".brand").getBoundingClientRect().bottom + 6;
-      const barTop = $("info").getBoundingClientRect().top || H0 * 0.86;
+      // Camera framing must not follow caption height or its away transition.
+      // Reserve one title line and two meta lines using typography, not live text bounds.
+      const titleStyle = getComputedStyle($("name")), metaStyle = getComputedStyle($("meta"));
+      const line = st => parseFloat(st.lineHeight) || parseFloat(st.fontSize) * 1.4;
+      const captionHeight = line(titleStyle) + 2 * line(metaStyle) + parseFloat(metaStyle.marginTop) + parseFloat(metaStyle.rowGap);
+      const barTop = H0 - parseFloat(getComputedStyle(document.querySelector(".bar")).paddingBottom) - captionHeight;
       const navLow = barTop - 33;                                        // dots right above the caption (arrows still fit)
       s = Math.max(W0 / 1093, Math.min(W0 / 1000, (navLow + 10 - topY) / (IH * 0.86)));
       ox = W0 / 2 - FOCUS_X * IW * s;
