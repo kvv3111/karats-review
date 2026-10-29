@@ -2,7 +2,7 @@
 window.KARATS_CARS = [
   { id:"proximo-izq", still:"642", key:"incoming", status:"incoming" },
   { id:"toyota-corolla-ts", still:"571", key:"corolla_ts", brand:"Toyota", model:"Corolla Touring Sports", trim:"125H Style", year:2022, km:227132, fuel:"Híbrido", gear:"Automático e-CVT",
-    power:"122 CV", cons:"CO₂ 103 g/km", label:"ECO", color:"Plata metalizado", doors:5, seats:5, owners:1, price:null, monthly:null, photosSoon:true, slug:"toyota-corolla-touring-sports-2022",
+    power:"122 CV", cons:"CO₂ 103 g/km", label:"ECO", color:"Plata metalizado", doors:5, seats:5, owners:1, price:null, monthly:null, photosSoon:true, transit:true, slug:"toyota-corolla-touring-sports-2022",
     highlights:["Etiqueta ECO", "Historial: 11 revisiones", "Garantía legal"],
     equip:["Motor híbrido 1.8 · 122 CV", "Cambio automático e-CVT", "Lunas traseras tintadas", "Barras de techo"] },
   { id:"proximo-der", still:"500", key:"incoming", status:"incoming" },
@@ -40,6 +40,9 @@ window.KARATS_SHOTS = [
 ];
 // non-breaking spaces: "36 500 €" never splits over two lines (big system text)
 // stock without a published price yet, and photos that are still being taken
+window.transitCopy = (lang = (window.KLang && KLang.language) || document.documentElement.lang) => ({
+  es:'En camino · llega pronto', ca:'En camí · arriba aviat', en:'On its way · arriving soon', ru:'В пути · скоро прибудет'
+}[lang] || 'En camino · llega pronto');
 window.soonCopy = (lang = (window.KLang && KLang.language) || document.documentElement.lang) => ({
   es: {price:'Precio a consultar', photos:'Muy pronto, fotos de alta calidad'},
   ca: {price:'Preu a consultar', photos:'Molt aviat, fotos d’alta qualitat'},
