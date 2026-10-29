@@ -798,7 +798,7 @@
   // Clips are downloaded one at a time, nearest transitions first, kept in the phone's Cache Storage for the next
   // visit, and played from memory (blob) -> no network during a move. H.264 for all browsers: HEVC was measured
   // and is only ~11 % smaller once the parked frames are as sharp, not worth an untested Safari decode path.
-  const SEG = 179, NSEG = 2, VER = "one-2";
+  const SEG = 179, NSEG = 2, VER = "one-3";
   const clipUrl = (dir, s) => `v/one/${pre}_${dir}${s}.mp4?v=${VER}`;
   const clips = {};                                              // "f0".."r3" -> { dir, s, el, ready, promise, resolve }
   for (let s = 0; s < NSEG; s++) for (const dir of ["f", "r"]) {
@@ -939,7 +939,7 @@
   function loadWide(c) {
     if (!small || wide[c.stop]) return;
     const im = new Image(); im.decoding = "async"; if ("fetchPriority" in im) im.fetchPriority = "low";
-    im.src = `f/${String(c.still).padStart(3, "0")}.webp?v=one-2`; wide[c.stop] = im;
+    im.src = `f/${String(c.still).padStart(3, "0")}.webp?v=one-3`; wide[c.stop] = im;
   }
   let rubberOn = 0, rubberZ = 1;
   function rubber(sign) {
@@ -1403,7 +1403,7 @@
     const start = () => {
       clearTimeout(job.timer); job.pending = true; job.attempts++;
       job.timer = setTimeout(fail, 40000);                       // a slow line is not a failure: never abort a photo that is coming
-      im.src = base + `?v=one-2` + (job.attempts > 1 ? `&retry=${job.attempts}` : "");
+      im.src = base + `?v=one-3` + (job.attempts > 1 ? `&retry=${job.attempts}` : "");
     };
     job.restart = () => { if (!job.pending && !im.naturalWidth) { job.attempts = 0; start(); } };
     im.onload = () => {
