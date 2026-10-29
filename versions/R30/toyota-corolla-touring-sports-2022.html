@@ -219,7 +219,7 @@
     const u = `${crop ? "fp" : "f"}/${C.still}.webp`; if (!h.src.endsWith("/" + u)) h.src = u; };
   pick(); addEventListener("resize", pick); }   // hero = the car as it stands in the showroom
   $("nPhotos").textContent = SH.length + " fotos";
-  $("title").textContent = `${C.brand} ${C.model}`; $("trim").textContent = C.trim;
+  $("title").textContent = `${C.brand} ${C.model}`; $("trim").textContent = C.transit ? `${C.trim} · ${transitCopy()}` : C.trim;
   $("price").textContent = fmtEUR(C.price);
   $("bbPrice").textContent = fmtEUR(C.price); $("bbName").textContent = `${C.brand} ${C.model} · ${C.year}`;
   $("chips").innerHTML = [C.year, fmtKM(C.km), C.fuel, C.gear.split(" ")[0], C.power].map(t => `<span class="chip">${t}</span>`).join("");
