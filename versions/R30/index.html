@@ -300,7 +300,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "AutoDealer", "name": "KARATS AUTO", "legalName": "KARATS AUTO, S.L.", "taxID": "B05735238", "url": "https://karatsauto.es/", "logo": "https://karatsauto.es/icon-192.png", "image": "https://karatsauto.es/og/home.jpg", "telephone": "+34602520978", "email": "info@karatsauto.es", "areaServed": {"@type": "City", "name": "Barcelona"}, "knowsLanguage": ["es", "ca", "en", "ru"]}</script>
 <!--/seo-->
-<style>#sGal[hidden]{display:none!important}.soon-photos{grid-column:1/-1;margin:4px 0;padding:14px 16px;border:1px solid rgba(29,33,30,.12);border-radius:14px;font-size:14px;line-height:1.4;color:var(--soft);text-align:center}#more[hidden]{display:none!important}#stage.incoming.hot{cursor:grab}</style>
+<style>#sGal[hidden]{display:none!important}.soon-photos{grid-column:1/-1;margin:4px 0;padding:14px 16px;border:1px solid rgba(29,33,30,.12);border-radius:14px;font-size:14px;line-height:1.4;color:var(--soft);text-align:center}#more[hidden]{visibility:hidden!important;pointer-events:none!important}#stage.incoming.hot{cursor:grab}</style>
 </head>
 <body>
 <div id="stage" aria-label="Showroom KARATS AUTO">
@@ -702,6 +702,7 @@
     hint.style.top = Math.max(0, top) + "px";
   }
   new ResizeObserver(() => { if (view.portrait) resize(); else positionHint(); }).observe($("info"));
+  let view_barTop = 0;
   function resize() {
     const r = document.documentElement, W0 = r.clientWidth, H0 = r.clientHeight, dpr = Math.min(3, devicePixelRatio || 1);
     cv.width = Math.round(W0 * dpr); cv.height = Math.round(H0 * dpr);
@@ -717,6 +718,7 @@
       const captionHeight = line(titleStyle) + 2 * line(metaStyle) + parseFloat(metaStyle.marginTop) + parseFloat(metaStyle.rowGap);
       const barTop = H0 - parseFloat(getComputedStyle(document.querySelector(".bar")).paddingBottom) - captionHeight;
       const navLow = barTop - 33;                                        // dots right above the caption (arrows still fit)
+      view_barTop = barTop;                                              // arrows and dots use the same reserved line, not the live caption
       s = Math.max(W0 / 1093, Math.min(W0 / 1000, (navLow + 10 - topY) / (IH * 0.86)));
       ox = W0 / 2 - FOCUS_X * IW * s;
       // spare height is split evenly above and below (both edges blur away); short phones keep the old placement
@@ -769,6 +771,10 @@
       fb.style.background = `linear-gradient(rgba(239,236,230,0), ${BG} ${f / (H0 - (oy + h - f)) * 100}%)`;
       fa.style.setProperty("--ff", ft + "px"); fb.style.setProperty("--ff", f + "px");
       const below = oy + h;
+      // same place at every stop: a 2-line «Próximamente» and a 3-line car caption keep the arrows and dots where they are
+      // (reserved title + 2 meta lines); only a caption taller than the reserve (huge system text) pushes them up
+      // every caption takes the height of the tallest one: titles start on the same line at every stop
+      const capH = Math.ceil(captionMax()); if (capH) $("info").style.minHeight = capH + "px";
       const barTop = $("info").getBoundingClientRect().top || innerHeight;
       const navY = barTop - 33;
       $("prev").style.top = $("next").style.top = navY + "px";
@@ -782,7 +788,7 @@
       const tight = cramped || navY + parseFloat(getComputedStyle($("next")).height) / 2 + 6 > barTop;
       $("prev").classList.toggle("tight", tight); $("next").classList.toggle("tight", tight);
     } else {
-      fa.style.display = fb.style.display = "none"; R.setProperty("--tk", "1");
+      fa.style.display = fb.style.display = "none"; R.setProperty("--tk", "1"); $("info").style.minHeight = "";
       // a wrapped bar on a short, narrow screen (zoomed foldable) puts «Ver coche» under the pill: the pill goes to its left
       const tr = $("track"); tr.style.left = ""; const mr = $("more").getBoundingClientRect(), t0 = tr.getBoundingClientRect();
       if (mr.width && t0.right > mr.left && t0.bottom > mr.top && t0.top < mr.bottom) {
@@ -916,6 +922,22 @@
     // the caption keeps the car it describes while it fades out; the next car's name is written only on arrival
     if (!$("info").classList.contains("away")) uiText();
     $("prev").disabled = idx === 0; $("next").disabled = idx === CARS.length - 1;
+  }
+  // caption of stop k (name, meta html): the hall bar and the height probe use the same text
+  function captionOf(k) {
+    const c = CARS[k], nb = t => String(t).replace(/ /g, "\u00a0");
+    const inc = carIncoming(KARATS_CARS[k]), copy = incomingCopy();
+    return [inc ? copy.title : c.name, inc ? `<span class="facts">${copy.detail}</span>` :
+      `<span class="facts">${c.year} · ${nb(c.km)}</span><span class="price">${KARATS_CARS[k] && KARATS_CARS[k].transit ? transitCopy() : c.price ? nb(c.price) : soonCopy().price}</span>`];
+  }
+  // tallest caption of the row at the current width: arrows and dots sit above it at every stop, so they never jump
+  function captionMax() {
+    const info = $("info"), pr = info.cloneNode(true), w = info.getBoundingClientRect().width;
+    pr.setAttribute("aria-hidden", "true"); pr.classList.remove("away");
+    Object.assign(pr.style, { position: "absolute", visibility: "hidden", left: "-9999px", top: "0", width: w + "px", transition: "none", transform: "none" });
+    document.body.appendChild(pr); let mx = 0;
+    CARS.forEach((c, k) => { const cp = captionOf(k); pr.children[0].textContent = cp[0]; pr.children[1].innerHTML = cp[1]; mx = Math.max(mx, pr.getBoundingClientRect().height); });
+    pr.remove(); return mx;
   }
   function uiText() {
     const c = CARS[idx], nb = t => String(t).replace(/ /g, "\u00a0");
