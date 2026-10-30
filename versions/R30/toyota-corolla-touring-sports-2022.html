@@ -217,7 +217,7 @@
   { const h = $("heroImg"), pick = () => {   // a portrait phone sees the middle 1000 px of the photo: fp/ is that crop (178 KB, not 633)
     const b = h.parentElement.getBoundingClientRect(), crop = b.width > 0 && b.width / b.height <= 0.78;
     if (crop && h.src && h.complete && h.naturalWidth) return;   // never trade a loaded full photo for the crop
-    const u = `${crop ? "fp" : "f"}/${C.still}.webp?v=two-1`; if (!h.src.endsWith("/" + u)) h.src = u; };
+    const u = `${crop ? "fp" : "f"}/${C.still}.webp?v=two-2`; if (!h.src.endsWith("/" + u)) h.src = u; };
   pick(); addEventListener("resize", pick); }   // hero = the car as it stands in the showroom
   $("nPhotos").textContent = SH.length + " fotos";
   $("title").textContent = `${C.brand} ${C.model}`; $("trim").textContent = C.transit ? `${C.trim} · ${transitCopy()}` : C.trim;
@@ -390,7 +390,7 @@
     $("oTitle").textContent = OT[LG()] || OT.es;
     $("ocars").innerHTML = KARATS_CARS.filter(o => o.id !== C.id && !carIncoming(o)).map(o => {
       const href = window.KLang ? KLang.url(carURL(o)) : carURL(o);
-      return `<a class="ocar" href="${href}"><span class="oimg"><img src="c/${o.id}_s.webp" alt="${o.brand} ${o.model}" loading="lazy" decoding="async"></span><b>${o.brand} ${o.model}</b><small>${o.year} · ${nf(o.km)} km</small><span class="op">${o.price ? nf(o.price) + " €" : soonCopy().price}</span></a>`; }).join("");
+      return `<a class="ocar" href="${href}"><span class="oimg"><img src="c/${o.id}_s.webp?v=two-2" alt="${o.brand} ${o.model}" loading="lazy" decoding="async"></span><b>${o.brand} ${o.model}</b><small>${o.year} · ${nf(o.km)} km</small><span class="op">${o.price ? nf(o.price) + " €" : soonCopy().price}</span></a>`; }).join("");
     $("ocars").closest("section").hidden = !$("ocars").innerHTML;
   };
   others(); addEventListener("karats:language", others);
