@@ -402,7 +402,7 @@
     hero.srcset = `c/${C.id}_s.webp 600w, c/${C.id}.webp 900w`; hero.sizes = "(min-width:900px) 700px, 100vw"; hero.src = `c/${C.id}.webp`;
     $("sSpecs").innerHTML = [["Año", C.year], ["Kilómetros", fmtKM(C.km)], ["Combustible", C.fuel], ["Cambio", C.gear], ["Potencia", C.power], ["Consumo", C.cons],
       ["Etiqueta DGT", C.label], ["Color", C.color], ["Puertas / plazas", `${C.doors} / ${C.seats}`], ["Propietarios", C.owners]]
-      .map(([k, v]) => `<div class="s-spec"><small>${k}</small><b>${v}</b></div>`).join("");
+      .filter(([k, v]) => v != null && v !== "").map(([k, v]) => `<div class="s-spec"><small>${k}</small><b>${v}</b></div>`).join("");
     $("sEquip").innerHTML = C.equip.map(t => `<span class="chip">${t}</span>`).join("");
     $("sGalGrid").innerHTML = C.photosSoon ? `<p class="soon-photos">${soonCopy().photos}</p>` : SH.map(([s, n]) => `<button type="button" data-shot="${s}" aria-label="${n}" style="background-image:url(gal/ph/${s}_t.webp)"></button>`).join("");
     $("sheet").scrollTop = 0;
@@ -678,7 +678,7 @@
   const CARS = [
     { name: "", status: "incoming", stop: 358, still: 642 },
     { name: "Toyota Corolla Touring Sports", year: 2022, km: "227 132 km", fuel: "Híbrido", gear: "Automático", price: null, stop: 179, still: 571 },
-    { name: "", status: "incoming", stop: 0, still: 500 },
+    { name: "Hyundai Ioniq", year: 2020, km: "119 161 km", fuel: "Híbrido enchufable", gear: "Automático", price: null, stop: 0, still: 500 },
   ];
   const N = 359, FPS = 60, IW = 1920, IH = 1280, BG = "#efece6", ROOM = 0.02;
   const HIT = { x1: 440, y1: 427, x2: 1400, y2: 973 }, FOCUS_X = (HIT.x1 + HIT.x2) / 2 / IW;
@@ -812,7 +812,7 @@
   // Clips are downloaded one at a time, nearest transitions first, kept in the phone's Cache Storage for the next
   // visit, and played from memory (blob) -> no network during a move. H.264 for all browsers: HEVC was measured
   // and is only ~11 % smaller once the parked frames are as sharp, not worth an untested Safari decode path.
-  const SEG = 179, NSEG = 2, VER = "one-3";
+  const SEG = 179, NSEG = 2, VER = "two-1";
   const clipUrl = (dir, s) => `v/one/${pre}_${dir}${s}.mp4?v=${VER}`;
   const clips = {};                                              // "f0".."r3" -> { dir, s, el, ready, promise, resolve }
   for (let s = 0; s < NSEG; s++) for (const dir of ["f", "r"]) {
@@ -969,7 +969,7 @@
   function loadWide(c) {
     if (!small || wide[c.stop]) return;
     const im = new Image(); im.decoding = "async"; if ("fetchPriority" in im) im.fetchPriority = "low";
-    im.src = `f/${String(c.still).padStart(3, "0")}.webp?v=one-3`; wide[c.stop] = im;
+    im.src = `f/${String(c.still).padStart(3, "0")}.webp?v=two-1`; wide[c.stop] = im;
   }
   let rubberOn = 0, rubberZ = 1;
   function rubber(sign) {
@@ -1433,7 +1433,7 @@
     const start = () => {
       clearTimeout(job.timer); job.pending = true; job.attempts++;
       job.timer = setTimeout(fail, 40000);                       // a slow line is not a failure: never abort a photo that is coming
-      im.src = base + `?v=one-3` + (job.attempts > 1 ? `&retry=${job.attempts}` : "");
+      im.src = base + `?v=two-1` + (job.attempts > 1 ? `&retry=${job.attempts}` : "");
     };
     job.restart = () => { if (!job.pending && !im.naturalWidth) { job.attempts = 0; start(); } };
     im.onload = () => {

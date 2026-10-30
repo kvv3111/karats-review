@@ -5,7 +5,10 @@ window.KARATS_CARS = [
     power:"122 CV", cons:"CO₂ 103 g/km", label:"ECO", color:"Plata metalizado", doors:5, seats:5, owners:1, price:null, monthly:null, photosSoon:true, transit:true, slug:"toyota-corolla-touring-sports-2022",
     highlights:["Etiqueta ECO", "Historial: 11 revisiones", "Garantía legal"],
     equip:["Motor híbrido 1.8 · 122 CV", "Cambio automático e-CVT", "Lunas traseras tintadas", "Barras de techo"] },
-  { id:"proximo-der", still:"500", key:"incoming", status:"incoming" },
+  { id:"hyundai-ioniq", still:"500", key:"ioniq", brand:"Hyundai", model:"Ioniq", trim:"1.6 GDI PHEV", year:2020, km:119161, fuel:"Híbrido enchufable", gear:"Automático DCT",
+    power:"141 CV", cons:"CO₂ 26 g/km", label:"CERO", color:"Blanco", doors:5, seats:5, price:null, monthly:null, photosSoon:true, transit:true, slug:"hyundai-ioniq-plug-in-2020",
+    highlights:["Etiqueta CERO", "Historial: 7 revisiones", "2 llaves"],
+    equip:["Motor 1.6 GDI híbrido enchufable · 141 CV", "Cambio automático DCT 6 vel.", "Recarga por enchufe"] },
 ];
 // real stock: car pages are indexable
 window.KARATS_DEMO = false;

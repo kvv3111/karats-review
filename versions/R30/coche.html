@@ -217,7 +217,7 @@
   { const h = $("heroImg"), pick = () => {   // a portrait phone sees the middle 1000 px of the photo: fp/ is that crop (178 KB, not 633)
     const b = h.parentElement.getBoundingClientRect(), crop = b.width > 0 && b.width / b.height <= 0.78;
     if (crop && h.src && h.complete && h.naturalWidth) return;   // never trade a loaded full photo for the crop
-    const u = `${crop ? "fp" : "f"}/${C.still}.webp`; if (!h.src.endsWith("/" + u)) h.src = u; };
+    const u = `${crop ? "fp" : "f"}/${C.still}.webp?v=two-1`; if (!h.src.endsWith("/" + u)) h.src = u; };
   pick(); addEventListener("resize", pick); }   // hero = the car as it stands in the showroom
   $("nPhotos").textContent = SH.length + " fotos";
   $("title").textContent = `${C.brand} ${C.model}`; $("trim").textContent = C.transit ? `${C.trim} · ${transitCopy()}` : C.trim;
@@ -228,7 +228,7 @@
   $("strip").innerHTML = C.photosSoon ? `<p class="soon-photos">${soonCopy().photos}</p>` : SH.map(([s, n], k) => `<button data-k="${k}" aria-label="${n}" style="background-image:url(${src(s, "t")})"></button>`).join("");
   $("specs").innerHTML = [["Año", C.year], ["Kilómetros", fmtKM(C.km)], ["Combustible", C.fuel], ["Cambio", C.gear], ["Potencia", C.power], ["Consumo", C.cons],
     ["Etiqueta DGT", C.label], ["Color", C.color], ["Puertas / plazas", `${C.doors} / ${C.seats}`], ["Propietarios", C.owners]]
-    .map(([k, v]) => `<div class="spec"><small>${k}</small><b>${v}</b></div>`).join("");
+    .filter(([k, v]) => v != null && v !== "").map(([k, v]) => `<div class="spec"><small>${k}</small><b>${v}</b></div>`).join("");
   $("equip").innerHTML = C.equip.map(t => `<span class="chip">${t}</span>`).join("");
   $("back").href = "index.html#" + (KARATS_CARS.indexOf(C) + 1);
   let fromCat = false; try { const r = new URL(document.referrer); fromCat = r.origin === location.origin && /\/catalogo(\.html)?$/.test(r.pathname); } catch (_) {}
