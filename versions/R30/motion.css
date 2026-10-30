@@ -30,3 +30,9 @@ html body:has(#sheet:not([inert])) #veil { -webkit-backdrop-filter:blur(8px); ba
   html body.menu #menu { opacity:1; visibility:visible; transition:opacity .15s ease, visibility 0s; }
   html #menu nav .it, html #menu .foot, html #menu .mlegal { opacity:1; transform:none; }
 }
+
+/* Leaving through a menu link: the menu stays open (tapped item lit) and dissolves together with the old page into the
+   next one, one cross-fade. Closing it on the tap made the transition snapshot catch a half-closed menu that froze and
+   then vanished; a separate menu layer in the transition lingered over the new page. */
+html #menu nav .it.going { background:rgba(255,255,255,.55); }
+html.kx-still *, html.kx-still *::before, html.kx-still *::after { transition:none !important; }

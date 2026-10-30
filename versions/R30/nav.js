@@ -30,9 +30,10 @@
   addEventListener('keydown', e => { if (e.key === 'Escape' && B.classList.contains('menu')) { e.preventDefault(); setOpen(false); } });
   addEventListener('pageshow', () => setOpen(false));
   menu.querySelectorAll('[data-cookies]').forEach(b => b.addEventListener('click', () => setOpen(false)));
-  // a menu link: the menu closes on the tap while the next page loads
+  // a menu link: the tapped item stays lit; the menu leaves with the page transition (motion.css kmenu)
   menu.querySelectorAll('a[href]').forEach(a => a.addEventListener('click', e => { if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.shiftKey || e.button || a.target) return;
-    if (/^https?:/.test(a.href) && new URL(a.href).origin === location.origin) { B.classList.remove('menu'); btn.setAttribute('aria-expanded', 'false'); } }));
+    if (/^https?:/.test(a.href) && new URL(a.href).origin === location.origin) a.classList.add('going'); }));   // the page transition closes the menu
+  addEventListener('pageshow', () => menu.querySelectorAll('.going').forEach(x => x.classList.remove('going')));
 
   // languages: the same segmented switch as in the hall
   const LANGS = ['es', 'ca', 'en', 'ru'];

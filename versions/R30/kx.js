@@ -20,6 +20,10 @@
   // cross-page transitions: a skipped transition (fast double tap, back gesture) is normal, keep it out of the console
   const quiet = e => { const v = e.viewTransition; if (v) ['ready', 'finished', 'updateCallbackDone'].forEach(k => v[k] && v[k].catch(() => {})); };
   addEventListener('pageswap', quiet); addEventListener('pagereveal', quiet);
+  // leaving: the page transition has its snapshot (pageswap comes first), so close the menu without motion; Back then shows the page clean
+  addEventListener('pagehide', () => { document.documentElement.classList.add('kx-still'); document.body.classList.remove('menu');
+    document.querySelectorAll('#menu .going').forEach(x => x.classList.remove('going')); const b = document.getElementById('menuBtn'); b && b.setAttribute('aria-expanded', 'false'); });
+  addEventListener('pageshow', () => requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.remove('kx-still'))));
   // ---------- instant navigation ----------
   // Pages are cacheable for 5 min (prod _headers), so a quiet fetch() puts the next page in the browser cache and the tap
   // opens it from there. Safari has no speculation rules: warm every menu page when the menu opens, and a link on first touch.
