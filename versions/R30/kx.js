@@ -21,21 +21,24 @@
   const quiet = e => { const v = e.viewTransition; if (v) ['ready', 'finished', 'updateCallbackDone'].forEach(k => v[k] && v[k].catch(() => {})); };
   addEventListener('pageswap', quiet); addEventListener('pagereveal', quiet);
   // ---------- instant navigation ----------
-  // Chrome/Edge: speculation rules prefetch same-site pages on hover / touch start. Safari: <link rel=prefetch> on first touch.
+  // Pages are cacheable for 5 min (prod _headers), so a quiet fetch() puts the next page in the browser cache and the tap
+  // opens it from there. Safari has no speculation rules: warm every menu page when the menu opens, and a link on first touch.
+  // Chrome/Edge additionally prefetch same-site pages (clean addresses, no file extension) on hover / touch start.
   const sameSite = a => a && a.href && a.origin === location.origin && !a.target && !a.hasAttribute('download') && /\.html$|\/$|^[^.]*$/.test(a.pathname.split('/').pop());
+  const warmed = new Set();
+  const warm = a => { if (!sameSite(a)) return; const u = a.href.split('#')[0]; if (warmed.has(u) || u === location.href.split('#')[0]) return; warmed.add(u);
+    try { fetch(u, { credentials: 'same-origin', priority: 'low' }).catch(() => {}); } catch (e) {} };
   try {
     if (HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules')) {
       const s = document.createElement('script'); s.type = 'speculationrules';
-      s.textContent = JSON.stringify({ prefetch: [{ source: 'document', where: { selector_matches: 'a[href*=".html"], a[href="./"], a[href="/"]' }, eagerness: 'moderate' }] });
+      s.textContent = JSON.stringify({ prefetch: [{ source: 'document', where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/*.*' } }, { not: { selector_matches: '[target],[download]' } }] }, eagerness: 'moderate' }] });
       document.head.appendChild(s);
-    } else {
-      const done = new Set();
-      const pf = e => { const a = e.target.closest && e.target.closest('a[href]'); if (!sameSite(a)) return;
-        const u = a.href.split('#')[0]; if (done.has(u) || u === location.href.split('#')[0]) return; done.add(u);
-        const l = document.createElement('link'); l.rel = 'prefetch'; l.href = u; l.as = 'document'; document.head.appendChild(l); };
-      addEventListener('touchstart', pf, { passive: true, capture: true });
-      addEventListener('mouseover', pf, { passive: true, capture: true });
-      addEventListener('focusin', pf, { capture: true });
     }
+    const pf = e => warm(e.target.closest && e.target.closest('a[href]'));
+    addEventListener('touchstart', pf, { passive: true, capture: true });
+    addEventListener('mouseover', pf, { passive: true, capture: true });
+    addEventListener('focusin', pf, { capture: true });
+    const onMenu = () => { if (document.body.classList.contains('menu')) document.querySelectorAll('#menu nav a.it[href]').forEach(warm); };
+    new MutationObserver(onMenu).observe(document.body, { attributes: true, attributeFilter: ['class'] });
   } catch (e) {}
 })();

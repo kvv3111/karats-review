@@ -10,7 +10,7 @@
  root.classList.add('story-js');
  const io = new IntersectionObserver(es => es.forEach(e => {
   if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
- }), {rootMargin:'0px 0px 8% 0px', threshold:0});
+ }), {rootMargin:'0px 0px -15% 0px', threshold:0});
  const watch = () => document.querySelectorAll('.story .rv:not(.in)').forEach(el => io.observe(el));
  watch();
  const cards = [...document.querySelectorAll('.sh-card')];

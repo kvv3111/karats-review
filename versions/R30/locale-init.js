@@ -14,6 +14,7 @@
     const x = new URL(u, location.href);
     const rest = x.pathname.replace(/^\/(ca|en|ru)(?=\/|$)/, '') || '/';
     x.pathname = (l === 'es' ? '' : '/' + l) + (rest.startsWith('/') ? rest : '/' + rest);
+    if (paths && x.origin === location.origin) x.pathname = x.pathname.replace(/(^|\/)index\.html$/, '$1').replace(/\.html$/, '');   // clean address: no 308 hop per tap
     x.searchParams.delete('lang');
     return x.href;
   };

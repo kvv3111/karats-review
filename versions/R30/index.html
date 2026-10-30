@@ -12,7 +12,7 @@
 })();
 </script>
 <style>html.room-boot #stage,html.room-boot .bar,html.room-boot .side,html.room-boot .track,html.room-boot .hint{visibility:hidden}</style>
-<script src="locale-init.js?v=paths-1"></script>
+<script src="locale-init.js?v=m1"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="only light">
@@ -301,6 +301,7 @@
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "AutoDealer", "name": "KARATS AUTO", "legalName": "KARATS AUTO, S.L.", "taxID": "B05735238", "url": "https://karatsauto.es/", "logo": "https://karatsauto.es/icon-192.png", "image": "https://karatsauto.es/og/home.jpg", "telephone": "+34602520978", "email": "info@karatsauto.es", "areaServed": {"@type": "City", "name": "Barcelona"}, "knowsLanguage": ["es", "ca", "en", "ru"]}</script>
 <!--/seo-->
 <style>#sGal[hidden]{display:none!important}.soon-photos{grid-column:1/-1;margin:4px 0;padding:14px 16px;border:1px solid rgba(29,33,30,.12);border-radius:14px;font-size:14px;line-height:1.4;color:var(--soft);text-align:center}#more[hidden]{visibility:hidden!important;pointer-events:none!important}#stage.incoming.hot{cursor:grab}</style>
+<link rel="stylesheet" href="motion.css?v=m2">
 </head>
 <body>
 <div id="stage" aria-label="Showroom KARATS AUTO">
@@ -426,6 +427,7 @@
     if (++n < 60) requestAnimationFrame(go); }; go(); };
   let opener = null;
   function openLayer(name) {
+    if (closing) { addEventListener("popstate", () => openLayer(name), { once: true }); return; }   // a tap while the previous close is still stepping back
     if (!opener) opener = document.activeElement;
     setTimeout(() => { const f = name === "menu" ? document.querySelector("#menu .it") : $("sClose"); f && f.focus({ preventScroll: true }); }, 60);
     B.classList.remove("menu", "sheet"); if (name === "sheet") B.style.setProperty("--dy", "0px"); B.classList.add(name);
@@ -436,7 +438,7 @@
     if (detailAnimations.length && !B.classList.contains("details")) return;
     if (B.classList.contains("details")) { closeDetails(); return; }
     if (closing || !(B.classList.contains("menu") || B.classList.contains("sheet"))) return;
-    if (layer()) { closing = true; history.back(); } else B.classList.remove("menu", "sheet");
+    if (layer()) { closing = true; B.classList.remove("menu"); history.back(); } else B.classList.remove("menu", "sheet");   // the menu starts closing on the tap, not after the history step
     refocus(opener); opener = null;
   }
   // closed panels are inert: Tab and screen readers skip them
@@ -466,7 +468,10 @@
   $("veil").onclick = closeAll;
   $("sClose").onclick = () => B.classList.contains("details") ? closeDetails() : closeAll();
   $("sMore").addEventListener("click", e => { if (e.ctrlKey || e.metaKey || e.shiftKey || e.button) return; e.preventDefault(); openDetails(); });
-  const nav = [...document.querySelectorAll("#menu nav .it")]; nav.forEach((a, k) => a.style.transitionDelay = (60 + k * 35) + "ms");
+  const nav = [...document.querySelectorAll("#menu nav .it")]; nav.forEach((a, k) => a.style.setProperty("--i", k));   // stagger lives in motion.css
+  // a menu link: drop the menu's history step and let the menu close while the next page loads (Back then lands on the hall, not on an open menu)
+  document.querySelectorAll("#menu a[href]").forEach(a => a.addEventListener("click", e => { if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.shiftKey || e.button || a.target) return;
+    if (!/^https?:/.test(a.href) || new URL(a.href).origin !== location.origin) return; if (layer() === "menu") history.replaceState(null, ""); B.classList.remove("menu"); }));
   // language switch: glass knob springs to the tapped language
   const L = [...document.querySelectorAll("#lang button")];
   L.forEach((b, k) => b.onclick = () => { L.forEach(x => x.classList.remove("on")); b.classList.add("on"); document.querySelector("#lang .knob").style.transform = `translateX(${k * 46}px)`; });
@@ -1611,7 +1616,7 @@
 </script>
 <script src="i18n.js?v=hig-1030"></script>
 <script src="site.js?v=hig-1030"></script>
-<script src="kx.js?v=r37"></script>
+<script src="kx.js?v=m1"></script>
 <script src="showroom-gallery.js?v=one-1"></script>
 </body>
 </html>

@@ -1,0 +1,32 @@
+/* KARATS AUTO: one menu motion for every page, the hall included (30.10.2026).
+   Loaded after the page styles; `html` in front of the selectors wins over the hall's inline copy.
+   Open: the glass panel grows out of the menu button (origin = the button), items follow one by one.
+   Close: the same path back, shorter and accelerating, items fade together. Only transform/opacity move. */
+
+/* The page under the menu is dimmed, not blurred: a full-screen blur over the hall froze Safari
+   for 0.3-0.5 s on every open/close (measured). The sheet of a car keeps its blur. */
+html #veil, html body.menu #veil { -webkit-backdrop-filter:none; backdrop-filter:none; background:rgba(239,236,230,.62); }
+html body:has(#sheet:not([inert])) #veil { -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); background:rgba(239,236,230,.18); }
+
+@media (prefers-reduced-motion:no-preference) {
+  html #veil { transition:opacity .26s cubic-bezier(.4,0,1,1); }
+  html body.menu #veil { transition:opacity .38s cubic-bezier(0,0,.2,1); }
+
+  html #menu { transform-origin:calc(100% - 32px) 22px; transform:translate3d(0,-6px,0) scale(.86); opacity:0; visibility:hidden;
+    transition:transform .26s cubic-bezier(.4,0,1,1), opacity .2s cubic-bezier(.4,0,1,1) .05s, visibility 0s .3s; }
+  html body.menu #menu { transform:none; opacity:1; visibility:visible;
+    transition:transform .52s cubic-bezier(.32,.72,0,1), opacity .22s cubic-bezier(0,0,.2,1), visibility 0s; }
+
+  html #menu nav .it, html #menu .foot, html #menu .mlegal { opacity:0; transform:translate3d(0,-10px,0);
+    transition:opacity .12s ease, transform .2s ease, background .2s; }
+  html body.menu #menu nav .it, html body.menu #menu .foot, html body.menu #menu .mlegal { opacity:1; transform:none;
+    transition:opacity .34s cubic-bezier(0,0,.2,1) calc(60ms + var(--i, 0) * 35ms),
+               transform .5s cubic-bezier(.32,.72,0,1) calc(60ms + var(--i, 0) * 35ms), background .2s; }
+  html #menu .foot { --i:5; } html #menu .mlegal { --i:6; }
+  html body.menu #menu nav .it:active { transition-duration:.34s, .5s, 0s; }   /* the press highlight is instant */
+}
+@media (prefers-reduced-motion:reduce) {
+  html #menu { transform:none; opacity:0; visibility:hidden; transition:opacity .15s ease, visibility 0s .15s; }
+  html body.menu #menu { opacity:1; visibility:visible; transition:opacity .15s ease, visibility 0s; }
+  html #menu nav .it, html #menu .foot, html #menu .mlegal { opacity:1; transform:none; }
+}

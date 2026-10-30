@@ -14,6 +14,13 @@
    Где есть scroll-driven animations (Chrome 115+, Safari 26+), анимация привязана к прокрутке
    и идёт на compositor: плавно в обе стороны, без JS. Иначе — запасной вариант в story.js. */
 @keyframes rv-in { from { opacity:0; transform:translate3d(0,48px,0); } to { opacity:1; transform:none; } }
+/* page intro: kicker, heading, lead and the hero frame arrive one after another on open */
+@keyframes k-intro { from { opacity:0; transform:translate3d(0,24px,0); } }
+@media (prefers-reduced-motion:no-preference) {
+  .story-page .phead > *, .story-page .sh-frame { animation:k-intro .9s cubic-bezier(.2,.7,.2,1) both; }
+  .story-page .phead .kick { animation-delay:.04s; } .story-page .phead h1 { animation-delay:.12s; }
+  .story-page .phead .lead { animation-delay:.22s; } .story-page .sh-frame { animation-delay:.32s; }
+}
 @keyframes sh-open { from { transform:scale(var(--s0,.9)); } to { transform:none; } }
 @keyframes sh-zoom { from { transform:scale(1.12); } to { transform:none; } }
 
@@ -27,7 +34,7 @@
 .story-js .story .rv.in { opacity:1; transform:none; }
 
 @supports (animation-timeline:view()) {
- .story .rv, .story-js .story .rv { opacity:1; transform:none; transition:none; animation:rv-in linear both; animation-timeline:view(); animation-range:entry 0% entry 85%; }
+ .story .rv, .story-js .story .rv { opacity:1; transform:none; transition:none; animation:rv-in linear both; animation-timeline:view(); animation-range:entry 5% cover 32%; }   /* was entry 0-85 %: a text line finished within ~35 px at the very bottom edge, nobody saw it */
  .sh-card { animation:sh-open linear both; animation-timeline:view(); animation-range:entry 30% cover 55%; }
  .sh-card img { animation:sh-zoom linear both; animation-timeline:view(); animation-range:entry 0% cover 60%; }
 }
