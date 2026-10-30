@@ -137,3 +137,13 @@ a.px-round { text-decoration:none; }
 /* copy v3 (22.10): headlines are not hyphenated, lines balanced like Apple */
 .phead h1 { hyphens:manual; -webkit-hyphens:manual; text-wrap:balance; }
 .phead .lead { text-wrap:pretty; }
+
+/* contacts: the phone number up top, large and tappable (30.10.2026) */
+.px-phone { display:flex; flex-direction:column; align-items:center; width:fit-content; margin:0 auto 28px; padding:16px 30px 18px; border-radius:28px;
+  background:var(--paper); color:var(--ink); text-decoration:none; box-shadow:0 12px 30px rgba(20,22,20,.07), inset 0 0 0 .6px var(--line);
+  transition:transform .2s cubic-bezier(.2,.8,.2,1); -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+.px-phone:active { transform:scale(.97); transition-duration:.1s; }
+.px-phone small { font-size:11.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--soft); }
+.px-phone b { margin-top:6px; font-family:Jost,sans-serif; font-weight:400; font-size:clamp(32px,9vw,44px); line-height:1.1; letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums; white-space:nowrap; }
+@media (hover:hover) and (pointer:fine) { .px-phone:hover { box-shadow:0 16px 36px rgba(20,22,20,.10), inset 0 0 0 .6px var(--line); } }
