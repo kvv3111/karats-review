@@ -22,6 +22,7 @@
 .cfavf.on { background:#1d211e; color:#fff; } .cfavf.on b { color:#ffb3aa; } .cfavf:active { transform:scale(.95); }
 .cfav { position:absolute; right:10px; top:10px; z-index:2; width:40px; height:40px; border:0; border-radius:50%; display:grid; place-items:center; cursor:pointer; color:#1d211e;
   background:rgba(247,245,240,.72); -webkit-backdrop-filter:blur(14px) saturate(160%); backdrop-filter:blur(14px) saturate(160%); box-shadow:inset 0 0 0 .6px rgba(255,255,255,.8), 0 4px 14px rgba(20,22,20,.14); transition:transform .45s var(--spring); }
+.cfav::before { content:""; position:absolute; inset:-2px; border-radius:50%; }   /* 44x44 tap area, same look */
 .cfav svg { width:20px; height:20px; } .cfav.on svg path { fill:#c8463b; stroke:#c8463b; } .cfav:active { transform:scale(.86); }
 @media (prefers-reduced-motion:no-preference) { .cfav.on svg { animation:cfpop .45s var(--spring); } }
 @keyframes cfpop { 0% { transform:scale(.6) } 60% { transform:scale(1.2) } 100% { transform:none } }
@@ -91,9 +92,9 @@
 </div>
 <footer data-footer></footer>
 <script src="cars.js?v=one-2"></script>
-<script src="i18n.js?v=paths-1"></script>
-<script src="site.js?v=tap-1"></script>
-<script src="nav.js?v=copy-v3"></script>
+<script src="i18n.js?v=hig-1030"></script>
+<script src="site.js?v=hig-1030"></script>
+<script src="nav.js?v=hig-1030"></script>
 <script src="kx.js?v=r37"></script>
 <script defer src="find.js?v=a11y-1"></script>
 <script>
@@ -173,7 +174,7 @@
     chips($('fBrand'), brands, 'brand', v => v);
     chips($('fFuel'), fuels, 'fuel', v => t('fuels')[v]);
     chips($('fGear'), gears, 'gear', v => t('gears')[v]);
-    $('note').textContent = t('note');
+    $('note').textContent = window.KARATS_DEMO ? t('note') : ''; $('note').hidden = !window.KARATS_DEMO;   // demo disclaimer only while the stock is demo
   }
   const P = $('fPrice'), K = $('fKm');
   P.min = PMIN; P.max = PMAX; P.step = 1000; K.min = KMIN; K.max = KMAX; K.step = 10000;
@@ -199,7 +200,7 @@
     return `<a class="ccar" href="${href}"><div class="img"><img src="c/${c.id}_s.webp" srcset="c/${c.id}_s.webp 600w, c/${c.id}.webp 900w" sizes="(min-width:980px) 380px, (min-width:620px) 50vw, 100vw" alt="${esc(c.brand + ' ' + c.model)}" loading="lazy" decoding="async" width="600" height="400">
       <button type="button" class="cfav${fav ? ' on' : ''}" data-fav="${c.id}" aria-pressed="${fav ? 'true' : 'false'}" aria-label="${t('favA')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg></button><span class="badge">${esc(c.label === '0' ? ({ es:'CERO', en:'ZERO', ru:'0', ca:'ZERO' })[L()] : c.label)}</span></div>
       <div class="body"><h3>${esc(tr(c.brand + ' ' + c.model))}</h3><div class="trim">${esc(tr(c.trim))}</div><div class="facts">${facts}</div>
-      <div class="price"><b>${fmtEUR(c.price)}</b><small>${t('vat')}</small></div></div></a>`;
+      <div class="price"><b>${fmtEUR(c.price)}</b><small>${c.transit ? esc(transitCopy()) : (window.KARATS_DEMO ? t('vat') : '')}</small></div></div></a>`;
   }
   function update() {
     P.value = S.price; K.value = S.km;

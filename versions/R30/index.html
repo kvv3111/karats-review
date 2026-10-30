@@ -328,7 +328,7 @@
 <div id="veil"></div>
 <div id="menu" class="lg" role="dialog" aria-label="Menú">
   <nav>
-    <a class="it" data-sec="01" href="catalogo.html"><span class="n">01</span><span class="t"><b>Coches</b><small>5 en el showroom · ver todos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
+    <a class="it" data-sec="01" href="catalogo.html"><span class="n">01</span><span class="t"><b>Coches</b><small>Ver el catálogo</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
     <a class="it" data-sec="02" href="nosotros.html"><span class="n">02</span><span class="t"><b>Sobre nosotros</b><small>Quiénes somos y cómo trabajamos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
     <a class="it" data-sec="03" href="ventajas.html"><span class="n">03</span><span class="t"><b>Ventajas</b><small>Garantía, revisión, entrega</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
     <a class="it" data-sec="04" href="comprar.html"><span class="n">04</span><span class="t"><b>Cómo comprar</b><small>De la reserva a las llaves en 4 pasos</small></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg></a>
@@ -722,7 +722,9 @@
       s = Math.max(W0 / 1093, Math.min(W0 / 1000, (navLow + 10 - topY) / (IH * 0.86)));
       ox = W0 / 2 - FOCUS_X * IW * s;
       // spare height is split evenly above and below (both edges blur away); short phones keep the old placement
-      oy = Math.max(H0 * 0.44 - IH * s * 0.55, topY + (navLow + 10 - topY - IH * s) / 2);   // centred between logo and dots
+      const spare = navLow + 10 - topY - IH * s;
+      // most of the spare height goes under the car (the floor fades out there), only 15 % above it: no empty band under the logo
+      oy = spare > 0 ? topY + spare * 0.15 : Math.max(H0 * 0.44 - IH * s * 0.55, topY + spare / 2);
     }
     else {
       // the frame is drawn 4 % larger than the screen, so a strip of the real room always waits beyond each edge
@@ -1607,8 +1609,8 @@
                             vis: +cv.style.opacity > 0.9 || !shownEl ? cvFrame : nOf(shownEl, shownEl.currentTime) });
 })();
 </script>
-<script src="i18n.js?v=paths-1"></script>
-<script src="site.js?v=tap-1"></script>
+<script src="i18n.js?v=hig-1030"></script>
+<script src="site.js?v=hig-1030"></script>
 <script src="kx.js?v=r37"></script>
 <script src="showroom-gallery.js?v=one-1"></script>
 </body>

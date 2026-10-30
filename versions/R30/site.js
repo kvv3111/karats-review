@@ -9,28 +9,28 @@
   const AVAILABLE = Object.freeze({ analytics: false, marketing: false });
   const lang = () => (window.KLang && KLang.language) || 'es';
   const T = {
-    es: { title: 'Cookies', text: 'Solo guardamos el idioma que eliges, tus favoritos, los últimos filtros del catálogo y la decisión de este panel. No hay cookies de análisis ni de publicidad. Aceptar no autoriza nuevos usos. Puedes cambiar tu elección en «Configurar cookies».',
+    es: { title: 'Cookies', short: 'Solo guardamos tus preferencias: idioma, favoritos, filtros y esta elección. Sin cookies de análisis ni publicidad.', text: 'Solo guardamos el idioma que eliges, tus favoritos, los últimos filtros del catálogo y la decisión de este panel. No hay cookies de análisis ni de publicidad. Aceptar no autoriza nuevos usos. Puedes cambiar tu elección en «Configurar cookies».',
           more: 'Política de cookies', accept: 'Aceptar', reject: 'Rechazar', config: 'Configurar',
           prefs: 'Configurar cookies', save: 'Guardar selección', acceptAll: 'Aceptar todas', rejectAll: 'Rechazar todas', close: 'Cerrar',
           nec: 'Necesarias', necD: 'Idioma, favoritos que guardas con ♥, últimos filtros del catálogo y tu elección en este panel. No se usan para seguirte ni mostrar publicidad.',
           ana: 'Análisis', anaD: 'Estadísticas de visitas para mejorar la web. Ahora mismo no usamos ninguna herramienta de este tipo.',
           mkt: 'Publicidad', mktD: 'Medir anuncios y mostrar publicidad relevante. Ahora mismo no usamos ninguna.',
           always: 'Siempre activas', saved: 'Preferencias guardadas' },
-    en: { title: 'Cookies', text: 'We only store your chosen language, saved favourites, your last catalogue filters and the choice in this panel. There are no analytics or advertising cookies. Accepting does not permit new uses. You can change your choice in “Cookie settings”.',
+    en: { title: 'Cookies', short: 'We only store your preferences: language, favourites, filters and this choice. No analytics or advertising cookies.', text: 'We only store your chosen language, saved favourites, your last catalogue filters and the choice in this panel. There are no analytics or advertising cookies. Accepting does not permit new uses. You can change your choice in “Cookie settings”.',
           more: 'Cookie policy', accept: 'Accept', reject: 'Reject', config: 'Settings',
           prefs: 'Cookie settings', save: 'Save choice', acceptAll: 'Accept all', rejectAll: 'Reject all', close: 'Close',
           nec: 'Necessary', necD: 'Your language, cars saved with ♥, your last catalogue filters and your choice in this panel. Not used to track you or show ads.',
           ana: 'Analytics', anaD: 'Visit statistics to improve the site. We do not use any such tool at the moment.',
           mkt: 'Advertising', mktD: 'Ad measurement and relevant ads. We do not use any at the moment.',
           always: 'Always on', saved: 'Preferences saved' },
-    ca: { title: 'Cookies', text: 'Només desem l’idioma que tries, els preferits, els últims filtres del catàleg i la decisió d’aquest panell. No hi ha cookies d’anàlisi ni de publicitat. Acceptar no autoritza usos nous. Pots canviar l’elecció a «Configurar les cookies».',
+    ca: { title: 'Cookies', short: 'Només desem les teves preferències: idioma, preferits, filtres i aquesta elecció. Sense cookies d’anàlisi ni publicitat.', text: 'Només desem l’idioma que tries, els preferits, els últims filtres del catàleg i la decisió d’aquest panell. No hi ha cookies d’anàlisi ni de publicitat. Acceptar no autoritza usos nous. Pots canviar l’elecció a «Configurar les cookies».',
           more: 'Política de cookies', accept: 'Acceptar', reject: 'Rebutjar', config: 'Configurar',
           prefs: 'Configurar les cookies', save: 'Desar la selecció', acceptAll: 'Acceptar-les totes', rejectAll: 'Rebutjar-les totes', close: 'Tancar',
           nec: 'Necessàries', necD: 'Idioma, preferits que deses amb ♥, últims filtres del catàleg i la teva elecció en aquest panell. No es fan servir per seguir-te ni mostrar publicitat.',
           ana: 'Anàlisi', anaD: 'Estadístiques de visites per millorar el web. Ara mateix no fem servir cap eina d’aquest tipus.',
           mkt: 'Publicitat', mktD: 'Mesurar anuncis i mostrar publicitat rellevant. Ara mateix no en fem servir cap.',
           always: 'Sempre actives', saved: 'Preferències desades' },
-    ru: { title: 'Cookies', text: 'Сохраняем выбранный язык, избранное, последние фильтры каталога и решение в этой панели. Аналитических и рекламных cookies нет. Нажатие «Принять» не разрешает новые способы использования. Изменить выбор можно в «Настройках cookies».',
+    ru: { title: 'Cookies', short: 'Сохраняем только ваши настройки: язык, избранное, фильтры и этот выбор. Без аналитических и рекламных cookies.', text: 'Сохраняем выбранный язык, избранное, последние фильтры каталога и решение в этой панели. Аналитических и рекламных cookies нет. Нажатие «Принять» не разрешает новые способы использования. Изменить выбор можно в «Настройках cookies».',
           more: 'Политика cookies', accept: 'Принять', reject: 'Отклонить', config: 'Настроить',
           prefs: 'Настройки cookies', save: 'Сохранить выбор', acceptAll: 'Принять все', rejectAll: 'Отклонить все', close: 'Закрыть',
           nec: 'Необходимые', necD: 'Язык, машины, сохранённые через ♥, последние фильтры каталога и выбор в этой панели. Не используются для отслеживания или рекламы.',
@@ -65,13 +65,14 @@
   }
 
   const css = `
-  #kc-bar{position:fixed;z-index:70;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;padding:16px 16px 14px;border-radius:24px;--lg-tint:.70;
+  #kc-bar{position:fixed;z-index:70;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto;padding:14px 14px 12px;border-radius:22px;--lg-tint:.70;
     transform:translateY(130%);opacity:0;visibility:hidden;pointer-events:none;transition:transform .6s var(--spring,ease),opacity .3s,visibility 0s .6s;font-size:14px;line-height:1.45;color:var(--ink,#1d211e)}
   #kc-bar.on{transform:none;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s}
   #kc-bar>*{position:relative;z-index:1}
-  #kc-bar b{font-family:Jost,sans-serif;font-weight:500;font-size:17px;display:block;margin-bottom:4px}
+  #kc-bar b{font-family:Jost,sans-serif;font-weight:600;font-size:14px}
+  .kc-link.kc-in{display:inline;margin:0;padding:0;text-decoration:underline}   /* compact bar: settings link inline */
   #kc-bar a{color:var(--acc,#304c40)}
-  .kc-row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .kc-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
   .kc-row .btn{flex:1 1 0;height:44px;padding:0 14px;font-size:14px;min-width:96px}
   .kc-link{display:block;margin:10px auto 0;border:0;background:none;color:var(--acc,#304c40);font:inherit;font-weight:600;text-decoration:underline;cursor:pointer;padding:4px 8px}
   .kc-eq{background:var(--ink,#1d211e);color:#fff;box-shadow:0 8px 20px rgba(20,22,20,.18)}
@@ -109,10 +110,9 @@
   const policy = () => 'cookies.html' + (lang() !== 'es' ? '?lang=' + lang() : '');
   function renderBar() {
     bar.setAttribute('aria-label', t('title'));
-    bar.innerHTML = `<b>${t('title')}</b><div>${t('text')} <a href="${policy()}">${t('more')}</a></div>
+    bar.innerHTML = `<div><b>${t('title')}.</b> ${t('short')} <a href="${policy()}">${t('more')}</a> · <button type="button" class="kc-link kc-in" data-k="config">${t('config')}</button></div>
       <div class="kc-row"><button type="button" class="btn kc-eq" data-k="reject">${t('reject')}</button>
-      <button type="button" class="btn kc-eq" data-k="accept">${t('accept')}</button></div>
-      <button type="button" class="kc-link" data-k="config">${t('config')}</button>`;
+      <button type="button" class="btn kc-eq" data-k="accept">${t('accept')}</button></div>`;
     bar.querySelector('[data-k=reject]').onclick = () => { write(false, false); hideBar(); };
     bar.querySelector('[data-k=accept]').onclick = () => { write(true, true); hideBar(); };
     bar.querySelector('[data-k=config]').onclick = () => openPrefs();
@@ -217,7 +217,7 @@
     const langs = [['es', 'ES'], ['ca', 'CA'], ['en', 'EN'], ['ru', 'RU']].map(([c, n]) => `<a href="${lhref(c)}" hreflang="${c}" lang="${c}"${c === L ? ' aria-current="true"' : ''}>${n}</a>`).join('');
     document.querySelectorAll('[data-footer]').forEach(f => {
       f.setAttribute('translate', 'no'); f.classList.add('kfoot');
-      f.innerHTML = `<div class="kf-in"><p class="kf-note">${f0.note}</p>
+      f.innerHTML = `<div class="kf-in">${window.KARATS_DEMO ? `<p class="kf-note">${f0.note}</p>` : ''}
         <div class="kf-cols">
           ${col('buy', f0.buy, [NAV[0], NAV[1], NAV[4]].map(a).join(''))}
           ${col('co', f0.co, [NAV[2], NAV[3], NAV[5]].map(a).join(''))}
@@ -234,13 +234,14 @@
     .kf-note{padding-bottom:14px;border-bottom:.6px solid rgba(29,33,30,.14);font-size:12px;color:#616661}
     .kf-cols{display:grid;grid-template-columns:1fr}
     .kf-col{border-bottom:.6px solid rgba(29,33,30,.14)}
-    .kf-h{all:unset;box-sizing:border-box;display:flex;width:100%;justify-content:space-between;align-items:center;padding:12px 0;font-weight:600;font-size:12.5px;color:#1d211e;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .kf-h{all:unset;box-sizing:border-box;display:flex;width:100%;justify-content:space-between;align-items:center;padding:13.5px 0;font-weight:600;font-size:12.5px;color:#1d211e;cursor:pointer;-webkit-tap-highlight-color:transparent}
     .kf-h svg{width:15px;height:15px;color:#616661;transition:transform .45s cubic-bezier(.3,1.35,.45,1)}
     .kf-col.open .kf-h svg{transform:rotate(180deg)}
     .kf-list{display:grid;grid-template-rows:0fr;overflow:hidden;transition:grid-template-rows .45s cubic-bezier(.22,.8,.25,1)}
     .kf-col.open .kf-list{grid-template-rows:1fr}
     .kf-list>div{min-height:0;overflow:hidden}
     .kf-list a,.kf-list button,.kf-list span{display:block;color:#5e625d;text-decoration:none;background:none;border:0;padding:6px 0 6px 12px;font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
+    .kf-list a,.kf-list button{padding-top:13.5px;padding-bottom:13.5px}
     .kf-col.open .kf-list>div{padding-bottom:10px}
     .kf-list span{cursor:default}
     @media (hover:hover){.kf-list a:hover,.kf-list button:hover{color:#1d211e;text-decoration:underline}}

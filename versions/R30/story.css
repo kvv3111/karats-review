@@ -40,7 +40,7 @@
 /* 3. Цифры */
 .ss { display:grid; grid-template-columns:1fr 1fr; gap:40px; padding:0 0 clamp(80px,14vh,160px); }
 .why-page .prose .ss-n { font:600 clamp(72px,10vw,136px)/1 Jost,sans-serif; letter-spacing:-.05em; background:linear-gradient(100deg,#1f3a2f 0%,#4f7a5f 60%,#8aa889 100%); -webkit-background-clip:text; background-clip:text; color:transparent; padding-bottom:.06em; }
-.why-page .prose .ss-c { margin-top:14px; max-width:360px; font:600 clamp(19px,1.7vw,22px)/1.35 Jost,sans-serif; letter-spacing:-.01em; color:var(--grey); }
+.why-page .prose .ss-c { margin-top:14px; max-width:360px; font:600 clamp(19px,1.7vw,22px)/1.35 Jost,sans-serif; letter-spacing:-.01em; color:#5f665f; }   /* 19-22px captions: 5.0:1 on #efece6 (grey was 3.3:1) */
 .ss-i:nth-child(2) { transition-delay:.12s; }
 
 /* 4. Тёмная карточка-список */
